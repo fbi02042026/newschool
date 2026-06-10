@@ -109,23 +109,23 @@ namespace GaokaoSimulator.Features.Profile
             headerImage.color = new Color32(255, 255, 255, 244);
             AddSoftShadow(headerCard.gameObject, new Color(0.53f, 0.39f, 0.4f, 0.14f), new Vector2(0f, -12f));
 
-            backButton = CreateSmallButton("返回", headerCard, font, new Color32(255, 224, 202, 255), new Color32(131, 87, 63, 255));
+            backButton = CreateSmallButton("回到首页", headerCard, font, new Color32(255, 224, 202, 255), new Color32(131, 87, 63, 255));
             var backRect = (RectTransform)backButton.transform;
             backRect.anchorMin = new Vector2(0.02f, 0.68f);
             backRect.anchorMax = new Vector2(0.22f, 0.95f);
             backRect.offsetMin = Vector2.zero;
             backRect.offsetMax = Vector2.zero;
 
-            var title = CreateText("Title", headerCard, font, 62, FontStyle.Bold, new Color32(112, 71, 103, 255));
-            title.text = "创建人物";
+            var title = CreateText("Title", headerCard, font, 74, FontStyle.Bold, new Color32(112, 71, 103, 255));
+            title.text = "先认识一下你";
             title.alignment = TextAnchor.MiddleCenter;
             title.rectTransform.anchorMin = new Vector2(0.16f, 0.54f);
             title.rectTransform.anchorMax = new Vector2(0.84f, 0.9f);
             title.rectTransform.offsetMin = Vector2.zero;
             title.rectTransform.offsetMax = Vector2.zero;
 
-            hintText = CreateText("Hint", headerCard, font, 28, FontStyle.Normal, new Color32(142, 119, 135, 255));
-            hintText.text = "先设定你的形象和昵称，再进入后续的新手流程";
+            hintText = CreateText("Hint", headerCard, font, 34, FontStyle.Normal, new Color32(142, 119, 135, 255));
+            hintText.text = "选一个更像你的形象，再告诉我该怎么称呼你吧";
             hintText.alignment = TextAnchor.MiddleCenter;
             hintText.rectTransform.anchorMin = new Vector2(0.08f, 0.1f);
             hintText.rectTransform.anchorMax = new Vector2(0.92f, 0.42f);
@@ -156,7 +156,7 @@ namespace GaokaoSimulator.Features.Profile
             avatarImage.color = new Color32(255, 239, 220, 255);
             AddSoftShadow(avatarFrame.gameObject, new Color(0.5f, 0.36f, 0.26f, 0.14f), new Vector2(0f, -10f));
 
-            previewText = CreateText("AvatarPreview", avatarFrame, font, 58, FontStyle.Bold, new Color32(121, 88, 69, 255));
+            previewText = CreateText("AvatarPreview", avatarFrame, font, 68, FontStyle.Bold, new Color32(121, 88, 69, 255));
             previewText.alignment = TextAnchor.MiddleCenter;
             Stretch(previewText.rectTransform);
 
@@ -180,8 +180,8 @@ namespace GaokaoSimulator.Features.Profile
             inputSection.offsetMin = Vector2.zero;
             inputSection.offsetMax = Vector2.zero;
 
-            var nameLabel = CreateText("NameLabel", inputSection, font, 34, FontStyle.Bold, new Color32(112, 76, 106, 255));
-            nameLabel.text = "昵称";
+            var nameLabel = CreateText("NameLabel", inputSection, font, 40, FontStyle.Bold, new Color32(112, 76, 106, 255));
+            nameLabel.text = "同学，怎么称呼你呀？";
             nameLabel.alignment = TextAnchor.MiddleLeft;
             nameLabel.rectTransform.anchorMin = new Vector2(0f, 0.66f);
             nameLabel.rectTransform.anchorMax = new Vector2(0.4f, 1f);
@@ -204,12 +204,12 @@ namespace GaokaoSimulator.Features.Profile
             textViewport.offsetMax = new Vector2(-22f, -14f);
             textViewport.gameObject.AddComponent<RectMask2D>();
 
-            var placeholder = CreateText("Placeholder", textViewport, font, 34, FontStyle.Normal, new Color32(190, 169, 179, 255));
-            placeholder.text = "输入你的昵称";
+            var placeholder = CreateText("Placeholder", textViewport, font, 40, FontStyle.Normal, new Color32(190, 169, 179, 255));
+            placeholder.text = "输入你想使用的称呼";
             placeholder.alignment = TextAnchor.MiddleLeft;
             Stretch(placeholder.rectTransform);
 
-            var inputText = CreateText("Text", textViewport, font, 34, FontStyle.Bold, new Color32(96, 78, 101, 255));
+            var inputText = CreateText("Text", textViewport, font, 40, FontStyle.Bold, new Color32(96, 78, 101, 255));
             inputText.alignment = TextAnchor.MiddleLeft;
             Stretch(inputText.rectTransform);
 
@@ -218,14 +218,14 @@ namespace GaokaoSimulator.Features.Profile
             nameInputField.lineType = InputField.LineType.SingleLine;
             nameInputField.characterLimit = 8;
 
-            randomNameButton = CreateSmallButton("随机昵称", inputSection, font, new Color32(255, 230, 190, 255), new Color32(129, 93, 45, 255));
+            randomNameButton = CreateSmallButton("换个称呼", inputSection, font, new Color32(255, 230, 190, 255), new Color32(129, 93, 45, 255));
             var randomRect = (RectTransform)randomNameButton.transform;
             randomRect.anchorMin = new Vector2(0.76f, 0.16f);
             randomRect.anchorMax = new Vector2(1f, 0.62f);
             randomRect.offsetMin = Vector2.zero;
             randomRect.offsetMax = Vector2.zero;
 
-            confirmButton = CreatePrimaryButton("确认并继续", panel, font, new Color32(126, 189, 255, 255), new Color32(255, 255, 255, 255));
+            confirmButton = CreatePrimaryButton("就这样决定了", panel, font, new Color32(126, 189, 255, 255), new Color32(255, 255, 255, 255));
             var confirmRect = (RectTransform)confirmButton.transform;
             confirmRect.anchorMin = new Vector2(0.12f, 0.0f);
             confirmRect.anchorMax = new Vector2(0.88f, 0.09f);
@@ -262,7 +262,7 @@ namespace GaokaoSimulator.Features.Profile
             var playerName = SanitizeName(nameInputField.text);
             if (string.IsNullOrWhiteSpace(playerName))
             {
-                ShowToast("昵称不能为空");
+                ShowToast("还没告诉我怎么称呼你呢");
                 return;
             }
 
@@ -406,13 +406,13 @@ namespace GaokaoSimulator.Features.Profile
 
             AddSoftShadow(rect.gameObject, new Color(0.35f, 0.24f, 0.34f, 0.16f), new Vector2(0f, -8f));
 
-            var text = CreateText("Label", rect, font, 38, FontStyle.Bold, textColor);
+            var text = CreateText("Label", rect, font, 44, FontStyle.Bold, textColor);
             text.text = label;
             text.alignment = TextAnchor.MiddleCenter;
             Stretch(text.rectTransform);
             text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 22;
-            text.resizeTextMaxSize = 38;
+            text.resizeTextMinSize = 26;
+            text.resizeTextMaxSize = 44;
 
             return button;
         }

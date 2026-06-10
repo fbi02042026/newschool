@@ -140,7 +140,7 @@ namespace GaokaoSimulator.Features.Launch
             titleGroup.offsetMax = Vector2.zero;
             titleTransform = titleGroup;
 
-            var titleText = CreateText("MainTitle", titleGroup, font, 84, FontStyle.Bold, new Color32(117, 76, 115, 255));
+            var titleText = CreateText("MainTitle", titleGroup, font, 96, FontStyle.Bold, new Color32(117, 76, 115, 255));
             Stretch(titleText.rectTransform);
             titleText.alignment = TextAnchor.UpperCenter;
             titleText.text = "我的高考志愿模拟器";
@@ -152,11 +152,11 @@ namespace GaokaoSimulator.Features.Launch
             subtitleRect.offsetMax = Vector2.zero;
             var subtitleText = subtitleRect.gameObject.AddComponent<Text>();
             subtitleText.font = font;
-            subtitleText.fontSize = 34;
+            subtitleText.fontSize = 42;
             subtitleText.fontStyle = FontStyle.Normal;
             subtitleText.alignment = TextAnchor.UpperCenter;
             subtitleText.color = new Color32(130, 103, 136, 255);
-            subtitleText.text = "2026 新高考基线版 · 轻松上手的小游戏体验";
+            subtitleText.text = "同学，这一次我们陪你一起走过高考选择";
 
             var card = CreateUiObject("ButtonCard", safePanel);
             card.anchorMin = new Vector2(0.04f, 0.18f);
@@ -176,10 +176,10 @@ namespace GaokaoSimulator.Features.Launch
             layout.childControlWidth = true;
             layout.childControlHeight = false;
 
-            newGameButton = CreateButton("新游戏", card, font, new Color32(255, 171, 197, 255), new Color32(116, 45, 86, 255));
-            continueGameButton = CreateButton("继续游戏", card, font, new Color32(191, 225, 255, 255), new Color32(52, 88, 128, 255));
-            settingsButton = CreateButton("设置", card, font, new Color32(229, 214, 255, 255), new Color32(90, 67, 121, 255));
-            aboutButton = CreateButton("关于", card, font, new Color32(255, 227, 185, 255), new Color32(121, 82, 45, 255));
+            newGameButton = CreateButton("开始旅程", card, font, new Color32(255, 171, 197, 255), new Color32(116, 45, 86, 255));
+            continueGameButton = CreateButton("继续前行", card, font, new Color32(191, 225, 255, 255), new Color32(52, 88, 128, 255));
+            settingsButton = CreateButton("偏好设置", card, font, new Color32(229, 214, 255, 255), new Color32(90, 67, 121, 255));
+            aboutButton = CreateButton("旅程说明", card, font, new Color32(255, 227, 185, 255), new Color32(121, 82, 45, 255));
 
             var tipRect = CreateUiObject("TipText", safePanel);
             tipRect.anchorMin = new Vector2(0.08f, 0.08f);
@@ -188,10 +188,10 @@ namespace GaokaoSimulator.Features.Launch
             tipRect.offsetMax = Vector2.zero;
             var tipText = tipRect.gameObject.AddComponent<Text>();
             tipText.font = font;
-            tipText.fontSize = 28;
+            tipText.fontSize = 34;
             tipText.alignment = TextAnchor.MiddleCenter;
             tipText.color = new Color32(133, 111, 139, 255);
-            tipText.text = "首次进入建议从“新游戏”开始体验完整引导流程";
+            tipText.text = "第一次来没关系，我们会陪你一步一步熟悉规则";
 
             var versionRect = CreateUiObject("Version", safePanel);
             versionRect.anchorMin = new Vector2(0.25f, 0.0f);
@@ -200,7 +200,7 @@ namespace GaokaoSimulator.Features.Launch
             versionRect.offsetMax = Vector2.zero;
             versionText = versionRect.gameObject.AddComponent<Text>();
             versionText.font = font;
-            versionText.fontSize = 26;
+            versionText.fontSize = 30;
             versionText.alignment = TextAnchor.MiddleCenter;
             versionText.color = new Color32(154, 134, 160, 255);
         }
@@ -251,7 +251,7 @@ namespace GaokaoSimulator.Features.Launch
         private static Button CreateButton(string label, Transform parent, Font font, Color backgroundColor, Color textColor)
         {
             var rect = CreateUiObject($"Button_{label}", parent);
-            rect.sizeDelta = new Vector2(0f, 150f);
+            rect.sizeDelta = new Vector2(0f, 168f);
 
             var image = rect.gameObject.AddComponent<Image>();
             image.color = backgroundColor;
@@ -269,16 +269,16 @@ namespace GaokaoSimulator.Features.Launch
             shadow.effectColor = new Color(0.35f, 0.25f, 0.32f, 0.14f);
             shadow.effectDistance = new Vector2(0f, -7f);
 
-            var labelText = CreateText("Label", rect, font, 46, FontStyle.Bold, textColor);
+            var labelText = CreateText("Label", rect, font, 54, FontStyle.Bold, textColor);
             Stretch(labelText.rectTransform);
             labelText.alignment = TextAnchor.MiddleCenter;
             labelText.text = label;
             labelText.resizeTextForBestFit = true;
-            labelText.resizeTextMinSize = 24;
-            labelText.resizeTextMaxSize = 46;
+            labelText.resizeTextMinSize = 28;
+            labelText.resizeTextMaxSize = 54;
 
             var layout = rect.gameObject.AddComponent<LayoutElement>();
-            layout.preferredHeight = 150f;
+            layout.preferredHeight = 168f;
 
             return button;
         }
@@ -323,7 +323,7 @@ namespace GaokaoSimulator.Features.Launch
         {
             Debug.Log("[LaunchScreen] 点击设置");
             // 设置界面暂未实现，先给玩家明确反馈，避免跳转到空界面
-            ShowToast("设置功能开发中，后续开放");
+            ShowToast("偏好设置还在整理中，之后会开放给你");
         }
         
         /// <summary>
@@ -468,7 +468,7 @@ namespace GaokaoSimulator.Features.Launch
         {
             Debug.Log("[LaunchScreen] 显示关于对话框");
             // 显示游戏信息、版本号、版权信息等
-            ShowToast($"我的高考志愿模拟器\n版本: {Application.version}\n2026新高考基线版");
+            ShowToast($"我的高考志愿模拟器\n版本：{Application.version}\n这是一段从高考到人生选择的模拟旅程");
         }
         
         #endregion
