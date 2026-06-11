@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using GaokaoSimulator.UI;
+using GaokaoSimulator.UI.Effects;
 
 namespace GaokaoSimulator.Features.Launch
 {
@@ -121,7 +123,9 @@ namespace GaokaoSimulator.Features.Launch
             var background = CreateUiObject("Background", root);
             Stretch(background);
             var backgroundImage = background.gameObject.AddComponent<Image>();
-            backgroundImage.color = new Color32(255, 244, 250, 255);
+            backgroundImage.color = Color.white;
+            var bgGradient = background.gameObject.AddComponent<UiVerticalGradient>();
+            bgGradient.SetColors(new Color32(255, 248, 233, 255), new Color32(255, 234, 246, 255));
 
             CreateDecorBubble(root, "BubbleTopLeft", new Vector2(110f, -160f), 220f, new Color32(255, 210, 228, 120));
             CreateDecorBubble(root, "BubbleTopRight", new Vector2(-120f, -250f), 300f, new Color32(198, 235, 255, 110), true);
@@ -134,56 +138,83 @@ namespace GaokaoSimulator.Features.Launch
             safePanel.offsetMax = Vector2.zero;
 
             var titleGroup = CreateUiObject("TitleGroup", safePanel);
-            titleGroup.anchorMin = new Vector2(0f, 0.63f);
+            titleGroup.anchorMin = new Vector2(0f, 0.70f);
             titleGroup.anchorMax = new Vector2(1f, 0.95f);
             titleGroup.offsetMin = Vector2.zero;
             titleGroup.offsetMax = Vector2.zero;
             titleTransform = titleGroup;
 
-            var titleText = CreateText("MainTitle", titleGroup, font, 96, FontStyle.Bold, new Color32(117, 76, 115, 255));
+            var titleBubble = CreateUiObject("TitleBubble", titleGroup);
+            titleBubble.anchorMin = new Vector2(0.06f, 0.18f);
+            titleBubble.anchorMax = new Vector2(0.94f, 0.96f);
+            titleBubble.offsetMin = Vector2.zero;
+            titleBubble.offsetMax = Vector2.zero;
+            var titleBubbleImage = titleBubble.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(titleBubbleImage);
+            titleBubbleImage.color = new Color32(255, 255, 255, 242);
+            var titleBubbleOutline = titleBubble.gameObject.AddComponent<Outline>();
+            titleBubbleOutline.effectColor = new Color32(255, 207, 223, 255);
+            titleBubbleOutline.effectDistance = new Vector2(5f, -5f);
+
+            var titleText = CreateText("MainTitle", titleBubble, font, 96, FontStyle.Bold, new Color32(252, 132, 141, 255));
             Stretch(titleText.rectTransform);
-            titleText.alignment = TextAnchor.UpperCenter;
-            titleText.text = "我的高考志愿模拟器";
+            titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.text = "我的高考\n志愿模拟器";
+            var titleShadow = titleText.gameObject.AddComponent<Shadow>();
+            titleShadow.effectColor = new Color(0.25f, 0.2f, 0.25f, 0.25f);
+            titleShadow.effectDistance = new Vector2(0f, -6f);
 
-            var subtitleRect = CreateUiObject("Subtitle", titleGroup);
-            subtitleRect.anchorMin = new Vector2(0f, 0f);
-            subtitleRect.anchorMax = new Vector2(1f, 0.36f);
-            subtitleRect.offsetMin = Vector2.zero;
-            subtitleRect.offsetMax = Vector2.zero;
-            var subtitleText = subtitleRect.gameObject.AddComponent<Text>();
-            subtitleText.font = font;
-            subtitleText.fontSize = 42;
-            subtitleText.fontStyle = FontStyle.Normal;
-            subtitleText.alignment = TextAnchor.UpperCenter;
-            subtitleText.color = new Color32(130, 103, 136, 255);
-            subtitleText.text = "同学，这一次我们陪你一起走过高考选择";
+            var hero = CreateUiObject("Hero", safePanel);
+            hero.anchorMin = new Vector2(0.08f, 0.34f);
+            hero.anchorMax = new Vector2(0.92f, 0.70f);
+            hero.offsetMin = Vector2.zero;
+            hero.offsetMax = Vector2.zero;
+            var heroImage = hero.gameObject.AddComponent<Image>();
+            heroImage.color = Color.white;
+            heroImage.preserveAspect = true;
+            var heroSprite = RuntimeArt.LoadSprite("UI/Launch/hero_boy_books");
+            if (heroSprite != null)
+            {
+                heroImage.sprite = heroSprite;
+            }
+            else
+            {
+                heroImage.enabled = false;
+            }
 
-            var card = CreateUiObject("ButtonCard", safePanel);
-            card.anchorMin = new Vector2(0.04f, 0.18f);
-            card.anchorMax = new Vector2(0.96f, 0.62f);
-            card.offsetMin = Vector2.zero;
-            card.offsetMax = Vector2.zero;
-            var cardImage = card.gameObject.AddComponent<Image>();
-            cardImage.color = new Color32(255, 255, 255, 245);
-            var cardShadow = card.gameObject.AddComponent<Shadow>();
-            cardShadow.effectColor = new Color(0.47f, 0.34f, 0.47f, 0.16f);
-            cardShadow.effectDistance = new Vector2(0f, -14f);
+            newGameButton = CreateButton("开始新游戏", safePanel, font, Color.white, Color.white);
+            var newGameRect = (RectTransform)newGameButton.transform;
+            newGameRect.anchorMin = new Vector2(0.12f, 0.16f);
+            newGameRect.anchorMax = new Vector2(0.88f, 0.26f);
+            newGameRect.offsetMin = Vector2.zero;
+            newGameRect.offsetMax = Vector2.zero;
+            StylePrimaryButton(newGameButton, new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
 
-            var layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(48, 48, 54, 54);
-            layout.spacing = 26;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
+            continueGameButton = CreateButton("继续", safePanel, font, Color.white, new Color32(255, 104, 126, 255));
+            var continueRect = (RectTransform)continueGameButton.transform;
+            continueRect.anchorMin = new Vector2(0.32f, 0.125f);
+            continueRect.anchorMax = new Vector2(0.68f, 0.165f);
+            continueRect.offsetMin = Vector2.zero;
+            continueRect.offsetMax = Vector2.zero;
+            StyleOutlineButton(continueGameButton, new Color32(255, 104, 126, 255));
 
-            newGameButton = CreateButton("开始旅程", card, font, new Color32(255, 171, 197, 255), new Color32(116, 45, 86, 255));
-            continueGameButton = CreateButton("继续前行", card, font, new Color32(191, 225, 255, 255), new Color32(52, 88, 128, 255));
-            settingsButton = CreateButton("偏好设置", card, font, new Color32(229, 214, 255, 255), new Color32(90, 67, 121, 255));
-            aboutButton = CreateButton("旅程说明", card, font, new Color32(255, 227, 185, 255), new Color32(121, 82, 45, 255));
+            aboutButton = CreateIconButton("?", safePanel, font);
+            var aboutRect = (RectTransform)aboutButton.transform;
+            aboutRect.anchorMin = new Vector2(0.02f, 0.06f);
+            aboutRect.anchorMax = new Vector2(0.10f, 0.12f);
+            aboutRect.offsetMin = Vector2.zero;
+            aboutRect.offsetMax = Vector2.zero;
+
+            settingsButton = CreateIconButton("⚙", safePanel, font);
+            var settingsRect = (RectTransform)settingsButton.transform;
+            settingsRect.anchorMin = new Vector2(0.90f, 0.06f);
+            settingsRect.anchorMax = new Vector2(0.98f, 0.12f);
+            settingsRect.offsetMin = Vector2.zero;
+            settingsRect.offsetMax = Vector2.zero;
 
             var tipRect = CreateUiObject("TipText", safePanel);
-            tipRect.anchorMin = new Vector2(0.08f, 0.08f);
-            tipRect.anchorMax = new Vector2(0.92f, 0.15f);
+            tipRect.anchorMin = new Vector2(0.08f, 0.27f);
+            tipRect.anchorMax = new Vector2(0.92f, 0.34f);
             tipRect.offsetMin = Vector2.zero;
             tipRect.offsetMax = Vector2.zero;
             var tipText = tipRect.gameObject.AddComponent<Text>();
@@ -203,6 +234,72 @@ namespace GaokaoSimulator.Features.Launch
             versionText.fontSize = 30;
             versionText.alignment = TextAnchor.MiddleCenter;
             versionText.color = new Color32(154, 134, 160, 255);
+        }
+
+        private static void StylePrimaryButton(Button button, Color top, Color bottom)
+        {
+            if (button == null) return;
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                RuntimeArt.ApplyRounded(image);
+                image.color = Color.white;
+                var g = image.gameObject.AddComponent<UiVerticalGradient>();
+                g.SetColors(top, bottom);
+            }
+
+            var label = button.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.color = Color.white;
+                label.fontStyle = FontStyle.Bold;
+            }
+        }
+
+        private static void StyleOutlineButton(Button button, Color outlineColor)
+        {
+            if (button == null) return;
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                RuntimeArt.ApplyRounded(image);
+                image.color = new Color32(255, 255, 255, 242);
+                var outline = image.gameObject.AddComponent<Outline>();
+                outline.effectColor = outlineColor;
+                outline.effectDistance = new Vector2(4f, -4f);
+            }
+
+            var label = button.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.color = outlineColor;
+                label.fontStyle = FontStyle.Bold;
+            }
+        }
+
+        private static Button CreateIconButton(string label, Transform parent, Font font)
+        {
+            var button = CreateButton(label, parent, font, Color.white, new Color32(120, 120, 120, 255));
+            var rect = (RectTransform)button.transform;
+            rect.sizeDelta = Vector2.zero;
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                RuntimeArt.ApplyRounded(image);
+                image.color = new Color32(255, 255, 255, 240);
+                var outline = image.gameObject.AddComponent<Outline>();
+                outline.effectColor = new Color32(206, 233, 255, 255);
+                outline.effectDistance = new Vector2(3f, -3f);
+            }
+
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.resizeTextForBestFit = false;
+                text.fontSize = 58;
+            }
+
+            return button;
         }
 
         private static void CreateDecorBubble(RectTransform parent, string name, Vector2 anchoredPosition, float size, Color color, bool anchorRight = false)
@@ -255,6 +352,7 @@ namespace GaokaoSimulator.Features.Launch
 
             var image = rect.gameObject.AddComponent<Image>();
             image.color = backgroundColor;
+            RuntimeArt.ApplyRounded(image);
 
             var button = rect.gameObject.AddComponent<Button>();
             var colors = button.colors;

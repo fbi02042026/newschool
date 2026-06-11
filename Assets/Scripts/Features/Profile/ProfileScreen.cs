@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using GaokaoSimulator.UI;
+using GaokaoSimulator.UI.Effects;
 
 namespace GaokaoSimulator.Features.Profile
 {
@@ -20,6 +22,11 @@ namespace GaokaoSimulator.Features.Profile
         private Text previewText;
 
         private Core.PlayerGender selectedGender = Core.PlayerGender.Male;
+
+        private Image maleCardImage;
+        private Image femaleCardImage;
+        private Image maleAvatarImage;
+        private Image femaleAvatarImage;
 
         private static readonly string[] MaleNames =
         {
@@ -88,7 +95,9 @@ namespace GaokaoSimulator.Features.Profile
             var background = CreateUiObject("Background", root);
             Stretch(background);
             var bgImage = background.gameObject.AddComponent<Image>();
-            bgImage.color = new Color32(255, 247, 241, 255);
+            bgImage.color = Color.white;
+            var bgGradient = background.gameObject.AddComponent<UiVerticalGradient>();
+            bgGradient.SetColors(new Color32(255, 248, 233, 255), new Color32(236, 247, 255, 255));
 
             CreateDecorCircle(root, "CircleTopLeft", new Vector2(88f, -140f), 180f, new Color32(255, 216, 226, 95));
             CreateDecorCircle(root, "CircleTopRight", new Vector2(-82f, -220f), 250f, new Color32(207, 231, 255, 95), true);
@@ -147,32 +156,34 @@ namespace GaokaoSimulator.Features.Profile
             avatarPanel.offsetMin = Vector2.zero;
             avatarPanel.offsetMax = Vector2.zero;
 
-            var avatarFrame = CreateUiObject("AvatarFrame", avatarPanel);
-            avatarFrame.anchorMin = new Vector2(0.32f, 0f);
-            avatarFrame.anchorMax = new Vector2(0.68f, 1f);
-            avatarFrame.offsetMin = Vector2.zero;
-            avatarFrame.offsetMax = Vector2.zero;
-            var avatarImage = avatarFrame.gameObject.AddComponent<Image>();
-            avatarImage.color = new Color32(255, 239, 220, 255);
-            AddSoftShadow(avatarFrame.gameObject, new Color(0.5f, 0.36f, 0.26f, 0.14f), new Vector2(0f, -10f));
-
-            previewText = CreateText("AvatarPreview", avatarFrame, font, 68, FontStyle.Bold, new Color32(121, 88, 69, 255));
-            previewText.alignment = TextAnchor.MiddleCenter;
-            Stretch(previewText.rectTransform);
-
-            maleButton = CreateGenderButton("男生", avatarPanel, font, new Color32(190, 225, 255, 255), new Color32(60, 98, 139, 255));
+            maleButton = CreateGenderButton("男生", avatarPanel, font, new Color32(255, 255, 255, 248), new Color32(88, 116, 156, 255));
             var maleRect = (RectTransform)maleButton.transform;
-            maleRect.anchorMin = new Vector2(0f, 0.18f);
-            maleRect.anchorMax = new Vector2(0.28f, 0.82f);
+            maleRect.anchorMin = new Vector2(0f, 0.12f);
+            maleRect.anchorMax = new Vector2(0.48f, 0.98f);
             maleRect.offsetMin = Vector2.zero;
             maleRect.offsetMax = Vector2.zero;
+            maleCardImage = maleButton.GetComponent<Image>();
+            RuntimeArt.ApplyRounded(maleCardImage);
+            AddSoftShadow(maleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
+            maleAvatarImage = AttachAvatar(maleButton.transform, "UI/Profile/avatar_boy");
 
-            femaleButton = CreateGenderButton("女生", avatarPanel, font, new Color32(255, 213, 225, 255), new Color32(133, 72, 102, 255));
+            femaleButton = CreateGenderButton("女生", avatarPanel, font, new Color32(255, 255, 255, 248), new Color32(156, 96, 120, 255));
             var femaleRect = (RectTransform)femaleButton.transform;
-            femaleRect.anchorMin = new Vector2(0.72f, 0.18f);
-            femaleRect.anchorMax = new Vector2(1f, 0.82f);
+            femaleRect.anchorMin = new Vector2(0.52f, 0.12f);
+            femaleRect.anchorMax = new Vector2(1f, 0.98f);
             femaleRect.offsetMin = Vector2.zero;
             femaleRect.offsetMax = Vector2.zero;
+            femaleCardImage = femaleButton.GetComponent<Image>();
+            RuntimeArt.ApplyRounded(femaleCardImage);
+            AddSoftShadow(femaleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
+            femaleAvatarImage = AttachAvatar(femaleButton.transform, "UI/Profile/avatar_girl");
+
+            previewText = CreateText("AvatarPreview", avatarPanel, font, 42, FontStyle.Bold, new Color32(112, 76, 106, 255));
+            previewText.alignment = TextAnchor.MiddleCenter;
+            previewText.rectTransform.anchorMin = new Vector2(0f, 0f);
+            previewText.rectTransform.anchorMax = new Vector2(1f, 0.12f);
+            previewText.rectTransform.offsetMin = Vector2.zero;
+            previewText.rectTransform.offsetMax = Vector2.zero;
 
             var inputSection = CreateUiObject("InputSection", contentCard);
             inputSection.anchorMin = new Vector2(0.08f, 0.12f);
@@ -195,6 +206,7 @@ namespace GaokaoSimulator.Features.Profile
             inputBg.offsetMax = Vector2.zero;
             var inputBgImage = inputBg.gameObject.AddComponent<Image>();
             inputBgImage.color = new Color32(255, 250, 252, 255);
+            RuntimeArt.ApplyRounded(inputBgImage);
             AddOutline(inputBg.gameObject, new Color32(255, 199, 221, 255));
 
             nameInputField = inputBg.gameObject.AddComponent<InputField>();
@@ -231,6 +243,36 @@ namespace GaokaoSimulator.Features.Profile
             confirmRect.anchorMax = new Vector2(0.88f, 0.09f);
             confirmRect.offsetMin = Vector2.zero;
             confirmRect.offsetMax = Vector2.zero;
+            var confirmImage = confirmButton.GetComponent<Image>();
+            if (confirmImage != null)
+            {
+                var confirmGradient = confirmButton.gameObject.AddComponent<UiVerticalGradient>();
+                confirmGradient.SetColors(new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
+            }
+        }
+
+        private static Image AttachAvatar(Transform card, string spritePath)
+        {
+            var rect = CreateUiObject("Avatar", card);
+            rect.anchorMin = new Vector2(0.08f, 0.18f);
+            rect.anchorMax = new Vector2(0.92f, 0.96f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var image = rect.gameObject.AddComponent<Image>();
+            image.color = Color.white;
+            image.preserveAspect = true;
+            var sprite = RuntimeArt.LoadSprite(spritePath);
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+            }
+            else
+            {
+                image.enabled = false;
+            }
+
+            return image;
         }
 
         private void BindEvents()
@@ -279,20 +321,33 @@ namespace GaokaoSimulator.Features.Profile
 
         private void UpdateGenderButtons()
         {
-            UpdateGenderButtonVisual(maleButton, selectedGender == Core.PlayerGender.Male, new Color32(126, 197, 255, 255), new Color32(216, 238, 255, 255));
-            UpdateGenderButtonVisual(femaleButton, selectedGender == Core.PlayerGender.Female, new Color32(255, 170, 200, 255), new Color32(255, 227, 236, 255));
+            UpdateGenderButtonVisual(maleButton, selectedGender == Core.PlayerGender.Male, new Color32(126, 197, 255, 255));
+            UpdateGenderButtonVisual(femaleButton, selectedGender == Core.PlayerGender.Female, new Color32(255, 170, 200, 255));
         }
 
-        private void UpdateGenderButtonVisual(Button button, bool isSelected, Color selectedColor, Color normalColor)
+        private void UpdateGenderButtonVisual(Button button, bool isSelected, Color accentColor)
         {
             var image = button.GetComponent<Image>();
-            image.color = isSelected ? selectedColor : normalColor;
+            if (image != null)
+            {
+                image.color = new Color32(255, 255, 255, 248);
+                RuntimeArt.ApplyRounded(image);
+            }
+
+            var outline = button.GetComponent<Outline>();
+            if (outline == null)
+            {
+                outline = button.gameObject.AddComponent<Outline>();
+                outline.effectDistance = new Vector2(6f, -6f);
+            }
+
+            outline.effectColor = isSelected ? accentColor : new Color32(0, 0, 0, 0);
 
             var colors = button.colors;
-            colors.normalColor = image.color;
-            colors.highlightedColor = image.color * 1.03f;
-            colors.pressedColor = image.color * 0.94f;
-            colors.selectedColor = image.color;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = Color.white;
+            colors.pressedColor = new Color32(245, 245, 245, 255);
+            colors.selectedColor = Color.white;
             button.colors = colors;
         }
 
@@ -379,6 +434,21 @@ namespace GaokaoSimulator.Features.Profile
         {
             var button = CreatePrimaryButton(label, parent, font, bgColor, textColor);
             ((RectTransform)button.transform).sizeDelta = Vector2.zero;
+
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.resizeTextForBestFit = false;
+                text.fontSize = 38;
+                text.fontStyle = FontStyle.Bold;
+                text.alignment = TextAnchor.MiddleCenter;
+                var rect = text.rectTransform;
+                rect.anchorMin = new Vector2(0f, 0f);
+                rect.anchorMax = new Vector2(1f, 0.18f);
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+            }
+
             return button;
         }
 
@@ -395,6 +465,7 @@ namespace GaokaoSimulator.Features.Profile
             var rect = CreateUiObject($"Button_{label}", parent);
             var image = rect.gameObject.AddComponent<Image>();
             image.color = bgColor;
+            RuntimeArt.ApplyRounded(image);
 
             var button = rect.gameObject.AddComponent<Button>();
             var colors = button.colors;
