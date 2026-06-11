@@ -12,21 +12,22 @@ namespace GaokaoSimulator.Features.Profile
     /// </summary>
     public class ProfileScreen : UI.ScreenBase
     {
-        private Button backButton;
-        private Button maleButton;
-        private Button femaleButton;
-        private Button randomNameButton;
-        private Button confirmButton;
-        private InputField nameInputField;
-        private Text hintText;
-        private Text previewText;
+        [Header("UI引用")]
+        [SerializeField] private Button backButton;
+        [SerializeField] private Button maleButton;
+        [SerializeField] private Button femaleButton;
+        [SerializeField] private Button randomNameButton;
+        [SerializeField] private Button confirmButton;
+        [SerializeField] private InputField nameInputField;
+        [SerializeField] private Text hintText;
+        [SerializeField] private Text previewText;
 
         private Core.PlayerGender selectedGender = Core.PlayerGender.Male;
 
-        private Image maleCardImage;
-        private Image femaleCardImage;
-        private Image maleAvatarImage;
-        private Image femaleAvatarImage;
+        [SerializeField] private Image maleCardImage;
+        [SerializeField] private Image femaleCardImage;
+        [SerializeField] private Image maleAvatarImage;
+        [SerializeField] private Image femaleAvatarImage;
 
         private static readonly string[] MaleNames =
         {
@@ -40,7 +41,7 @@ namespace GaokaoSimulator.Features.Profile
 
         protected override void Initialize()
         {
-            BuildRuntimeLayout();
+            EnsureRuntimeLayout();
             BindEvents();
             Refresh();
         }
@@ -86,6 +87,16 @@ namespace GaokaoSimulator.Features.Profile
             UpdatePreview();
         }
 
+        private void EnsureRuntimeLayout()
+        {
+            if (backButton != null && maleButton != null && femaleButton != null && randomNameButton != null && confirmButton != null && nameInputField != null && hintText != null && previewText != null)
+            {
+                return;
+            }
+
+            BuildRuntimeLayout();
+        }
+
         private void BuildRuntimeLayout()
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -110,40 +121,50 @@ namespace GaokaoSimulator.Features.Profile
             panel.offsetMax = Vector2.zero;
 
             var headerCard = CreateUiObject("HeaderCard", panel);
-            headerCard.anchorMin = new Vector2(0f, 0.72f);
+            headerCard.anchorMin = new Vector2(0f, 0.78f);
             headerCard.anchorMax = new Vector2(1f, 1f);
             headerCard.offsetMin = Vector2.zero;
             headerCard.offsetMax = Vector2.zero;
-            var headerImage = headerCard.gameObject.AddComponent<Image>();
-            headerImage.color = new Color32(255, 255, 255, 244);
-            AddSoftShadow(headerCard.gameObject, new Color(0.53f, 0.39f, 0.4f, 0.14f), new Vector2(0f, -12f));
+            var stepBadge = CreateUiObject("StepBadge", headerCard);
+            stepBadge.anchorMin = new Vector2(0.34f, 0.74f);
+            stepBadge.anchorMax = new Vector2(0.66f, 0.98f);
+            stepBadge.offsetMin = Vector2.zero;
+            stepBadge.offsetMax = Vector2.zero;
+            var stepBadgeImage = stepBadge.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(stepBadgeImage);
+            stepBadgeImage.color = new Color32(255, 239, 229, 255);
+            var stepText = CreateText("StepText", stepBadge, font, 28, FontStyle.Bold, new Color32(248, 137, 125, 255));
+            Stretch(stepText.rectTransform);
+            stepText.alignment = TextAnchor.MiddleCenter;
+            stepText.text = "STEP 1 / 5";
 
             backButton = CreateSmallButton("回到首页", headerCard, font, new Color32(255, 224, 202, 255), new Color32(131, 87, 63, 255));
             var backRect = (RectTransform)backButton.transform;
-            backRect.anchorMin = new Vector2(0.02f, 0.68f);
-            backRect.anchorMax = new Vector2(0.22f, 0.95f);
+            backRect.anchorMin = new Vector2(0.02f, 0.72f);
+            backRect.anchorMax = new Vector2(0.22f, 0.98f);
             backRect.offsetMin = Vector2.zero;
             backRect.offsetMax = Vector2.zero;
+            backButton.gameObject.AddComponent<UiPressScale>();
 
-            var title = CreateText("Title", headerCard, font, 74, FontStyle.Bold, new Color32(112, 71, 103, 255));
-            title.text = "先认识一下你";
+            var title = CreateText("Title", headerCard, font, 78, FontStyle.Bold, new Color32(112, 71, 103, 255));
+            title.text = "先选一个形象";
             title.alignment = TextAnchor.MiddleCenter;
-            title.rectTransform.anchorMin = new Vector2(0.16f, 0.54f);
-            title.rectTransform.anchorMax = new Vector2(0.84f, 0.9f);
+            title.rectTransform.anchorMin = new Vector2(0.12f, 0.34f);
+            title.rectTransform.anchorMax = new Vector2(0.88f, 0.78f);
             title.rectTransform.offsetMin = Vector2.zero;
             title.rectTransform.offsetMax = Vector2.zero;
 
             hintText = CreateText("Hint", headerCard, font, 34, FontStyle.Normal, new Color32(142, 119, 135, 255));
-            hintText.text = "选一个更像你的形象，再告诉我该怎么称呼你吧";
+            hintText.text = "临时版先确认身份与输入流程，风格通过后再替换正式角色插画";
             hintText.alignment = TextAnchor.MiddleCenter;
-            hintText.rectTransform.anchorMin = new Vector2(0.08f, 0.1f);
-            hintText.rectTransform.anchorMax = new Vector2(0.92f, 0.42f);
+            hintText.rectTransform.anchorMin = new Vector2(0.08f, 0.02f);
+            hintText.rectTransform.anchorMax = new Vector2(0.92f, 0.30f);
             hintText.rectTransform.offsetMin = Vector2.zero;
             hintText.rectTransform.offsetMax = Vector2.zero;
 
             var contentCard = CreateUiObject("ContentCard", panel);
-            contentCard.anchorMin = new Vector2(0f, 0.12f);
-            contentCard.anchorMax = new Vector2(1f, 0.68f);
+            contentCard.anchorMin = new Vector2(0f, 0.22f);
+            contentCard.anchorMax = new Vector2(1f, 0.74f);
             contentCard.offsetMin = Vector2.zero;
             contentCard.offsetMax = Vector2.zero;
             var contentImage = contentCard.gameObject.AddComponent<Image>();
@@ -165,7 +186,9 @@ namespace GaokaoSimulator.Features.Profile
             maleCardImage = maleButton.GetComponent<Image>();
             RuntimeArt.ApplyRounded(maleCardImage);
             AddSoftShadow(maleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
-            maleAvatarImage = AttachAvatar(maleButton.transform, "UI/Profile/avatar_boy");
+            maleAvatarImage = AttachAvatar(maleButton.transform, font, "男");
+            maleAvatarImage.gameObject.AddComponent<UiFloatBob>().Configure(6f, 0.5f, 0.1f);
+            maleButton.gameObject.AddComponent<UiPressScale>();
 
             femaleButton = CreateGenderButton("女生", avatarPanel, font, new Color32(255, 255, 255, 248), new Color32(156, 96, 120, 255));
             var femaleRect = (RectTransform)femaleButton.transform;
@@ -176,9 +199,11 @@ namespace GaokaoSimulator.Features.Profile
             femaleCardImage = femaleButton.GetComponent<Image>();
             RuntimeArt.ApplyRounded(femaleCardImage);
             AddSoftShadow(femaleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
-            femaleAvatarImage = AttachAvatar(femaleButton.transform, "UI/Profile/avatar_girl");
+            femaleAvatarImage = AttachAvatar(femaleButton.transform, font, "女");
+            femaleAvatarImage.gameObject.AddComponent<UiFloatBob>().Configure(6f, 0.53f, 0.4f);
+            femaleButton.gameObject.AddComponent<UiPressScale>();
 
-            previewText = CreateText("AvatarPreview", avatarPanel, font, 42, FontStyle.Bold, new Color32(112, 76, 106, 255));
+            previewText = CreateText("AvatarPreview", avatarPanel, font, 34, FontStyle.Bold, new Color32(112, 76, 106, 255));
             previewText.alignment = TextAnchor.MiddleCenter;
             previewText.rectTransform.anchorMin = new Vector2(0f, 0f);
             previewText.rectTransform.anchorMax = new Vector2(1f, 0.12f);
@@ -186,8 +211,8 @@ namespace GaokaoSimulator.Features.Profile
             previewText.rectTransform.offsetMax = Vector2.zero;
 
             var inputSection = CreateUiObject("InputSection", contentCard);
-            inputSection.anchorMin = new Vector2(0.08f, 0.12f);
-            inputSection.anchorMax = new Vector2(0.92f, 0.46f);
+            inputSection.anchorMin = new Vector2(0.08f, 0.06f);
+            inputSection.anchorMax = new Vector2(0.92f, 0.34f);
             inputSection.offsetMin = Vector2.zero;
             inputSection.offsetMax = Vector2.zero;
 
@@ -236,11 +261,12 @@ namespace GaokaoSimulator.Features.Profile
             randomRect.anchorMax = new Vector2(1f, 0.62f);
             randomRect.offsetMin = Vector2.zero;
             randomRect.offsetMax = Vector2.zero;
+            randomNameButton.gameObject.AddComponent<UiPressScale>();
 
             confirmButton = CreatePrimaryButton("就这样决定了", panel, font, new Color32(126, 189, 255, 255), new Color32(255, 255, 255, 255));
             var confirmRect = (RectTransform)confirmButton.transform;
-            confirmRect.anchorMin = new Vector2(0.12f, 0.0f);
-            confirmRect.anchorMax = new Vector2(0.88f, 0.09f);
+            confirmRect.anchorMin = new Vector2(0.12f, 0.10f);
+            confirmRect.anchorMax = new Vector2(0.88f, 0.18f);
             confirmRect.offsetMin = Vector2.zero;
             confirmRect.offsetMax = Vector2.zero;
             var confirmImage = confirmButton.GetComponent<Image>();
@@ -249,9 +275,10 @@ namespace GaokaoSimulator.Features.Profile
                 var confirmGradient = confirmButton.gameObject.AddComponent<UiVerticalGradient>();
                 confirmGradient.SetColors(new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
             }
+            confirmButton.gameObject.AddComponent<UiPressScale>();
         }
 
-        private static Image AttachAvatar(Transform card, string spritePath)
+        private static Image AttachAvatar(Transform card, Font font, string roleText)
         {
             var rect = CreateUiObject("Avatar", card);
             rect.anchorMin = new Vector2(0.08f, 0.18f);
@@ -260,19 +287,65 @@ namespace GaokaoSimulator.Features.Profile
             rect.offsetMax = Vector2.zero;
 
             var image = rect.gameObject.AddComponent<Image>();
-            image.color = Color.white;
-            image.preserveAspect = true;
-            var sprite = RuntimeArt.LoadSprite(spritePath);
-            if (sprite != null)
-            {
-                image.sprite = sprite;
-            }
-            else
-            {
-                image.enabled = false;
-            }
+            image.color = new Color32(255, 251, 253, 255);
+            RuntimeArt.ApplyRounded(image);
+
+            var halo = CreateUiObject("Halo", rect);
+            halo.anchorMin = new Vector2(0.16f, 0.44f);
+            halo.anchorMax = new Vector2(0.84f, 0.94f);
+            halo.offsetMin = Vector2.zero;
+            halo.offsetMax = Vector2.zero;
+            var haloImage = halo.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(haloImage);
+            haloImage.color = roleText == "男" ? new Color32(227, 242, 255, 255) : new Color32(255, 235, 244, 255);
+
+            var badge = CreateUiObject("RoleBadge", halo);
+            badge.anchorMin = new Vector2(0.26f, 0.18f);
+            badge.anchorMax = new Vector2(0.74f, 0.66f);
+            badge.offsetMin = Vector2.zero;
+            badge.offsetMax = Vector2.zero;
+            var badgeImage = badge.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(badgeImage);
+            badgeImage.color = Color.white;
+
+            var roleMain = CreateText("RoleMain", badge, font, 54, FontStyle.Bold, roleText == "男" ? new Color32(87, 126, 171, 255) : new Color32(173, 92, 126, 255));
+            Stretch(roleMain.rectTransform);
+            roleMain.alignment = TextAnchor.MiddleCenter;
+            roleMain.text = roleText;
+
+            var titleChip = CreateUiObject("TitleChip", rect);
+            titleChip.anchorMin = new Vector2(0.22f, 0.28f);
+            titleChip.anchorMax = new Vector2(0.78f, 0.40f);
+            titleChip.offsetMin = Vector2.zero;
+            titleChip.offsetMax = Vector2.zero;
+            var titleChipImage = titleChip.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(titleChipImage);
+            titleChipImage.color = Color.white;
+            var titleText = CreateText("TitleText", titleChip, font, 24, FontStyle.Bold, new Color32(118, 92, 110, 255));
+            Stretch(titleText.rectTransform);
+            titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.text = roleText == "男" ? "理性稳稳型" : "元气温柔型";
+
+            CreateStatChip(rect, font, roleText == "男" ? "学习 +2" : "亲和 +2", new Vector2(0.12f, 0.08f), new Vector2(0.46f, 0.20f), roleText == "男" ? new Color32(226, 241, 255, 255) : new Color32(255, 233, 242, 255));
+            CreateStatChip(rect, font, roleText == "男" ? "执行 +1" : "表达 +1", new Vector2(0.54f, 0.08f), new Vector2(0.88f, 0.20f), roleText == "男" ? new Color32(255, 239, 217, 255) : new Color32(236, 242, 255, 255));
 
             return image;
+        }
+
+        private static void CreateStatChip(Transform parent, Font font, string label, Vector2 min, Vector2 max, Color bgColor)
+        {
+            var chip = CreateUiObject($"Chip_{label}", parent);
+            chip.anchorMin = min;
+            chip.anchorMax = max;
+            chip.offsetMin = Vector2.zero;
+            chip.offsetMax = Vector2.zero;
+            var chipImage = chip.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(chipImage);
+            chipImage.color = bgColor;
+            var chipText = CreateText("ChipText", chip, font, 20, FontStyle.Bold, new Color32(126, 101, 118, 255));
+            Stretch(chipText.rectTransform);
+            chipText.alignment = TextAnchor.MiddleCenter;
+            chipText.text = label;
         }
 
         private void BindEvents()
@@ -362,7 +435,7 @@ namespace GaokaoSimulator.Features.Profile
             if (previewText != null)
             {
                 var genderText = selectedGender == Core.PlayerGender.Male ? "男生" : "女生";
-                previewText.text = $"{genderText}\n{playerName}";
+                previewText.text = $"当前选择：{genderText} · {playerName}";
             }
         }
 

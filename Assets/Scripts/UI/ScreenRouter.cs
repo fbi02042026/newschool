@@ -213,6 +213,16 @@ namespace GaokaoSimulator.UI
             var config = screenConfigs.Find(c => c.screenType == screenType);
             if (config == null || config.prefab == null)
             {
+                var resourcesPrefab = Resources.Load<ScreenBase>($"UI/Screens/Screen_{screenType}");
+                if (resourcesPrefab != null)
+                {
+                    var instanceFromResources = Instantiate(resourcesPrefab, screenRoot);
+                    instanceFromResources.name = $"Screen_{screenType}";
+                    instanceFromResources.ScreenId = screenType;
+                    screenInstances[screenType] = instanceFromResources;
+                    return instanceFromResources;
+                }
+
                 return CreateRuntimeScreen(screenType);
             }
             
@@ -248,6 +258,10 @@ namespace GaokaoSimulator.UI
             else if (screenType == ScreenType.Profile)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Profile.ProfileScreen>();
+            }
+            else if (screenType == ScreenType.Family)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Family.FamilyScreen>();
             }
             else
             {

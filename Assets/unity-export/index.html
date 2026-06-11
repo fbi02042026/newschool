@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的高考志愿模拟器</title>
+<style>
+:root {
+  --bg: #FFF8F0;
+  --bg-card: #FFFFFF;
+  --card-mint: #E8F5E9;
+  --card-lavender: #F3E5F5;
+  --card-peach: #FFF0E6;
+  --card-butter: #FFFDE7;
+  --card-sky: #E3F2FD;
+  --accent: #FF8A80;
+  --accent-hover: #FF5252;
+  --confirm: #64B5F6;
+  --confirm-hover: #42A5F5;
+  --gold: #FFB300;
+  --gold-light: #FFF8E1;
+  --text: #3D3D3D;
+  --text-light: #8D8D8D;
+  --text-soft: #6D6D6D;
+  --border: #E8E8E8;
+  --shadow: 0 4px 24px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-xs: 10px;
+  --up: #66BB6A;
+  --down: #EF5350;
+  --same: #9E9E9E;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,-apple-system,sans-serif;
+  background: #F0E8DC;
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+#app {
+  width: 100%;
+  max-width: 430px;
+  aspect-ratio: 9 / 16;
+  max-height: 100dvh;
+  background: var(--bg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(0,0,0,0.08);
+  border-radius: 12px;
+}
+.bg-dots {
+  position: absolute; top:0; left:0; right:0; bottom:0;
+  pointer-events: none; overflow: hidden; z-index:0;
+}
+.bg-dot {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+}
+@keyframes dotFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.1); }
+}
+.screen { display:none; flex-direction:column; flex:1; position:relative; z-index:1; overflow-y:auto; }
+.screen.active { display:flex; }
+.btn {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #FF6B6B);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(255,138,128,0.35);
+}
+.btn-confirm {
+  background: linear-gradient(135deg, var(--confirm), #5C9CE6);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(100,181,246,0.35);
+}
+.btn-outline {
+  background: #fff;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+}
+.btn-sm {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.85rem;
+  max-width: 200px;
+}
+.btn-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--card-sky);
+  color: var(--confirm);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: help;
+  border: 1.5px solid var(--confirm);
+}
+#screen-title {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, #FFF0E6 0%, var(--bg) 40%, #F3E5F5 100%);
+}
+.s-title-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.s-title-text {
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--accent), #FF9800, var(--confirm));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
+}
+.s-title-sub {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  letter-spacing: 0.1em;
+  margin-bottom: 2.5rem;
+}
+.s-title-btns { width:100%; max-width:260px; }
+.s-title-btns .btn { margin-bottom:0.6rem; }
+.s-title-version {
+  position: absolute;
+  bottom: 1.2rem;
+  font-size: 0.65rem;
+  color: var(--text-light);
+  opacity: 0.5;
+}
+.s-title-decor {
+  position: absolute;
+  font-size: 1.2rem;
+  opacity: 0.3;
+  animation: float 4s ease-in-out infinite;
+}
+.screen-header {
+  text-align: center;
+  padding: 1.2rem 1.5rem 0.5rem;
+  position: relative;
+}
+.screen-header .step-badge {
+  display: inline-block;
+  background: var(--card-peach);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+}
+.screen-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+.screen-header p {
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+.header-help-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+}
+.screen-body {
+  flex:1;
+  padding: 0.8rem 1.5rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+}
+.screen-footer {
+  padding: 0.8rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.info-popup {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.info-box {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  width: 90%;
+  max-width: 340px;
+  box-shadow: var(--shadow-lg);
+}
+.info-box h4 { font-size: 0.95rem; margin-bottom: 0.6rem; color: var(--text); }
+.info-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.8rem; }
+.info-item { font-size: 0.8rem; line-height: 1.5; }
+.info-item .i-label { font-weight: 700; color: var(--text); }
+.info-item .i-desc { color: var(--text-soft); margin-left: 0.2rem; }
+.info-box .close-btn { text-align: center; }
+.gender-cards { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+.gender-card {
+  flex:1;
+  background: var(--bg-card);
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.gender-card.selected {
+  border-color: var(--confirm);
+  background: var(--card-sky);
+  box-shadow: 0 0 0 3px rgba(100,181,246,0.15);
+}
+.gender-card .g-icon { font-size:2.8rem; margin-bottom:0.4rem; }
+.gender-card .g-label { font-weight:700; font-size:0.95rem; }
+.name-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
+.name-input-wrap {
+  background: var(--bg-card);
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  transition: border-color 0.2s;
+}
+.name-input-wrap:focus-within { border-color: var(--confirm); }
+.name-input-wrap .n-icon { font-size:1.5rem; }
+.name-input-wrap input {
+  flex:1;
+  border:none;
+  background:transparent;
+  font-size:1.05rem;
+  font-family:inherit;
+  color:var(--text);
+  outline:none;
+}
+.name-input-wrap input::placeholder { color:var(--text-light); opacity:0.5; }
+.name-hint { font-size:0.7rem; color:var(--text-light); text-align:right; margin-top:0.3rem; }
+.family-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+.family-highlight-card {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.family-highlight-card .card-ribbon {
+  position: absolute;
+  top: 14px; right: -30px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 2rem;
+  transform: rotate(45deg);
+}
+.family-highlight-card .f-icon { font-size:3rem; margin-bottom:0.3rem; }
+.family-highlight-card .f-name { font-size:1.2rem; font-weight:800; }
+.family-highlight-card .f-desc { font-size:0.75rem; color:var(--text-light); margin:0.3rem 0 0.6rem; }
+.family-highlight-card .f-money {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--gold-light);
+  border-radius: 20px;
+  padding: 0.3rem 0.9rem;
+  font-weight: 700;
+  color: #E65100;
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+}
+.coin-icon { width: 18px; height: 18px; display: inline-block; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+.stat-item {
+  background: #FAFAFA;
+  border-radius: var(--radius-xs);
+  padding: 0.55rem 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  gap: 0.3rem;
+}
+.stat-item .s-label { color:var(--text-light); font-weight:600; }
+.stat-item .s-value { font-weight:800; }
+.stat-item .s-bar {
+  width: 44px;
+  height: 6px;
+  background: #EEEEEE;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stat-item .s-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.s-bar-int { background: linear-gradient(90deg, var(--confirm), #42A5F5); }
+.s-bar-psy { background: linear-gradient(90deg, #CE93D8, #AB47BC); }
+.s-bar-soc { background: linear-gradient(90deg, #FFCC80, #FF9800); }
+.s-bar-health { background: linear-gradient(90deg, #A5D6A7, #66BB6A); }
+.draw-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 1rem;
+}
+.draw-card-outer {
+  width: 100%;
+  max-width: 280px;
+  perspective: 600px;
+}
+.draw-card {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.8rem 1.2rem;
+  text-align: center;
+  transition: all 0.08s ease;
+  border: 3px solid var(--border);
+}
+.draw-card .d-icon { font-size: 3.5rem; margin-bottom: 0.4rem; }
+.draw-card .d-name { font-size: 1.3rem; font-weight: 800; }
+.draw-card .d-desc { font-size: 0.75rem; color: var(--text-light); margin-top: 0.2rem; }
+.draw-card.pop {
+  transform: scale(1.08);
+  border-color: var(--confirm);
+  box-shadow: 0 0 30px rgba(100,181,246,0.3);
+}
+.draw-progress {
+  width: 100%;
+  max-width: 200px;
+  height: 6px;
+  background: #EEEEEE;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.draw-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--confirm), var(--accent));
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+.draw-hint {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.draw-final {
+  animation: finalReveal 0.6s ease;
+}
+@keyframes finalReveal {
+  0% { transform: scale(0.8) rotateY(-10deg); opacity: 0; }
+  50% { transform: scale(1.05) rotateY(5deg); }
+  100% { transform: scale(1) rotateY(0); opacity: 1; }
+}
+.compare-overlay {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+.compare-box {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: var(--shadow-lg);
+}
+.compare-box h3 { text-align:center; font-size:1.05rem; margin-bottom:1rem; }
+.compare-cols { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+.compare-col {
+  flex:1;
+  background: #FAFAFA;
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  text-align: center;
+}
+.compare-col.old { background: #FFF5F5; }
+.compare-col.new-col { background: #F1F8E9; }
+.compare-col .c-label {
+  font-size:0.65rem; font-weight:700; color:var(--text-light);
+  margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.05em;
+}
+.compare-col .c-name { font-size:0.85rem; font-weight:800; margin-bottom:0.3rem; }
+.compare-col .c-icon { font-size:2rem; margin-bottom:0.2rem; }
+.compare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  font-size: 0.78rem;
+}
+.compare-row .cr-label { color:var(--text-light); }
+.compare-row .cr-value { font-weight:700; }
+.compare-row .cr-diff { font-size:0.7rem; min-width:30px; text-align:right; font-weight:700; }
+.cr-up { color:var(--up); }
+.cr-down { color:var(--down); }
+.cr-same { color:var(--same); }
+.province-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.province-section-title .hot-tag {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+.province-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.province-card {
+  background: var(--bg-card);
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.province-card.selected {
+  border-color: var(--confirm);
+  background: var(--card-sky);
+  box-shadow: 0 0 0 2px rgba(100,181,246,0.15);
+}
+.province-card .p-name { font-size:0.85rem; font-weight:700; margin-bottom:0.15rem; }
+.province-card .p-mode {
+  font-size:0.6rem;
+  font-weight: 600;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.15rem;
+}
+.mode-312 { background: rgba(100,181,246,0.15); color: var(--confirm); }
+.mode-33 { background: rgba(156,39,176,0.15); color: #9C27B0; }
+.mode-old { background: rgba(158,158,158,0.15); color: var(--same); }
+.province-card .p-diff {
+  font-size:0.6rem;
+  color: var(--text-light);
+}
+.province-card.diff-easy { background: var(--card-mint); }
+.province-card.diff-normal { background: var(--bg-card); }
+.province-card.diff-hard { background: var(--card-peach); }
+.province-card.diff-hell { background: var(--card-lavender); }
+.province-card.selected.diff-easy { background: var(--card-sky); border-color: var(--confirm); }
+.province-card.selected.diff-normal { background: var(--card-sky); border-color: var(--confirm); }
+.province-card.selected.diff-hard { background: var(--card-sky); border-color: var(--confirm); }
+.province-card.selected.diff-hell { background: var(--card-sky); border-color: var(--confirm); }
+.province-info {
+  background: var(--card-sky);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+  border: 1.5px solid rgba(100,181,246,0.25);
+}
+.subject-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  flex: 1;
+}
+.subject-card {
+  background: var(--bg-card);
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.subject-card.selected {
+  border-color: var(--confirm);
+  background: var(--card-sky);
+  box-shadow: 0 0 0 3px rgba(100,181,246,0.12);
+}
+.subject-card .s-icon { font-size:2.6rem; margin-bottom:0.4rem; }
+.subject-card .s-name { font-size:1.1rem; font-weight:800; margin-bottom:0.3rem; }
+.subject-card .s-desc { font-size:0.75rem; color:var(--text-light); margin-bottom:0.6rem; }
+.subject-card.compact { padding: 0.8rem 1rem; }
+.subject-card.compact .s-icon { font-size:2rem; margin-bottom:0.2rem; }
+.subject-card.compact .s-name { font-size:1rem; margin-bottom:0.2rem; }
+.subject-card.compact .s-desc { margin-bottom:0; }
+.subject-detail { display: none; margin-top: 0.6rem; text-align: left; }
+.subject-detail.active { display: block; }
+.s-tags { display:flex; flex-wrap:wrap; gap:0.3rem; justify-content:center; margin-bottom:0.5rem; }
+.s-tag { font-size:0.65rem; padding:0.2rem 0.5rem; border-radius:6px; font-weight:600; }
+.s-tag.ok { background: rgba(102,187,106,0.12); color:var(--up); }
+.subject-majors {
+  background: #F5F5F5;
+  border-radius: var(--radius-xs);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+}
+.subject-majors .m-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 0.3rem;
+}
+.subject-majors .m-list { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.subject-majors .m-chip {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  background: #fff;
+  border-radius: 4px;
+  color: var(--text-soft);
+}
+.subject-note {
+  background: var(--card-peach);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  font-size: 0.73rem;
+  color: var(--accent);
+  text-align: center;
+  line-height: 1.5;
+}
+.confirm-dialog {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+.dialog-box {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.dialog-box h3 { font-size:1.05rem; margin-bottom:0.8rem; }
+.dialog-box p { font-size:0.8rem; color:var(--text-soft); margin-bottom:1rem; line-height:1.6; }
+.dialog-box .d-btn-row { display:flex; gap:0.6rem; }
+.dialog-box .d-btn-row .btn { flex:1; }
+.screen::-webkit-scrollbar { width:3px; }
+.screen::-webkit-scrollbar-track { background:transparent; }
+.screen::-webkit-scrollbar-thumb { background:#DDD; border-radius:3px; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.shake { animation: shake 0.4s ease; }
+.energy-display {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--confirm);
+  background: var(--card-sky);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+.talent-tree {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  min-height: 400px;
+}
+.talent-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  position: relative;
+}
+.talent-branch::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--border), #ddd);
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.branch-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  z-index: 1;
+  background: var(--bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
+}
+.talent-node {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #eee;
+  border: 3px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1;
+  position: relative;
+}
+.talent-node.lit {
+  background: linear-gradient(135deg, #FFD54F, #FF8F00);
+  border-color: #E65100;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 152, 0, 0.4);
+}
+.talent-node.active {
+  background: linear-gradient(135deg, var(--confirm), #42A5F5);
+  border-color: #1976D2;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(66, 165, 246, 0.4);
+  animation: nodePulse 1.5s ease-in-out infinite;
+}
+@keyframes nodePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.talent-node.locked {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  color: #bbb;
+  cursor: not-allowed;
+}
+.node-tooltip {
+  position: absolute;
+  bottom: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+.talent-node:hover .node-tooltip {
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="screen active" id="screen-title">
+    <span class="s-title-decor" style="top:12%;left:12%;">📖</span>
+    <span class="s-title-decor" style="top:18%;right:14%;">✏️</span>
+    <span class="s-title-decor" style="bottom:25%;left:16%;">🎒</span>
+    <span class="s-title-decor" style="bottom:30%;right:12%;">🏫</span>
+    <div class="bg-dots" id="bg-dots-title"></div>
+    <div class="s-title-icon">🎓</div>
+    <div class="s-title-text">我的高考志愿模拟器</div>
+    <div class="s-title-sub">GAOKAO SIMULATOR · 挂机肉鸽</div>
+    <div class="s-title-btns">
+      <button class="btn btn-primary" onclick="newGame()">🔄 重启人生</button>
+      <button class="btn btn-outline" onclick="continueGame()" id="btn-continue" style="display:none">📂 继续游戏</button>
+    </div>
+    <div class="s-title-version">V6.5 · 2026</div>
+  </div>
+
+  <div class="screen" id="screen-gender">
+    <div class="screen-header">
+      <div class="step-badge">Step 1/5</div>
+      <h2>👤 创建你的角色</h2>
+      <p>请告诉我你的信息吧</p>
+    </div>
+    <div class="screen-body">
+      <div class="gender-cards" id="gender-cards">
+        <div class="gender-card" data-gender="male" onclick="selectGender('male')">
+          <div class="g-icon">🙋‍♂️</div>
+          <div class="g-label">男生</div>
+        </div>
+        <div class="gender-card" data-gender="female" onclick="selectGender('female')">
+          <div class="g-icon">🙋‍♀️</div>
+          <div class="g-label">女生</div>
+        </div>
+      </div>
+      <div>
+        <div class="name-label">请问同学怎么称呼？</div>
+        <div class="name-input-wrap">
+          <span class="n-icon">✍️</span>
+          <input type="text" id="input-name" placeholder="给自己起个名字吧（2-8个字）" maxlength="8" oninput="onNameInput()">
+        </div>
+        <div class="name-hint" id="name-hint"></div>
+      </div>
+    </div>
+    <div class="screen-footer">
+      <button class="btn btn-confirm" id="btn-gender-confirm" disabled onclick="confirmGender()">下一步 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-family">
+    <div class="screen-header">
+      <div class="step-badge">Step 2/5</div>
+      <h2>🏠 命运的起点</h2>
+      <p>出身无法选择，但未来由你改写</p>
+      <span class="header-help-btn btn-help" onclick="openStatInfo()">?</span>
+    </div>
+    <div class="screen-body" id="family-body">
+      <div class="draw-stage" id="draw-stage">
+        <div class="draw-card-outer">
+          <div class="draw-card" id="draw-card">
+            <div class="d-icon" id="draw-icon">❓</div>
+            <div class="d-name" id="draw-name">命运正在转动...</div>
+            <div class="d-desc" id="draw-desc">你的家庭背景即将揭晓</div>
+          </div>
+        </div>
+        <div class="draw-progress">
+          <div class="draw-progress-fill" id="draw-progress-fill"></div>
+        </div>
+        <div class="draw-hint" id="draw-hint">✨ 命运之轮转动中...</div>
+      </div>
+      <div class="family-result" id="family-result" style="display:none"></div>
+    </div>
+    <div class="screen-footer" id="family-footer" style="display:none">
+      <button class="btn btn-confirm" id="btn-family-keep" onclick="confirmFamily()">✅ 就这个了！</button>
+      <button class="btn btn-outline" id="btn-family-reroll" onclick="rerollFamily()">🔄 免费重置（<span id="free-count">1</span>次）</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-province">
+    <div class="screen-header">
+      <div class="step-badge">Step 3/5</div>
+      <h2>📍 选择你的省市</h2>
+      <p>不同省市高考模式和难度各不相同</p>
+    </div>
+    <div class="screen-body">
+      <div class="province-section-title">🔥 热门城市 <span class="hot-tag">推荐</span></div>
+      <div class="province-list" id="province-hot"></div>
+      <div class="province-section-title">📋 全部省市</div>
+      <div class="province-list" id="province-all"></div>
+    </div>
+    <div class="screen-footer">
+      <div class="province-info" id="province-info" style="display:none"></div>
+      <button class="btn btn-confirm" id="btn-province-confirm" disabled onclick="confirmProvince()">确认 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-subject">
+    <div class="screen-header">
+      <div class="step-badge">Step 4/5</div>
+      <h2>📐 选择你的方向</h2>
+      <p>🎯 基于真实「3+1+2」高考选科制度</p>
+    </div>
+    <div class="screen-body">
+      <div class="subject-cards" id="subject-cards"></div>
+      <div class="subject-note" id="subject-note">
+        💡 选科确定后将<strong>锁定你的专业方向</strong>，这和真实高考一样哦！<br>
+        高一开学30天内可免费使用「转科令牌」重置
+      </div>
+    </div>
+    <div class="screen-footer">
+      <button class="btn btn-confirm" id="btn-subject-confirm" disabled onclick="confirmSubject()">确认 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-talent">
+    <div class="screen-header">
+      <div class="step-badge">Step 5/5</div>
+      <h2>🌳 天赋觉醒</h2>
+      <p>分配能量点，点亮你的天赋树</p>
+      <div class="energy-display">⚡ 剩余能量点：<span id="energy-count">6</span></div>
+    </div>
+    <div class="screen-body">
+      <div class="talent-tree" id="talent-tree"></div>
+    </div>
+    <div class="screen-footer">
+      <button class="btn btn-confirm" onclick="confirmTalent()">确认天赋 →</button>
+    </div>
+  </div>
+
+  <div class="confirm-dialog" id="confirm-dialog" style="display:none">
+    <div class="dialog-box" id="dialog-box"></div>
+  </div>
+
+  <div class="compare-overlay" id="compare-overlay" style="display:none">
+    <div class="compare-box" id="compare-box"></div>
+  </div>
+
+  <div class="info-popup" id="stat-info-popup" style="display:none">
+    <div class="info-box">
+      <h4>💡 属性说明</h4>
+      <div class="info-list">
+        <div class="info-item"><span class="i-label">📐 智力</span><span class="i-desc">影响考试得分、学习效率、天赋解锁</span></div>
+        <div class="info-item"><span class="i-label">🧠 心理</span><span class="i-desc">影响抗压能力、考场发挥、逆境翻盘</span></div>
+        <div class="info-item"><span class="i-label">💬 社交</span><span class="i-desc">影响人脉建立、大学活动、就业机会</span></div>
+        <div class="info-item"><span class="i-label">💪 健康</span><span class="i-desc">影响体力恢复、减少生病、体育课加分</span></div>
+      </div>
+      <div class="close-btn">
+        <button class="btn btn-confirm btn-sm" onclick="closeStatInfo()">知道了</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BAD_WORDS = [
+  'fuck','shit','bitch','ass','nigger','傻逼','卧槽','你妈','妈逼','草泥马','cnm','nmsl'
+];
+
+let gameState = {
+  gender: null,
+  name: '',
+  family: null,
+  oldFamily: null,
+  freeReroll: 1,
+  adReroll: 1,
+  province: null,
+  subject: null,
+  step: 'title',
+  energy: 6,
+  talentNodes: {}
+};
+
+const FAMILY_RANGE = {
+  RURAL:    { name:'村民之子', icon:'🌾', desc:'勤劳朴实，身体倍棒', int:[30,45], psy:[55,75], soc:[35,50], health:[65,85], money:200 },
+  WORKING:  { name:'工薪之家', icon:'🔧', desc:'普通工人家庭，踏实稳定', int:[40,60], psy:[45,65], soc:[45,60], health:[55,70], money:500 },
+  MIDDLE:   { name:'中产家庭', icon:'🏡', desc:'属性均衡，资金充裕', int:[45,65], psy:[40,60], soc:[50,65], health:[50,65], money:1200 },
+  WEALTHY:  { name:'富裕家庭', icon:'💎', desc:'含着金钥匙出生，资源丰富', int:[40,60], psy:[35,50], soc:[60,80], health:[40,55], money:3000 },
+  SCHOLAR:  { name:'书香门第', icon:'📚', desc:'父母都是知识分子，智力超群', int:[60,80], psy:[40,60], soc:[35,50], health:[40,55], money:1500 },
+};
+
+const HOT_PROVINCES = ['北京','上海','广州','深圳'];
+
+const PROVINCE_DATA = [
+  // 轻松模式
+  { name:'北京', code:'BJ', mode:'3+3', modeClass:'mode-33', difficulty: 0.88, diffText:'轻松', diffClass:'diff-easy' },
+  { name:'上海', code:'SH', mode:'3+3', modeClass:'mode-33', difficulty: 0.90, diffText:'轻松', diffClass:'diff-easy' },
+  { name:'天津', code:'TJ', mode:'3+3', modeClass:'mode-33', difficulty: 0.92, diffText:'轻松', diffClass:'diff-easy' },
+  { name:'海南', code:'HI', mode:'3+3', modeClass:'mode-33', difficulty: 0.95, diffText:'正常', diffClass:'diff-easy' },
+  // 正常模式
+  { name:'辽宁', code:'LN', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.00, diffText:'正常', diffClass:'diff-easy' },
+  { name:'福建', code:'FJ', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.02, diffText:'正常', diffClass:'diff-easy' },
+  { name:'重庆', code:'CQ', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.03, diffText:'正常', diffClass:'diff-easy' },
+  { name:'贵州', code:'GZ', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.00, diffText:'正常', diffClass:'diff-easy' },
+  { name:'云南', code:'YN', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.98, diffText:'正常', diffClass:'diff-easy' },
+  { name:'广西', code:'GX', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.97, diffText:'正常', diffClass:'diff-easy' },
+  { name:'甘肃', code:'GS', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.96, diffText:'正常', diffClass:'diff-easy' },
+  { name:'黑龙江', code:'HL', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.98, diffText:'正常', diffClass:'diff-easy' },
+  { name:'吉林', code:'JL', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.97, diffText:'正常', diffClass:'diff-easy' },
+  { name:'内蒙古', code:'NM', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.95, diffText:'正常', diffClass:'diff-easy' },
+  { name:'宁夏', code:'NX', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.94, diffText:'正常', diffClass:'diff-easy' },
+  { name:'青海', code:'QH', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.93, diffText:'正常', diffClass:'diff-easy' },
+  { name:'新疆', code:'XJ', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.92, diffText:'正常', diffClass:'diff-easy' },
+  { name:'西藏', code:'XZ', mode:'3+1+2', modeClass:'mode-312', difficulty: 0.90, diffText:'正常', diffClass:'diff-easy' },
+  { name:'陕西', code:'SN', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.05, diffText:'正常', diffClass:'diff-easy' },
+  // 困难模式
+  { name:'湖北', code:'HB', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.12, diffText:'困难', diffClass:'diff-hard' },
+  { name:'湖南', code:'HN', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.12, diffText:'困难', diffClass:'diff-hard' },
+  { name:'广东', code:'GD', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.10, diffText:'困难', diffClass:'diff-hard' },
+  { name:'广州', code:'GZ', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.10, diffText:'困难', diffClass:'diff-hard' },
+  { name:'深圳', code:'SZ', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.10, diffText:'困难', diffClass:'diff-hard' },
+  { name:'四川', code:'SC', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.10, diffText:'困难', diffClass:'diff-hard' },
+  { name:'安徽', code:'AH', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.08, diffText:'困难', diffClass:'diff-hard' },
+  { name:'江西', code:'JX', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.08, diffText:'困难', diffClass:'diff-hard' },
+  { name:'山西', code:'SX', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.06, diffText:'困难', diffClass:'diff-hard' },
+  // 地狱模式
+  { name:'河南', code:'HA', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.22, diffText:'地狱', diffClass:'diff-hell' },
+  { name:'河北', code:'HE', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.20, diffText:'地狱', diffClass:'diff-hell' },
+  { name:'山东', code:'SD', mode:'3+3', modeClass:'mode-33', difficulty: 1.18, diffText:'地狱', diffClass:'diff-hell' },
+  { name:'江苏', code:'JS', mode:'3+1+2', modeClass:'mode-312', difficulty: 1.18, diffText:'地狱', diffClass:'diff-hell' },
+  { name:'浙江', code:'ZJ', mode:'3+3', modeClass:'mode-33', difficulty: 1.15, diffText:'地狱', diffClass:'diff-hell' },
+];
+
+const SUBJECT_DATA = [
+  {
+    id: 'physics',
+    name: '物理方向',
+    icon: '⚛️',
+    desc: '选择物理，解锁理工医农绝大部分专业',
+    unlock: ['化学','生物','地理','政治'],
+    okMajors: ['计算机','电子信息','机械工程','土木工程','临床医学','金融学','人工智能','航空航天','自动化','电气工程','建筑学','数学','物理学','材料科学','环境工程']
+  },
+  {
+    id: 'history',
+    name: '历史方向',
+    icon: '📜',
+    desc: '选择历史，解锁人文社科艺术法学专业',
+    unlock: ['化学','生物','地理','政治'],
+    okMajors: ['法学','汉语言文学','新闻传播','会计学','教育学','心理学','外语','工商管理','公共管理','社会学','历史学','哲学','艺术设计','经济学']
+  }
+];
+
+const STAT_LABELS = {
+  int: { label: '📐 智力', desc: '影响考试得分、学习效率、天赋解锁', barClass: 's-bar-int' },
+  psy: { label: '🧠 心理', desc: '影响抗压能力、考场发挥、逆境翻盘', barClass: 's-bar-psy' },
+  soc: { label: '💬 社交', desc: '影响人脉建立、大学活动、就业机会', barClass: 's-bar-soc' },
+  health: { label: '💪 健康', desc: '影响体力恢复、减少生病、体育课加分', barClass: 's-bar-health' }
+};
+
+const TALENT_DATA = {
+  math: { id: 'math', name: '📐数理', icon: '📐', nodes: [
+    { name: '逻辑启蒙', desc: '智力+5', effect: { int: 5 } },
+    { name: '公式精通', desc: '智力+8，考试得分+3%', effect: { int: 8 } },
+    { name: '思维跃迁', desc: '智力+10，学习效率+5%', effect: { int: 10 } },
+    { name: '数理大师', desc: '智力+12，解锁高阶装备', effect: { int: 12 } },
+    { name: '天才觉醒', desc: '智力+15，全属性+3', effect: { int: 15, psy: 3, soc: 3, health: 3 } }
+  ]},
+  craft: { id: 'craft', name: '🔧匠心', icon: '🔧', nodes: [
+    { name: '动手实践', desc: '健康+5', effect: { health: 5 } },
+    { name: '专注钻研', desc: '健康+8，心理+3', effect: { health: 8, psy: 3 } },
+    { name: '精益求精', desc: '健康+10，考试稳定+5%', effect: { health: 10 } },
+    { name: '工匠精神', desc: '健康+12，解锁特殊事件', effect: { health: 12 } },
+    { name: '造物之主', desc: '健康+15，全属性+3', effect: { health: 15, int: 3, psy: 3, soc: 3 } }
+  ]},
+  word: { id: 'word', name: '📜辞海', icon: '📜', nodes: [
+    { name: '博览群书', desc: '智力+5', effect: { int: 5 } },
+    { name: '文笔流畅', desc: '智力+8，社交+3', effect: { int: 8, soc: 3 } },
+    { name: '思辨能力', desc: '智力+10，心理+5', effect: { int: 10, psy: 5 } },
+    { name: '文学大师', desc: '智力+12，解锁隐藏剧情', effect: { int: 12 } },
+    { name: '通才之道', desc: '智力+15，全属性+3', effect: { int: 15, psy: 3, soc: 3, health: 3 } }
+  ]},
+  art: { id: 'art', name: '🎨灵感', icon: '🎨', nodes: [
+    { name: '审美启蒙', desc: '社交+5', effect: { soc: 5 } },
+    { name: '创意迸发', desc: '社交+8，智力+3', effect: { soc: 8, int: 3 } },
+    { name: '灵感泉涌', desc: '社交+10，翻盘概率+5%', effect: { soc: 10 } },
+    { name: '艺术大师', desc: '社交+12，解锁特殊装备', effect: { soc: 12 } },
+    { name: '灵感之神', desc: '社交+15，全属性+3', effect: { soc: 15, int: 3, psy: 3, health: 3 } }
+  ]},
+  body: { id: 'body', name: '💪韧骨', icon: '💪', nodes: [
+    { name: '体能训练', desc: '健康+5', effect: { health: 5 } },
+    { name: '意志坚定', desc: '健康+8，心理+5', effect: { health: 8, psy: 5 } },
+    { name: '抗压能力', desc: '健康+10，心理+8', effect: { health: 10, psy: 8 } },
+    { name: '坚韧不拔', desc: '健康+12，解锁逆境事件', effect: { health: 12 } },
+    { name: '钢铁之躯', desc: '健康+15，全属性+3', effect: { health: 15, int: 3, psy: 3, soc: 3 } }
+  ]}
+};
+
+function checkBadWords(str) {
+  const s = str.toLowerCase();
+  for (let w of BAD_WORDS) {
+    if (s.includes(w)) return true;
+  }
+  return false;
+}
+
+function randomVary(base, range) {
+  return Math.max(10, Math.min(100, Math.round(base + (Math.random() * range * 2 - range))));
+}
+
+function rollFamily() {
+  const keys = Object.keys(FAMILY_RANGE);
+  const key = keys[Math.floor(Math.random() * keys.length)];
+  const r = FAMILY_RANGE[key];
+  return {
+    id: key,
+    name: r.name,
+    icon: r.icon,
+    desc: r.desc,
+    money: r.money,
+    stats: {
+      int: Math.floor(Math.random() * (r.int[1] - r.int[0] + 1)) + r.int[0],
+      psy: Math.floor(Math.random() * (r.psy[1] - r.psy[0] + 1)) + r.psy[0],
+      soc: Math.floor(Math.random() * (r.soc[1] - r.soc[0] + 1)) + r.soc[0],
+      health: Math.floor(Math.random() * (r.health[1] - r.health[0] + 1)) + r.health[0],
+    }
+  };
+}
+
+function goldIcon() {
+  return '<svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#FFB300" stroke="#E65100" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" fill="#E65100" font-size="12" font-weight="bold">G</text></svg>';
+}
+
+function initBgDots() {
+  const container = document.getElementById('bg-dots-title');
+  if (!container) return;
+  container.innerHTML = '';
+  const colors = ['#FF8A80','#64B5F6','#FFB300','#81C784','#BA68C8'];
+  for (let i = 0; i < 12; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'bg-dot';
+    const size = 6 + Math.random() * 14;
+    dot.style.width = size + 'px';
+    dot.style.height = size + 'px';
+    dot.style.left = Math.random() * 100 + '%';
+    dot.style.top = Math.random() * 100 + '%';
+    dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+    dot.style.animation = `dotFloat ${3 + Math.random() * 3}s ease-in-out infinite`;
+    dot.style.animationDelay = Math.random() * 2 + 's';
+    container.appendChild(dot);
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  gameState.step = id.replace('screen-','');
+}
+
+function saveGame() {
+  localStorage.setItem('gaokao_sim_save', JSON.stringify(gameState));
+}
+
+function continueGame() {
+  const saved = localStorage.getItem('gaokao_sim_save');
+  if (saved) {
+    try {
+      gameState = JSON.parse(saved);
+    } catch(e) {}
+  }
+  if (gameState.step === 'gender') showScreen('screen-gender');
+  else if (gameState.step === 'family') { showScreen('screen-family'); renderFamily(); }
+  else if (gameState.step === 'province') { showScreen('screen-province'); renderProvinceList(); }
+  else if (gameState.step === 'subject') { showScreen('screen-subject'); renderSubjectCards(); }
+  else showScreen('screen-title');
+}
+
+function newGame() {
+  gameState = { gender: null, name: '', family: null, oldFamily: null, freeReroll: 1, adReroll: 1, province: null, subject: null, step: 'gender', energy: 6, talentNodes: {} };
+  localStorage.removeItem('gaokao_sim_save');
+  document.getElementById('input-name').value = '';
+  document.getElementById('name-hint').textContent = '';
+  document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('btn-gender-confirm').disabled = true;
+  showScreen('screen-gender');
+}
+
+function selectGender(g) {
+  gameState.gender = g;
+  document.querySelectorAll('.gender-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.gender === g);
+  });
+  checkGenderReady();
+}
+
+function onNameInput() {
+  const val = document.getElementById('input-name').value.trim();
+  const hint = document.getElementById('name-hint');
+  if (checkBadWords(val)) {
+    hint.textContent = '⚠️ 请使用文明用语';
+    hint.style.color = 'var(--down)';
+    gameState.name = '';
+  } else if (val.length > 0 && val.length < 2) {
+    hint.textContent = '名字太短啦，至少2个字';
+    hint.style.color = 'var(--text-light)';
+    gameState.name = '';
+  } else {
+    hint.textContent = '';
+    gameState.name = val;
+  }
+  checkGenderReady();
+}
+
+function checkGenderReady() {
+  const ready = gameState.gender && gameState.name && gameState.name.length >= 2 && !checkBadWords(gameState.name);
+  document.getElementById('btn-gender-confirm').disabled = !ready;
+}
+
+function confirmGender() {
+  saveGame();
+  showScreen('screen-family');
+  playDrawAnimation();
+}
+
+function openStatInfo() {
+  document.getElementById('stat-info-popup').style.display = 'flex';
+}
+
+function closeStatInfo() {
+  document.getElementById('stat-info-popup').style.display = 'none';
+}
+
+function playDrawAnimation() {
+  const drawStage = document.getElementById('draw-stage');
+  const familyResult = document.getElementById('family-result');
+  const familyFooter = document.getElementById('family-footer');
+  drawStage.style.display = 'flex';
+  familyResult.style.display = 'none';
+  familyFooter.style.display = 'none';
+
+  const card = document.getElementById('draw-card');
+  const icon = document.getElementById('draw-icon');
+  const name = document.getElementById('draw-name');
+  const desc = document.getElementById('draw-desc');
+  const progress = document.getElementById('draw-progress-fill');
+  const hint = document.getElementById('draw-hint');
+
+  let step = 0;
+  const totalSteps = 20;
+  progress.style.width = '0%';
+  card.classList.remove('pop');
+
+  const interval = setInterval(() => {
+    step++;
+    progress.style.width = (step / totalSteps * 100) + '%';
+    const tempKeys = Object.keys(FAMILY_RANGE);
+    const temp = FAMILY_RANGE[tempKeys[Math.floor(Math.random() * tempKeys.length)]];
+    icon.textContent = temp.icon;
+    name.textContent = temp.name;
+    desc.textContent = temp.desc;
+    card.classList.add('pop');
+    setTimeout(() => card.classList.remove('pop'), 80);
+
+    if (step >= totalSteps) {
+      clearInterval(interval);
+      const final = rollFamily();
+      gameState.family = final;
+      gameState.oldFamily = null;
+      saveGame();
+      setTimeout(() => {
+        drawStage.style.display = 'none';
+        renderFamily();
+        familyResult.style.display = 'flex';
+        familyFooter.style.display = 'flex';
+        document.getElementById('free-count').textContent = gameState.freeReroll;
+      }, 300);
+    }
+  }, 100);
+}
+
+function renderFamily() {
+  const f = gameState.family;
+  if (!f) return;
+  const container = document.getElementById('family-result');
+  let statsHtml = '';
+  for (const [key, val] of Object.entries(f.stats)) {
+    const info = STAT_LABELS[key];
+    statsHtml += `
+      <div class="stat-item">
+        <span class="s-label">${info.label}</span>
+        <div class="s-bar"><div class="s-bar-fill ${info.barClass}" style="width:${val}%"></div></div>
+        <span class="s-value">${val}/100</span>
+      </div>`;
+  }
+  container.innerHTML = `
+    <div class="family-highlight-card draw-final">
+      <div class="f-icon">${f.icon}</div>
+      <div class="f-name">${f.name}</div>
+      <div class="f-desc">${f.desc}</div>
+      <div class="f-money">${goldIcon()} ${f.money}</div>
+      <div class="stat-grid">${statsHtml}</div>
+    </div>
+  `;
+}
+
+function showFamilyResult() {
+  renderFamily();
+  document.getElementById('draw-stage').style.display = 'none';
+  document.getElementById('family-result').style.display = 'flex';
+  document.getElementById('family-footer').style.display = 'flex';
+
+  const btn = document.getElementById('btn-family-reroll');
+  const freeCount = document.getElementById('free-count');
+
+  if (gameState.freeReroll > 0) {
+    btn.style.display = 'block';
+    btn.innerHTML = '🔄 免费重置（<span id="free-count">' + gameState.freeReroll + '</span>次）';
+  } else if (gameState.adReroll > 0) {
+    btn.style.display = 'block';
+    btn.innerHTML = '📺 看广告重置';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function rerollFamily() {
+  if (gameState.freeReroll > 0) {
+    gameState.freeReroll--;
+    gameState.oldFamily = JSON.parse(JSON.stringify(gameState.family));
+    playDrawAnimation();
+  } else if (gameState.adReroll > 0) {
+    gameState.adReroll--;
+    gameState.oldFamily = JSON.parse(JSON.stringify(gameState.family));
+    playDrawAnimation();
+  } else {
+    showCompareOverlay();
+  }
+}
+
+function showCompareOverlay() {
+  const oldF = gameState.oldFamily || gameState.family;
+  const newF = gameState.family;
+  const box = document.getElementById('compare-box');
+  const overlay = document.getElementById('compare-overlay');
+
+  function statBar(val, barClass) {
+    return `<div class="s-bar"><div class="s-bar-fill ${barClass}" style="width:${val}%"></div></div><span class="s-value">${val}/100</span>`;
+  }
+  function diffRow(label, oldV, newV, barClass) {
+    const diff = newV - oldV;
+    let diffClass = 'cr-same';
+    let diffText = '=';
+    if (diff > 0) { diffClass = 'cr-up'; diffText = '+' + diff; }
+    else if (diff < 0) { diffClass = 'cr-down'; diffText = diff; }
+    return `<div class="compare-row"><span class="cr-label">${label}</span><span class="cr-value">${newV}/100</span><span class="cr-diff ${diffClass}">${diffText}</span></div>`;
+  }
+
+  box.innerHTML = `
+    <h3>🔄 家庭对比</h3>
+    <div class="compare-cols">
+      <div class="compare-col old">
+        <div class="c-label">旧家庭</div>
+        <div class="c-icon">${oldF.icon}</div>
+        <div class="c-name">${oldF.name}</div>
+        <div class="compare-row"><span class="cr-label">金币</span><span class="cr-value">${oldF.money}</span></div>
+        ${diffRow('智力', oldF.stats.int, newF.stats.int, 's-bar-int')}
+        ${diffRow('心理', oldF.stats.psy, newF.stats.psy, 's-bar-psy')}
+        ${diffRow('社交', oldF.stats.soc, newF.stats.soc, 's-bar-soc')}
+        ${diffRow('健康', oldF.stats.health, newF.stats.health, 's-bar-health')}
+      </div>
+      <div class="compare-col new-col">
+        <div class="c-label">新家庭</div>
+        <div class="c-icon">${newF.icon}</div>
+        <div class="c-name">${newF.name}</div>
+        <div class="compare-row"><span class="cr-label">金币</span><span class="cr-value">${newF.money}</span></div>
+        ${diffRow('智力', oldF.stats.int, newF.stats.int, 's-bar-int')}
+        ${diffRow('心理', oldF.stats.psy, newF.stats.psy, 's-bar-psy')}
+        ${diffRow('社交', oldF.stats.soc, newF.stats.soc, 's-bar-soc')}
+        ${diffRow('健康', oldF.stats.health, newF.stats.health, 's-bar-health')}
+      </div>
+    </div>
+    <div class="d-btn-row">
+      <button class="btn btn-outline" onclick="keepOldFamily()">保留旧的</button>
+      <button class="btn btn-confirm" onclick="keepNewFamily()">选择新的</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+}
+
+function keepOldFamily() {
+  gameState.family = gameState.oldFamily;
+  gameState.oldFamily = null;
+  saveGame();
+  document.getElementById('compare-overlay').style.display = 'none';
+  renderFamily();
+}
+
+function keepNewFamily() {
+  gameState.oldFamily = null;
+  saveGame();
+  document.getElementById('compare-overlay').style.display = 'none';
+  renderFamily();
+}
+
+function confirmFamily() {
+  saveGame();
+  showScreen('screen-province');
+  renderProvinceList();
+}
+
+function renderProvinceList() {
+  const hotContainer = document.getElementById('province-hot');
+  const allContainer = document.getElementById('province-all');
+  hotContainer.innerHTML = '';
+  allContainer.innerHTML = '';
+
+  PROVINCE_DATA.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'province-card ' + p.diffClass + (gameState.province === p.name ? ' selected' : '');
+    card.onclick = () => selectProvince(p.name);
+    card.innerHTML = `
+      <div class="p-name">${p.name}</div>
+      <div class="p-mode ${p.modeClass}">${p.mode}</div>
+      <div class="p-diff">难度: ${p.diffText}</div>
+    `;
+    if (HOT_PROVINCES.includes(p.name)) {
+      hotContainer.appendChild(card);
+    } else {
+      allContainer.appendChild(card);
+    }
+  });
+}
+
+function selectProvince(name) {
+  gameState.province = name;
+  document.getElementById('btn-province-confirm').disabled = false;
+  const p = PROVINCE_DATA.find(x => x.name === name);
+  if (p) {
+    const modeDesc = p.mode === '3+1+2'
+      ? '语文+数学+外语 + 首选物理/历史 + 两门选科'
+      : '语文+数学+外语 + 三门任意选科';
+    const infoEl = document.getElementById('province-info');
+    infoEl.style.display = 'block';
+    infoEl.innerHTML = `
+      <div><strong>高考模式：</strong>${p.mode}（${modeDesc}）</div>
+      <div><strong>难度：</strong>${p.diffText}（难度越高，高考分数要求越高）</div>
+    `;
+  }
+  renderProvinceList();
+}
+
+function confirmProvince() {
+  saveGame();
+  showScreen('screen-subject');
+  renderSubjectCards();
+}
+
+function renderSubjectCards() {
+  const container = document.getElementById('subject-cards');
+  container.innerHTML = '';
+  SUBJECT_DATA.forEach(sub => {
+    const card = document.createElement('div');
+    const isSelected = gameState.subject === sub.id;
+    const isExpanded = gameState.expandedSubject === sub.id;
+    card.className = 'subject-card' + (isSelected ? ' selected' : '') + (isExpanded ? '' : ' compact');
+    card.onclick = () => toggleSubjectDetail(sub.id);
+
+    const unlockTags = sub.unlock.map(u => `<span class="s-tag ok">+${u}</span>`).join('');
+    const majorChips = sub.okMajors.map(m => `<span class="m-chip">${m}</span>`).join('');
+
+    card.innerHTML = `
+      <div class="s-icon">${sub.icon}</div>
+      <div class="s-name">${sub.name}</div>
+      <div class="s-desc">${sub.desc}</div>
+      <div class="subject-detail ${isExpanded ? 'active' : ''}">
+        <div class="s-tags">${unlockTags}</div>
+        <div class="subject-majors">
+          <div class="m-title">可选专业</div>
+          <div class="m-list">${majorChips}</div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleSubjectDetail(id) {
+  if (gameState.expandedSubject === id) {
+    gameState.expandedSubject = null;
+  } else {
+    gameState.subject = id;
+    gameState.expandedSubject = id;
+    document.getElementById('btn-subject-confirm').disabled = false;
+  }
+  renderSubjectCards();
+}
+
+function selectSubject(id) {
+  gameState.subject = id;
+  document.getElementById('btn-subject-confirm').disabled = false;
+  renderSubjectCards();
+}
+
+function confirmSubject() {
+  const sub = SUBJECT_DATA.find(s => s.id === gameState.subject);
+  const dialog = document.getElementById('confirm-dialog');
+  const box = document.getElementById('dialog-box');
+  box.innerHTML = `
+    <h3>确定选择 ${sub.name} 吗？</h3>
+    <p>选科后将锁定你的专业方向，高一下学期前可使用「转科令牌」重置一次。</p>
+    <div class="d-btn-row">
+      <button class="btn btn-outline" onclick="document.getElementById('confirm-dialog').style.display='none'">再想想</button>
+      <button class="btn btn-confirm" onclick="finalizeSubject()">确定</button>
+    </div>
+  `;
+  dialog.style.display = 'flex';
+}
+
+function finalizeSubject() {
+  document.getElementById('confirm-dialog').style.display = 'none';
+  gameState.energy = 6;
+  gameState.talentNodes = {};
+  saveGame();
+  showScreen('screen-talent');
+  renderTalentTree();
+}
+
+function renderTalentTree() {
+  const container = document.getElementById('talent-tree');
+  container.innerHTML = '';
+
+  // 根据选科决定解锁哪些分支
+  const unlockedBranches = gameState.subject === 'physics'
+    ? ['math', 'craft', 'body']
+    : ['word', 'art', 'body'];
+
+  Object.values(TALENT_DATA).forEach(branch => {
+    const isUnlocked = unlockedBranches.includes(branch.id);
+    const branchEl = document.createElement('div');
+    branchEl.className = 'talent-branch';
+
+    // 分支头部
+    const header = document.createElement('div');
+    header.className = 'branch-header';
+    header.textContent = branch.name;
+    branchEl.appendChild(header);
+
+    // 节点（从底部到顶部）
+    branch.nodes.forEach((node, idx) => {
+      const nodeEl = document.createElement('div');
+      const isLit = gameState.talentNodes && gameState.talentNodes[branch.id] && gameState.talentNodes[branch.id] > idx;
+      const isActive = isUnlocked && !isLit && (idx === 0 || (gameState.talentNodes[branch.id] || 0) >= idx);
+
+      nodeEl.className = 'talent-node' + (isLit ? ' lit' : '') + (isActive ? ' active' : '') + (!isUnlocked ? ' locked' : '');
+      nodeEl.textContent = idx + 1;
+
+      // 提示
+      const tooltip = document.createElement('div');
+      tooltip.className = 'node-tooltip';
+      tooltip.innerHTML = `<strong>${node.name}</strong><br>${node.desc}${!isUnlocked ? '<br><em style="color:var(--down)">该分支未解锁</em>' : ''}`;
+      nodeEl.appendChild(tooltip);
+
+      if (isActive) {
+        nodeEl.onclick = () => lightNode(branch.id, idx);
+      }
+
+      branchEl.appendChild(nodeEl);
+    });
+
+    container.appendChild(branchEl);
+  });
+
+  // 更新能量显示
+  document.getElementById('energy-count').textContent = gameState.energy || 6;
+}
+
+function lightNode(branchId, nodeIdx) {
+  if (!gameState.energy || gameState.energy <= 0) {
+    alert('能量点不足！');
+    return;
+  }
+
+  if (!gameState.talentNodes) gameState.talentNodes = {};
+  if (!gameState.talentNodes[branchId]) gameState.talentNodes[branchId] = 0;
+
+  // 只能按顺序点亮
+  if (nodeIdx !== gameState.talentNodes[branchId]) {
+    alert('请按顺序点亮节点！');
+    return;
+  }
+
+  gameState.talentNodes[branchId]++;
+  gameState.energy--;
+  saveGame();
+  renderTalentTree();
+}
+
+function confirmTalent() {
+  saveGame();
+  alert('天赋已确认！准备进入高一上学期...');
+}
+
+initBgDots();
+if (localStorage.getItem('gaokao_sim_save')) {
+  document.getElementById('btn-continue').style.display = 'block';
+}
+</script>
+</body>
+</html>

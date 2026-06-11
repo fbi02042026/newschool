@@ -1,0 +1,637 @@
+{
+  "version": "6.5",
+  "year": 2026,
+  "BAD_WORDS": [
+    "fuck",
+    "shit",
+    "bitch",
+    "ass",
+    "nigger",
+    "傻逼",
+    "卧槽",
+    "你妈",
+    "妈逼",
+    "草泥马",
+    "cnm",
+    "nmsl"
+  ],
+  "FAMILY_RANGE": {
+    "RURAL": {
+      "id": "RURAL",
+      "name": "村民之子",
+      "icon": "🌾",
+      "desc": "勤劳朴实，身体倍棒",
+      "int": [30, 45],
+      "psy": [55, 75],
+      "soc": [35, 50],
+      "health": [65, 85],
+      "money": 200
+    },
+    "WORKING": {
+      "id": "WORKING",
+      "name": "工薪之家",
+      "icon": "🔧",
+      "desc": "普通工人家庭，踏实稳定",
+      "int": [40, 60],
+      "psy": [45, 65],
+      "soc": [45, 60],
+      "health": [55, 70],
+      "money": 500
+    },
+    "MIDDLE": {
+      "id": "MIDDLE",
+      "name": "中产家庭",
+      "icon": "🏡",
+      "desc": "属性均衡，资金充裕",
+      "int": [45, 65],
+      "psy": [40, 60],
+      "soc": [50, 65],
+      "health": [50, 65],
+      "money": 1200
+    },
+    "WEALTHY": {
+      "id": "WEALTHY",
+      "name": "富裕家庭",
+      "icon": "💎",
+      "desc": "含着金钥匙出生，资源丰富",
+      "int": [40, 60],
+      "psy": [35, 50],
+      "soc": [60, 80],
+      "health": [40, 55],
+      "money": 3000
+    },
+    "SCHOLAR": {
+      "id": "SCHOLAR",
+      "name": "书香门第",
+      "icon": "📚",
+      "desc": "父母都是知识分子，智力超群",
+      "int": [60, 80],
+      "psy": [40, 60],
+      "soc": [35, 50],
+      "health": [40, 55],
+      "money": 1500
+    }
+  },
+  "HOT_PROVINCES": ["北京", "上海", "广州", "深圳"],
+  "PROVINCE_DATA": [
+    {
+      "name": "北京",
+      "code": "BJ",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 0.88,
+      "diffText": "轻松",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "上海",
+      "code": "SH",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 0.9,
+      "diffText": "轻松",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "天津",
+      "code": "TJ",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 0.92,
+      "diffText": "轻松",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "海南",
+      "code": "HI",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 0.95,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "辽宁",
+      "code": "LN",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.0,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "福建",
+      "code": "FJ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.02,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "重庆",
+      "code": "CQ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.03,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "贵州",
+      "code": "GZ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.0,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "云南",
+      "code": "YN",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.98,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "广西",
+      "code": "GX",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.97,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "甘肃",
+      "code": "GS",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.96,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "黑龙江",
+      "code": "HL",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.98,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "吉林",
+      "code": "JL",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.97,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "内蒙古",
+      "code": "NM",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.95,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "宁夏",
+      "code": "NX",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.94,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "青海",
+      "code": "QH",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.93,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "新疆",
+      "code": "XJ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.92,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "西藏",
+      "code": "XZ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 0.9,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "陕西",
+      "code": "SN",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.05,
+      "diffText": "正常",
+      "diffClass": "diff-easy"
+    },
+    {
+      "name": "湖北",
+      "code": "HB",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.12,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "湖南",
+      "code": "HN",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.12,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "广东",
+      "code": "GD",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.1,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "广州",
+      "code": "GZ_CITY",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.1,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "深圳",
+      "code": "SZ",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.1,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "四川",
+      "code": "SC",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.1,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "安徽",
+      "code": "AH",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.08,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "江西",
+      "code": "JX",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.08,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "山西",
+      "code": "SX",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.06,
+      "diffText": "困难",
+      "diffClass": "diff-hard"
+    },
+    {
+      "name": "河南",
+      "code": "HA",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.22,
+      "diffText": "地狱",
+      "diffClass": "diff-hell"
+    },
+    {
+      "name": "河北",
+      "code": "HE",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.2,
+      "diffText": "地狱",
+      "diffClass": "diff-hell"
+    },
+    {
+      "name": "山东",
+      "code": "SD",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 1.18,
+      "diffText": "地狱",
+      "diffClass": "diff-hell"
+    },
+    {
+      "name": "江苏",
+      "code": "JS",
+      "mode": "3+1+2",
+      "modeClass": "mode-312",
+      "difficulty": 1.18,
+      "diffText": "地狱",
+      "diffClass": "diff-hell"
+    },
+    {
+      "name": "浙江",
+      "code": "ZJ",
+      "mode": "3+3",
+      "modeClass": "mode-33",
+      "difficulty": 1.15,
+      "diffText": "地狱",
+      "diffClass": "diff-hell"
+    }
+  ],
+  "SUBJECT_DATA": [
+    {
+      "id": "physics",
+      "name": "物理方向",
+      "icon": "⚛️",
+      "desc": "选择物理，解锁理工医农绝大部分专业",
+      "unlock": ["化学", "生物", "地理", "政治"],
+      "okMajors": [
+        "计算机",
+        "电子信息",
+        "机械工程",
+        "土木工程",
+        "临床医学",
+        "金融学",
+        "人工智能",
+        "航空航天",
+        "自动化",
+        "电气工程",
+        "建筑学",
+        "数学",
+        "物理学",
+        "材料科学",
+        "环境工程"
+      ]
+    },
+    {
+      "id": "history",
+      "name": "历史方向",
+      "icon": "📜",
+      "desc": "选择历史，解锁人文社科艺术法学专业",
+      "unlock": ["化学", "生物", "地理", "政治"],
+      "okMajors": [
+        "法学",
+        "汉语言文学",
+        "新闻传播",
+        "会计学",
+        "教育学",
+        "心理学",
+        "外语",
+        "工商管理",
+        "公共管理",
+        "社会学",
+        "历史学",
+        "哲学",
+        "艺术设计",
+        "经济学"
+      ]
+    }
+  ],
+  "STAT_LABELS": {
+    "int": {
+      "label": "智力",
+      "emoji": "📐",
+      "desc": "影响考试得分、学习效率、天赋解锁",
+      "barClass": "s-bar-int",
+      "barGradient": ["#64B5F6", "#42A5F5"]
+    },
+    "psy": {
+      "label": "心理",
+      "emoji": "🧠",
+      "desc": "影响抗压能力、考场发挥、逆境翻盘",
+      "barClass": "s-bar-psy",
+      "barGradient": ["#CE93D8", "#AB47BC"]
+    },
+    "soc": {
+      "label": "社交",
+      "emoji": "💬",
+      "desc": "影响人脉建立、大学活动、就业机会",
+      "barClass": "s-bar-soc",
+      "barGradient": ["#FFCC80", "#FF9800"]
+    },
+    "health": {
+      "label": "健康",
+      "emoji": "💪",
+      "desc": "影响体力恢复、减少生病、体育课加分",
+      "barClass": "s-bar-health",
+      "barGradient": ["#A5D6A7", "#66BB6A"]
+    }
+  },
+  "TALENT_DATA": {
+    "math": {
+      "id": "math",
+      "name": "数理",
+      "emoji": "📐",
+      "icon": "📐",
+      "nodes": [
+        {
+          "name": "逻辑启蒙",
+          "desc": "智力+5",
+          "effect": { "int": 5 }
+        },
+        {
+          "name": "公式精通",
+          "desc": "智力+8，考试得分+3%",
+          "effect": { "int": 8 }
+        },
+        {
+          "name": "思维跃迁",
+          "desc": "智力+10，学习效率+5%",
+          "effect": { "int": 10 }
+        },
+        {
+          "name": "数理大师",
+          "desc": "智力+12，解锁高阶装备",
+          "effect": { "int": 12 }
+        },
+        {
+          "name": "天才觉醒",
+          "desc": "智力+15，全属性+3",
+          "effect": { "int": 15, "psy": 3, "soc": 3, "health": 3 }
+        }
+      ]
+    },
+    "craft": {
+      "id": "craft",
+      "name": "匠心",
+      "emoji": "🔧",
+      "icon": "🔧",
+      "nodes": [
+        {
+          "name": "动手实践",
+          "desc": "健康+5",
+          "effect": { "health": 5 }
+        },
+        {
+          "name": "专注钻研",
+          "desc": "健康+8，心理+3",
+          "effect": { "health": 8, "psy": 3 }
+        },
+        {
+          "name": "精益求精",
+          "desc": "健康+10，考试稳定+5%",
+          "effect": { "health": 10 }
+        },
+        {
+          "name": "工匠精神",
+          "desc": "健康+12，解锁特殊事件",
+          "effect": { "health": 12 }
+        },
+        {
+          "name": "造物之主",
+          "desc": "健康+15，全属性+3",
+          "effect": { "health": 15, "int": 3, "psy": 3, "soc": 3 }
+        }
+      ]
+    },
+    "word": {
+      "id": "word",
+      "name": "辞海",
+      "emoji": "📜",
+      "icon": "📜",
+      "nodes": [
+        {
+          "name": "博览群书",
+          "desc": "智力+5",
+          "effect": { "int": 5 }
+        },
+        {
+          "name": "文笔流畅",
+          "desc": "智力+8，社交+3",
+          "effect": { "int": 8, "soc": 3 }
+        },
+        {
+          "name": "思辨能力",
+          "desc": "智力+10，心理+5",
+          "effect": { "int": 10, "psy": 5 }
+        },
+        {
+          "name": "文学大师",
+          "desc": "智力+12，解锁隐藏剧情",
+          "effect": { "int": 12 }
+        },
+        {
+          "name": "通才之道",
+          "desc": "智力+15，全属性+3",
+          "effect": { "int": 15, "psy": 3, "soc": 3, "health": 3 }
+        }
+      ]
+    },
+    "art": {
+      "id": "art",
+      "name": "灵感",
+      "emoji": "🎨",
+      "icon": "🎨",
+      "nodes": [
+        {
+          "name": "审美启蒙",
+          "desc": "社交+5",
+          "effect": { "soc": 5 }
+        },
+        {
+          "name": "创意迸发",
+          "desc": "社交+8，智力+3",
+          "effect": { "soc": 8, "int": 3 }
+        },
+        {
+          "name": "灵感泉涌",
+          "desc": "社交+10，翻盘概率+5%",
+          "effect": { "soc": 10 }
+        },
+        {
+          "name": "艺术大师",
+          "desc": "社交+12，解锁特殊装备",
+          "effect": { "soc": 12 }
+        },
+        {
+          "name": "灵感之神",
+          "desc": "社交+15，全属性+3",
+          "effect": { "soc": 15, "int": 3, "psy": 3, "health": 3 }
+        }
+      ]
+    },
+    "body": {
+      "id": "body",
+      "name": "韧骨",
+      "emoji": "💪",
+      "icon": "💪",
+      "nodes": [
+        {
+          "name": "体能训练",
+          "desc": "健康+5",
+          "effect": { "health": 5 }
+        },
+        {
+          "name": "意志坚定",
+          "desc": "健康+8，心理+5",
+          "effect": { "health": 8, "psy": 5 }
+        },
+        {
+          "name": "抗压能力",
+          "desc": "健康+10，心理+8",
+          "effect": { "health": 10, "psy": 8 }
+        },
+        {
+          "name": "坚韧不拔",
+          "desc": "健康+12，解锁逆境事件",
+          "effect": { "health": 12 }
+        },
+        {
+          "name": "钢铁之躯",
+          "desc": "健康+15，全属性+3",
+          "effect": { "health": 15, "int": 3, "psy": 3, "soc": 3 }
+        }
+      ]
+    }
+  },
+  "TALENT_UNLOCK_RULES": {
+    "physics": ["math", "craft", "body"],
+    "history": ["word", "art", "body"]
+  },
+  "INITIAL_ENERGY": 6,
+  "NAME_CONSTRAINTS": {
+    "minLength": 2,
+    "maxLength": 8,
+    "placeholder": "给自己起个名字吧（2-8个字）"
+  },
+  "FREE_REROLL_COUNT": 1,
+  "AD_REROLL_COUNT": 1,
+  "DRAW_ANIMATION_STEPS": 20,
+  "DRAW_ANIMATION_INTERVAL_MS": 100,
+  "STAT_MAX": 100,
+  "STAT_MIN": 10
+}

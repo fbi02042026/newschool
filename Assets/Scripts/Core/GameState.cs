@@ -17,6 +17,12 @@ namespace GaokaoSimulator.Core
         public PlayerGender Gender { get; set; } = PlayerGender.Male;
         public FamilyBackgroundType SelectedFamily { get; set; } = FamilyBackgroundType.None;
         public string SelectedProvince { get; set; } = "";
+        public int Money { get; set; } = 0;
+
+        public int StatIntelligence { get; set; } = 0;
+        public int StatPsychology { get; set; } = 0;
+        public int StatSocial { get; set; } = 0;
+        public int StatHealth { get; set; } = 0;
         
         // ===== 选科信息 =====
         public FirstSubject FirstSubject { get; set; } = FirstSubject.None;
@@ -53,6 +59,11 @@ namespace GaokaoSimulator.Core
             Gender = PlayerGender.Male;
             SelectedFamily = FamilyBackgroundType.None;
             SelectedProvince = "";
+            Money = 0;
+            StatIntelligence = 0;
+            StatPsychology = 0;
+            StatSocial = 0;
+            StatHealth = 0;
             FirstSubject = FirstSubject.None;
             SecondSubjects.Clear();
             CurrentProgress = GameProgress.Launch;

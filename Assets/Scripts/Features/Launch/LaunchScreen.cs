@@ -137,58 +137,93 @@ namespace GaokaoSimulator.Features.Launch
             safePanel.offsetMin = Vector2.zero;
             safePanel.offsetMax = Vector2.zero;
 
+            var topBadge = CreateUiObject("TopBadge", safePanel);
+            topBadge.anchorMin = new Vector2(0.28f, 0.92f);
+            topBadge.anchorMax = new Vector2(0.72f, 0.97f);
+            topBadge.offsetMin = Vector2.zero;
+            topBadge.offsetMax = Vector2.zero;
+            var topBadgeImage = topBadge.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(topBadgeImage);
+            topBadgeImage.color = new Color32(255, 255, 255, 220);
+            var topBadgeText = CreateText("TopBadgeText", topBadge, font, 28, FontStyle.Bold, new Color32(153, 129, 147, 255));
+            Stretch(topBadgeText.rectTransform);
+            topBadgeText.alignment = TextAnchor.MiddleCenter;
+            topBadgeText.text = "2026 可试玩版 · 临时标准样机";
+
             var titleGroup = CreateUiObject("TitleGroup", safePanel);
             titleGroup.anchorMin = new Vector2(0f, 0.70f);
-            titleGroup.anchorMax = new Vector2(1f, 0.95f);
+            titleGroup.anchorMax = new Vector2(1f, 0.90f);
             titleGroup.offsetMin = Vector2.zero;
             titleGroup.offsetMax = Vector2.zero;
             titleTransform = titleGroup;
 
-            var titleBubble = CreateUiObject("TitleBubble", titleGroup);
-            titleBubble.anchorMin = new Vector2(0.06f, 0.18f);
-            titleBubble.anchorMax = new Vector2(0.94f, 0.96f);
-            titleBubble.offsetMin = Vector2.zero;
-            titleBubble.offsetMax = Vector2.zero;
-            var titleBubbleImage = titleBubble.gameObject.AddComponent<Image>();
-            RuntimeArt.ApplyRounded(titleBubbleImage);
-            titleBubbleImage.color = new Color32(255, 255, 255, 242);
-            var titleBubbleOutline = titleBubble.gameObject.AddComponent<Outline>();
-            titleBubbleOutline.effectColor = new Color32(255, 207, 223, 255);
-            titleBubbleOutline.effectDistance = new Vector2(5f, -5f);
+            var eyebrowText = CreateText("Eyebrow", titleGroup, font, 26, FontStyle.Bold, new Color32(167, 144, 160, 255));
+            eyebrowText.text = "从高考、志愿到大学，先做一版可试玩 DEMO";
+            eyebrowText.alignment = TextAnchor.MiddleCenter;
+            eyebrowText.rectTransform.anchorMin = new Vector2(0.06f, 0.70f);
+            eyebrowText.rectTransform.anchorMax = new Vector2(0.94f, 0.98f);
+            eyebrowText.rectTransform.offsetMin = Vector2.zero;
+            eyebrowText.rectTransform.offsetMax = Vector2.zero;
 
-            var titleText = CreateText("MainTitle", titleBubble, font, 96, FontStyle.Bold, new Color32(252, 132, 141, 255));
-            Stretch(titleText.rectTransform);
+            var titleText = CreateText("MainTitle", titleGroup, font, 92, FontStyle.Bold, new Color32(248, 133, 142, 255));
             titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.rectTransform.anchorMin = new Vector2(0.04f, 0.22f);
+            titleText.rectTransform.anchorMax = new Vector2(0.96f, 0.80f);
+            titleText.rectTransform.offsetMin = Vector2.zero;
+            titleText.rectTransform.offsetMax = Vector2.zero;
             titleText.text = "我的高考\n志愿模拟器";
             var titleShadow = titleText.gameObject.AddComponent<Shadow>();
-            titleShadow.effectColor = new Color(0.25f, 0.2f, 0.25f, 0.25f);
-            titleShadow.effectDistance = new Vector2(0f, -6f);
+            titleShadow.effectColor = new Color(1f, 1f, 1f, 0.85f);
+            titleShadow.effectDistance = new Vector2(0f, 6f);
 
-            var hero = CreateUiObject("Hero", safePanel);
-            hero.anchorMin = new Vector2(0.08f, 0.34f);
-            hero.anchorMax = new Vector2(0.92f, 0.70f);
+            var subtitleText = CreateText("SubTitle", titleGroup, font, 28, FontStyle.Normal, new Color32(132, 112, 133, 255));
+            subtitleText.alignment = TextAnchor.MiddleCenter;
+            subtitleText.rectTransform.anchorMin = new Vector2(0.08f, 0.00f);
+            subtitleText.rectTransform.anchorMax = new Vector2(0.92f, 0.30f);
+            subtitleText.rectTransform.offsetMin = Vector2.zero;
+            subtitleText.rectTransform.offsetMax = Vector2.zero;
+            subtitleText.text = "临时版先验证流程、手感和节奏，再逐屏替换正式美术";
+
+            var heroCard = CreateUiObject("HeroCard", safePanel);
+            heroCard.anchorMin = new Vector2(0.06f, 0.36f);
+            heroCard.anchorMax = new Vector2(0.94f, 0.67f);
+            heroCard.offsetMin = Vector2.zero;
+            heroCard.offsetMax = Vector2.zero;
+            var heroCardImage = heroCard.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(heroCardImage);
+            heroCardImage.color = new Color32(255, 255, 255, 238);
+            var heroCardShadow = heroCard.gameObject.AddComponent<Shadow>();
+            heroCardShadow.effectColor = new Color(0.43f, 0.31f, 0.42f, 0.14f);
+            heroCardShadow.effectDistance = new Vector2(0f, -14f);
+
+            var hero = CreateUiObject("Hero", heroCard);
+            hero.anchorMin = new Vector2(0.18f, 0.18f);
+            hero.anchorMax = new Vector2(0.82f, 0.92f);
             hero.offsetMin = Vector2.zero;
             hero.offsetMax = Vector2.zero;
-            var heroImage = hero.gameObject.AddComponent<Image>();
-            heroImage.color = Color.white;
-            heroImage.preserveAspect = true;
-            var heroSprite = RuntimeArt.LoadSprite("UI/Launch/hero_boy_books");
-            if (heroSprite != null)
-            {
-                heroImage.sprite = heroSprite;
-            }
-            else
-            {
-                heroImage.enabled = false;
-            }
+            CreateHeroPlaceholder(hero, font);
+            hero.gameObject.AddComponent<UiFloatBob>().Configure(7f, 0.42f, 0f);
 
-            newGameButton = CreateButton("开始新游戏", safePanel, font, Color.white, Color.white);
+            CreateFeatureChip(heroCard, font, "选科", new Vector2(0.10f, 0.10f), new Vector2(0.30f, 0.26f), new Color32(255, 231, 190, 255), new Color32(159, 113, 64, 255));
+            CreateFeatureChip(heroCard, font, "志愿", new Vector2(0.40f, 0.10f), new Vector2(0.60f, 0.26f), new Color32(216, 240, 255, 255), new Color32(77, 113, 153, 255));
+            CreateFeatureChip(heroCard, font, "大学", new Vector2(0.70f, 0.10f), new Vector2(0.90f, 0.26f), new Color32(255, 226, 236, 255), new Color32(153, 91, 118, 255));
+
+            var heroHint = CreateText("HeroHint", heroCard, font, 26, FontStyle.Bold, new Color32(141, 119, 138, 255));
+            heroHint.alignment = TextAnchor.MiddleCenter;
+            heroHint.rectTransform.anchorMin = new Vector2(0.10f, 0.00f);
+            heroHint.rectTransform.anchorMax = new Vector2(0.90f, 0.12f);
+            heroHint.rectTransform.offsetMin = Vector2.zero;
+            heroHint.rectTransform.offsetMax = Vector2.zero;
+            heroHint.text = "一屏一屏试玩，先把人生主流程跑通";
+
+            newGameButton = CreateButton("重启我的高中人生", safePanel, font, Color.white, Color.white);
             var newGameRect = (RectTransform)newGameButton.transform;
             newGameRect.anchorMin = new Vector2(0.12f, 0.16f);
             newGameRect.anchorMax = new Vector2(0.88f, 0.26f);
             newGameRect.offsetMin = Vector2.zero;
             newGameRect.offsetMax = Vector2.zero;
             StylePrimaryButton(newGameButton, new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
+            newGameButton.gameObject.AddComponent<UiPressScale>();
 
             continueGameButton = CreateButton("继续", safePanel, font, Color.white, new Color32(255, 104, 126, 255));
             var continueRect = (RectTransform)continueGameButton.transform;
@@ -197,24 +232,27 @@ namespace GaokaoSimulator.Features.Launch
             continueRect.offsetMin = Vector2.zero;
             continueRect.offsetMax = Vector2.zero;
             StyleOutlineButton(continueGameButton, new Color32(255, 104, 126, 255));
+            continueGameButton.gameObject.AddComponent<UiPressScale>();
 
             aboutButton = CreateIconButton("?", safePanel, font);
             var aboutRect = (RectTransform)aboutButton.transform;
-            aboutRect.anchorMin = new Vector2(0.02f, 0.06f);
-            aboutRect.anchorMax = new Vector2(0.10f, 0.12f);
+            aboutRect.anchorMin = new Vector2(0.02f, 0.08f);
+            aboutRect.anchorMax = new Vector2(0.10f, 0.14f);
             aboutRect.offsetMin = Vector2.zero;
             aboutRect.offsetMax = Vector2.zero;
+            aboutButton.gameObject.AddComponent<UiPressScale>();
 
             settingsButton = CreateIconButton("⚙", safePanel, font);
             var settingsRect = (RectTransform)settingsButton.transform;
-            settingsRect.anchorMin = new Vector2(0.90f, 0.06f);
-            settingsRect.anchorMax = new Vector2(0.98f, 0.12f);
+            settingsRect.anchorMin = new Vector2(0.90f, 0.08f);
+            settingsRect.anchorMax = new Vector2(0.98f, 0.14f);
             settingsRect.offsetMin = Vector2.zero;
             settingsRect.offsetMax = Vector2.zero;
+            settingsButton.gameObject.AddComponent<UiPressScale>();
 
             var tipRect = CreateUiObject("TipText", safePanel);
-            tipRect.anchorMin = new Vector2(0.08f, 0.27f);
-            tipRect.anchorMax = new Vector2(0.92f, 0.34f);
+            tipRect.anchorMin = new Vector2(0.08f, 0.30f);
+            tipRect.anchorMax = new Vector2(0.92f, 0.35f);
             tipRect.offsetMin = Vector2.zero;
             tipRect.offsetMax = Vector2.zero;
             var tipText = tipRect.gameObject.AddComponent<Text>();
@@ -296,10 +334,26 @@ namespace GaokaoSimulator.Features.Launch
             if (text != null)
             {
                 text.resizeTextForBestFit = false;
-                text.fontSize = 58;
+                text.fontSize = 40;
             }
 
             return button;
+        }
+
+        private static void CreateFeatureChip(Transform parent, Font font, string label, Vector2 min, Vector2 max, Color bgColor, Color textColor)
+        {
+            var chip = CreateUiObject($"Chip_{label}", parent);
+            chip.anchorMin = min;
+            chip.anchorMax = max;
+            chip.offsetMin = Vector2.zero;
+            chip.offsetMax = Vector2.zero;
+            var chipImage = chip.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(chipImage);
+            chipImage.color = bgColor;
+            var chipText = CreateText("ChipText", chip, font, 28, FontStyle.Bold, textColor);
+            Stretch(chipText.rectTransform);
+            chipText.alignment = TextAnchor.MiddleCenter;
+            chipText.text = label;
         }
 
         private static void CreateDecorBubble(RectTransform parent, string name, Vector2 anchoredPosition, float size, Color color, bool anchorRight = false)
@@ -312,6 +366,133 @@ namespace GaokaoSimulator.Features.Launch
             bubble.sizeDelta = new Vector2(size, size);
             var image = bubble.gameObject.AddComponent<Image>();
             image.color = color;
+        }
+
+        private static void CreateHeroPlaceholder(RectTransform parent, Font font)
+        {
+            var halo = CreateUiObject("HeroHalo", parent);
+            halo.anchorMin = new Vector2(0.18f, 0.06f);
+            halo.anchorMax = new Vector2(0.82f, 0.78f);
+            halo.offsetMin = Vector2.zero;
+            halo.offsetMax = Vector2.zero;
+            var haloImage = halo.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(haloImage);
+            haloImage.color = new Color32(255, 240, 222, 255);
+            var haloGradient = halo.gameObject.AddComponent<UiVerticalGradient>();
+            haloGradient.SetColors(new Color32(255, 246, 228, 255), new Color32(255, 229, 240, 255));
+
+            var stickerA = CreateUiObject("StickerA", parent);
+            stickerA.anchorMin = new Vector2(0.02f, 0.66f);
+            stickerA.anchorMax = new Vector2(0.22f, 0.84f);
+            stickerA.offsetMin = Vector2.zero;
+            stickerA.offsetMax = Vector2.zero;
+            var stickerAImage = stickerA.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(stickerAImage);
+            stickerAImage.color = new Color32(255, 235, 193, 255);
+            var stickerAText = CreateText("StickerAText", stickerA, font, 24, FontStyle.Bold, new Color32(155, 108, 61, 255));
+            Stretch(stickerAText.rectTransform);
+            stickerAText.alignment = TextAnchor.MiddleCenter;
+            stickerAText.text = "选科";
+
+            var stickerB = CreateUiObject("StickerB", parent);
+            stickerB.anchorMin = new Vector2(0.78f, 0.22f);
+            stickerB.anchorMax = new Vector2(0.98f, 0.40f);
+            stickerB.offsetMin = Vector2.zero;
+            stickerB.offsetMax = Vector2.zero;
+            var stickerBImage = stickerB.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(stickerBImage);
+            stickerBImage.color = new Color32(221, 239, 255, 255);
+            var stickerBText = CreateText("StickerBText", stickerB, font, 24, FontStyle.Bold, new Color32(82, 118, 153, 255));
+            Stretch(stickerBText.rectTransform);
+            stickerBText.alignment = TextAnchor.MiddleCenter;
+            stickerBText.text = "志愿";
+
+            var books = CreateUiObject("Books", parent);
+            books.anchorMin = new Vector2(0.24f, 0.10f);
+            books.anchorMax = new Vector2(0.76f, 0.34f);
+            books.offsetMin = Vector2.zero;
+            books.offsetMax = Vector2.zero;
+
+            for (int i = 0; i < 4; i++)
+            {
+                var book = CreateUiObject($"Book_{i}", books);
+                book.anchorMin = new Vector2(0.10f + i * 0.04f, 0.06f + i * 0.16f);
+                book.anchorMax = new Vector2(0.90f - i * 0.04f, 0.26f + i * 0.16f);
+                book.offsetMin = Vector2.zero;
+                book.offsetMax = Vector2.zero;
+                var bookImage = book.gameObject.AddComponent<Image>();
+                RuntimeArt.ApplyRounded(bookImage);
+                bookImage.color = i switch
+                {
+                    0 => new Color32(255, 219, 188, 255),
+                    1 => new Color32(255, 205, 220, 255),
+                    2 => new Color32(196, 231, 255, 255),
+                    _ => new Color32(219, 239, 197, 255),
+                };
+                var outline = book.gameObject.AddComponent<Outline>();
+                outline.effectColor = new Color32(255, 255, 255, 150);
+                outline.effectDistance = new Vector2(2f, -2f);
+            }
+
+            var mascot = CreateUiObject("Mascot", parent);
+            mascot.anchorMin = new Vector2(0.28f, 0.18f);
+            mascot.anchorMax = new Vector2(0.72f, 0.84f);
+            mascot.offsetMin = Vector2.zero;
+            mascot.offsetMax = Vector2.zero;
+
+            var body = CreateUiObject("Body", mascot);
+            body.anchorMin = new Vector2(0.32f, 0.02f);
+            body.anchorMax = new Vector2(0.68f, 0.48f);
+            body.offsetMin = Vector2.zero;
+            body.offsetMax = Vector2.zero;
+            var bodyImage = body.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(bodyImage);
+            bodyImage.color = new Color32(255, 251, 252, 255);
+
+            var uniform = CreateUiObject("Uniform", body);
+            uniform.anchorMin = new Vector2(0.16f, 0.34f);
+            uniform.anchorMax = new Vector2(0.84f, 0.78f);
+            uniform.offsetMin = Vector2.zero;
+            uniform.offsetMax = Vector2.zero;
+            var uniformImage = uniform.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(uniformImage);
+            uniformImage.color = new Color32(173, 214, 255, 255);
+
+            var head = CreateUiObject("Head", mascot);
+            head.anchorMin = new Vector2(0.24f, 0.44f);
+            head.anchorMax = new Vector2(0.76f, 0.86f);
+            head.offsetMin = Vector2.zero;
+            head.offsetMax = Vector2.zero;
+            var headImage = head.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(headImage);
+            headImage.color = new Color32(255, 233, 214, 255);
+
+            var hair = CreateUiObject("Hair", head);
+            hair.anchorMin = new Vector2(0.02f, 0.54f);
+            hair.anchorMax = new Vector2(0.96f, 0.98f);
+            hair.offsetMin = Vector2.zero;
+            hair.offsetMax = Vector2.zero;
+            var hairImage = hair.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(hairImage);
+            hairImage.color = new Color32(106, 76, 69, 255);
+
+            var face = CreateText("Face", head, font, 38, FontStyle.Bold, new Color32(120, 93, 90, 255));
+            Stretch(face.rectTransform);
+            face.alignment = TextAnchor.MiddleCenter;
+            face.text = "·  ·\n  u";
+
+            var badge = CreateUiObject("HeroBadge", parent);
+            badge.anchorMin = new Vector2(0.24f, 0.80f);
+            badge.anchorMax = new Vector2(0.76f, 0.96f);
+            badge.offsetMin = Vector2.zero;
+            badge.offsetMax = Vector2.zero;
+            var badgeImage = badge.gameObject.AddComponent<Image>();
+            RuntimeArt.ApplyRounded(badgeImage);
+            badgeImage.color = new Color32(255, 255, 255, 226);
+            var badgeText = CreateText("BadgeText", badge, font, 30, FontStyle.Bold, new Color32(136, 112, 144, 255));
+            Stretch(badgeText.rectTransform);
+            badgeText.alignment = TextAnchor.MiddleCenter;
+            badgeText.text = "软萌临时主视觉";
         }
 
         private static RectTransform CreateUiObject(string name, Transform parent)
