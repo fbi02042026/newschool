@@ -68,10 +68,13 @@
   - 要点：提示文案改为解释“首选/再选”的作用，并根据当前选择动态展示方向参考
 - 专家推荐入口
   - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
-  - 要点：Header 增加专家图标（npc_expert），点击弹出“如果不知道选什么”的选项，按偏好自动勾选一套推荐组合
+  - 要点：Header 增加专家图标（npc_expert），点击后改为 3 步问答式引导，再生成推荐组合与理由，最后由玩家决定是否采用
 - 选科引导补齐
   - 修改：[GuideService.cs](file:///z:/gaokao/newschool/Assets/Scripts/UI/GuideService.cs)
   - 要点：新增 Subject 的引导步骤，并提示可点右上角专家获取推荐
+- 选科卡片可读性优化
+  - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
+  - 要点：把“未来发展方向”直接写进每张卡片，调整提示区高度与首选/再选布局，修复重叠和文字不清晰问题
 
 #### 流程提示（ScreenFlowHint）
 
