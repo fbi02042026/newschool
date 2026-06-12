@@ -267,6 +267,10 @@ namespace GaokaoSimulator.UI
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Province.ProvinceScreen>();
             }
+            else if (screenType == ScreenType.Subject)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Subject.SubjectScreen>();
+            }
             else if (screenType == ScreenType.Home)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Home.HomeScreen>();
