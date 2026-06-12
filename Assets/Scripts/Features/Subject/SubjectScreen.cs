@@ -277,15 +277,13 @@ namespace GaokaoSimulator.Features.Subject
             expertOptionBButton.onClick.AddListener(() => OnExpertOptionSelected(1));
             expertOptionCButton.onClick.AddListener(() => OnExpertOptionSelected(2));
 
-            expertResultText = CreateText("Result", card, font, 34, FontStyle.Normal, UITheme.TextSoft);
+            expertResultText = CreateText("Result", card, font, 68, FontStyle.Normal, UITheme.TextSoft);
             expertResultText.alignment = TextAnchor.UpperLeft;
             expertResultText.rectTransform.anchorMin = new Vector2(0.08f, 0.34f);
             expertResultText.rectTransform.anchorMax = new Vector2(0.92f, 0.74f);
             expertResultText.rectTransform.offsetMin = Vector2.zero;
             expertResultText.rectTransform.offsetMax = Vector2.zero;
-            expertResultText.resizeTextForBestFit = true;
-            expertResultText.resizeTextMinSize = 24;
-            expertResultText.resizeTextMaxSize = Mathf.RoundToInt(34 * UiTextScale);
+            expertResultText.resizeTextForBestFit = false;
             expertResultText.gameObject.SetActive(false);
 
             expertApplyButton = CreatePrimaryButton("采用这套推荐", card, font, UITheme.Confirm, Color.white);
@@ -489,9 +487,8 @@ namespace GaokaoSimulator.Features.Subject
             {
                 expertResultText.gameObject.SetActive(true);
                 expertResultText.text =
-                    $"{GetFirstLabel(expertRecommendedFirst)} + {GetSecondLabel(expertRecommendedSecondA)} + {GetSecondLabel(expertRecommendedSecondB)}\n\n" +
-                    GetExpertReasonText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB) +
-                    "\n\n未来方向：\n" +
+                    $"{GetFirstLabel(expertRecommendedFirst)} + {GetSecondLabel(expertRecommendedSecondA)} + {GetSecondLabel(expertRecommendedSecondB)}\n" +
+                    GetExpertReasonText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB) + "\n" +
                     GetExpertFutureText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB);
             }
 
@@ -507,45 +504,45 @@ namespace GaokaoSimulator.Features.Subject
         {
             if (first == FirstSubject.Physics)
             {
-                return $"这套更偏理工路线，适合想保留工程/计算机/理科空间的人。\n再选 {GetSecondLabel(a)}、{GetSecondLabel(b)} 能把相关方向再补强。";
+                return "偏理工路线，保留工程 / 计算机 / 理科的选择面。";
             }
 
-            return $"这套更偏人文与管理路线，适合表达、分析、阅读型同学。\n再选 {GetSecondLabel(a)}、{GetSecondLabel(b)} 会让方向更稳。";
+            return "偏人文管理路线，适合表达 / 分析 / 阅读型同学。";
         }
 
         private string GetExpertFutureText(FirstSubject first, SecondSubject a, SecondSubject b)
         {
-            var lines = new List<string>();
+            var parts = new List<string>();
             if (first == FirstSubject.Physics)
             {
-                lines.Add("主线：工程 / 计算机 / 理科");
+                parts.Add("未来：工程 / 计算机 / 理科");
             }
             else
             {
-                lines.Add("主线：法学 / 文史 / 管理 / 教育");
+                parts.Add("未来：法学 / 管理 / 教育 / 文史");
             }
 
-            AppendSecondFuture(lines, a);
-            AppendSecondFuture(lines, b);
+            AppendSecondFuture(parts, a);
+            AppendSecondFuture(parts, b);
 
-            return string.Join("\n", lines.ToArray());
+            return string.Join("；", parts.ToArray());
         }
 
-        private void AppendSecondFuture(List<string> lines, SecondSubject subject)
+        private void AppendSecondFuture(List<string> parts, SecondSubject subject)
         {
             switch (subject)
             {
                 case SecondSubject.Chemistry:
-                    lines.Add("化学：材料 / 化工 / 医药实验相关");
+                    parts.Add("化学→材料/化工/医药实验");
                     return;
                 case SecondSubject.Biology:
-                    lines.Add("生物：生命科学 / 医学健康相关");
+                    parts.Add("生物→生命科学/医学健康");
                     return;
                 case SecondSubject.Geography:
-                    lines.Add("地理：环境 / 城市规划 / 地理信息相关");
+                    parts.Add("地理→环境/城规/地信");
                     return;
                 case SecondSubject.Politics:
-                    lines.Add("政治：考公 / 公管 / 社科相关");
+                    parts.Add("政治→考公/公管/社科");
                     return;
                 default:
                     return;

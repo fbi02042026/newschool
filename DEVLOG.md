@@ -78,6 +78,9 @@
 - 专家推荐结果可读性优化
   - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
   - 要点：修复结果页文字与按钮区域重叠；推荐结果追加“未来方向”简述
+- 专家推荐文字放大
+  - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
+  - 要点：推荐结果字号放大（约 2 倍），并把推荐文案压缩成 3 行避免再次触发缩放/重叠
 
 #### 流程提示（ScreenFlowHint）
 
