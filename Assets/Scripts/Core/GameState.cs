@@ -17,7 +17,15 @@ namespace GaokaoSimulator.Core
         public PlayerGender Gender { get; set; } = PlayerGender.Male;
         public FamilyBackgroundType SelectedFamily { get; set; } = FamilyBackgroundType.None;
         public string SelectedProvince { get; set; } = "";
+        public string SelectedProvinceMode { get; set; } = "";
+        public float SelectedProvinceDifficulty { get; set; } = 1f;
+        public string SelectedProvinceDifficultyText { get; set; } = "";
         public int Money { get; set; } = 0;
+        public int GuideToneVariant { get; set; } = -1;
+        public string FamilyExamEventTitle { get; set; } = "";
+        public string FamilyExamEventDesc { get; set; } = "";
+        public string FamilyVolunteerEventTitle { get; set; } = "";
+        public string FamilyVolunteerEventDesc { get; set; } = "";
 
         public int StatIntelligence { get; set; } = 0;
         public int StatPsychology { get; set; } = 0;
@@ -32,6 +40,28 @@ namespace GaokaoSimulator.Core
         public GameProgress CurrentProgress { get; set; } = GameProgress.Launch;
         public int CurrentPlaythrough { get; set; } = 1; // 第几周目
         public bool HasSaveData { get; set; } = false;
+
+        private readonly HashSet<string> seenGuideKeys = new HashSet<string>();
+
+        public bool HasSeenGuide(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return true;
+            }
+
+            return seenGuideKeys.Contains(key);
+        }
+
+        public void MarkGuideSeen(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return;
+            }
+
+            seenGuideKeys.Add(key);
+        }
         
         // ===== 属性系统（后续扩展）=====
         // public PlayerAttributes Attributes { get; set; }
@@ -46,6 +76,10 @@ namespace GaokaoSimulator.Core
             
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            if (GuideToneVariant < 0)
+            {
+                GuideToneVariant = UnityEngine.Random.Range(0, 3);
+            }
             
             Debug.Log("[GameState] 初始化完成");
         }
@@ -59,14 +93,23 @@ namespace GaokaoSimulator.Core
             Gender = PlayerGender.Male;
             SelectedFamily = FamilyBackgroundType.None;
             SelectedProvince = "";
+            SelectedProvinceMode = "";
+            SelectedProvinceDifficulty = 1f;
+            SelectedProvinceDifficultyText = "";
             Money = 0;
             StatIntelligence = 0;
             StatPsychology = 0;
             StatSocial = 0;
             StatHealth = 0;
+            GuideToneVariant = UnityEngine.Random.Range(0, 3);
+            FamilyExamEventTitle = "";
+            FamilyExamEventDesc = "";
+            FamilyVolunteerEventTitle = "";
+            FamilyVolunteerEventDesc = "";
             FirstSubject = FirstSubject.None;
             SecondSubjects.Clear();
             CurrentProgress = GameProgress.Launch;
+            seenGuideKeys.Clear();
             // 保留 CurrentPlaythrough 和 HasSaveData
             
             Debug.Log("[GameState] 状态已重置");

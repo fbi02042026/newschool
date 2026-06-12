@@ -2,6 +2,7 @@ using System;
 using GaokaoSimulator.Features.Launch;
 using GaokaoSimulator.Features.Profile;
 using GaokaoSimulator.Features.Family;
+using GaokaoSimulator.Features.Province;
 using GaokaoSimulator.UI;
 using GaokaoSimulator.UI.Effects;
 using UnityEditor;
@@ -15,6 +16,7 @@ namespace GaokaoSimulator.EditorTools
         private const string LaunchPrefabPath = "Assets/Resources/UI/Screens/Screen_Launch.prefab";
         private const string ProfilePrefabPath = "Assets/Resources/UI/Screens/Screen_Profile.prefab";
         private const string FamilyPrefabPath = "Assets/Resources/UI/Screens/Screen_Family.prefab";
+        private const string ProvincePrefabPath = "Assets/Resources/UI/Screens/Screen_Province.prefab";
 
         [MenuItem("Gaokao/UI/Generate Screen Prefabs (Safe)")]
         private static void GenerateSafe()
@@ -28,6 +30,7 @@ namespace GaokaoSimulator.EditorTools
             GenerateLaunch(font, overwrite: false);
             GenerateProfile(font, overwrite: false);
             GenerateFamily(font, overwrite: false);
+            GenerateProvince(font, overwrite: false);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -43,6 +46,7 @@ namespace GaokaoSimulator.EditorTools
             var anyExists = AssetDatabase.LoadAssetAtPath<GameObject>(LaunchPrefabPath) != null
                             || AssetDatabase.LoadAssetAtPath<GameObject>(ProfilePrefabPath) != null;
             anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(FamilyPrefabPath) != null;
+            anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(ProvincePrefabPath) != null;
 
             if (anyExists)
             {
@@ -64,6 +68,7 @@ namespace GaokaoSimulator.EditorTools
                 GenerateLaunch(font, overwrite);
                 GenerateProfile(font, overwrite);
                 GenerateFamily(font, overwrite);
+                GenerateProvince(font, overwrite);
             }
             else
             {
@@ -71,6 +76,7 @@ namespace GaokaoSimulator.EditorTools
                 GenerateLaunch(font, overwrite: true);
                 GenerateProfile(font, overwrite: true);
                 GenerateFamily(font, overwrite: true);
+                GenerateProvince(font, overwrite: true);
             }
 
             AssetDatabase.SaveAssets();
@@ -611,6 +617,227 @@ namespace GaokaoSimulator.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SavePrefab(root, FamilyPrefabPath);
+        }
+
+        private static void GenerateProvince(Font font, bool overwrite)
+        {
+            if (!overwrite && AssetDatabase.LoadAssetAtPath<GameObject>(ProvincePrefabPath) != null)
+            {
+                return;
+            }
+
+            var root = new GameObject("Screen_Province", typeof(RectTransform));
+            var screen = root.AddComponent<ProvinceScreen>();
+            Stretch(root.GetComponent<RectTransform>());
+
+            var bg = CreateImage("Background", root.transform, Color.white);
+            Stretch(bg.rectTransform);
+            var bgGrad = bg.gameObject.AddComponent<UiCornerGradient>();
+            bgGrad.SetColors(UITheme.CardButter, UITheme.Bg, UITheme.CardSky, UITheme.CardLavender);
+
+            var dots = CreateRect("BgDots", root.transform);
+            Stretch(dots);
+            GenerateDots(dots, 12);
+
+            var panel = CreateRect("Panel", root.transform);
+            panel.anchorMin = new Vector2(0.05f, 0.04f);
+            panel.anchorMax = new Vector2(0.95f, 0.96f);
+            panel.offsetMin = Vector2.zero;
+            panel.offsetMax = Vector2.zero;
+
+            var header = CreateRect("ScreenHeader", panel);
+            header.anchorMin = new Vector2(0f, 0.80f);
+            header.anchorMax = new Vector2(1f, 1f);
+            header.offsetMin = Vector2.zero;
+            header.offsetMax = Vector2.zero;
+
+            var stepBadge = CreateImage("StepBadge", header.transform, UITheme.CardPeach);
+            stepBadge.gameObject.AddComponent<UiAutoRounded>();
+            stepBadge.rectTransform.anchorMin = new Vector2(0.36f, 0.68f);
+            stepBadge.rectTransform.anchorMax = new Vector2(0.64f, 0.96f);
+            stepBadge.rectTransform.offsetMin = Vector2.zero;
+            stepBadge.rectTransform.offsetMax = Vector2.zero;
+            var stepText = CreateText("Text", stepBadge.transform, font, 32, FontStyle.Bold, UITheme.Accent);
+            Stretch(stepText.rectTransform);
+            stepText.alignment = TextAnchor.MiddleCenter;
+            stepText.text = "STEP 3 / 5";
+
+            var back = CreateButton("BtnBack", header.transform, font, "← 返回", false);
+            back.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 0.68f);
+            back.GetComponent<RectTransform>().anchorMax = new Vector2(0.24f, 0.96f);
+            back.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            back.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            var title = CreateText("Title", header.transform, font, 82, FontStyle.Bold, UITheme.Text);
+            title.rectTransform.anchorMin = new Vector2(0.06f, 0.28f);
+            title.rectTransform.anchorMax = new Vector2(0.94f, 0.68f);
+            title.rectTransform.offsetMin = Vector2.zero;
+            title.rectTransform.offsetMax = Vector2.zero;
+            title.alignment = TextAnchor.MiddleCenter;
+            title.text = "选择你的省市";
+
+            var subtitle = CreateText("Subtitle", header.transform, font, 40, FontStyle.Normal, UITheme.TextLight);
+            subtitle.rectTransform.anchorMin = new Vector2(0.04f, 0f);
+            subtitle.rectTransform.anchorMax = new Vector2(0.96f, 0.28f);
+            subtitle.rectTransform.offsetMin = Vector2.zero;
+            subtitle.rectTransform.offsetMax = Vector2.zero;
+            subtitle.alignment = TextAnchor.MiddleCenter;
+            subtitle.text = "不同地区采用不同高考模式和难度";
+
+            var body = CreateRect("ScreenBody", panel);
+            body.anchorMin = new Vector2(0f, 0.20f);
+            body.anchorMax = new Vector2(1f, 0.78f);
+            body.offsetMin = Vector2.zero;
+            body.offsetMax = Vector2.zero;
+
+            var scrollRoot = CreateRect("ScrollRoot", body);
+            Stretch(scrollRoot);
+            var scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+
+            var viewport = CreateRect("Viewport", scrollRoot);
+            Stretch(viewport);
+            var viewportImage = viewport.gameObject.AddComponent<Image>();
+            viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+            var mask = viewport.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            var content = CreateRect("Content", viewport);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.offsetMin = Vector2.zero;
+            content.offsetMax = Vector2.zero;
+            var vlg = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlHeight = false;
+            vlg.childControlWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.spacing = 24;
+            vlg.padding = new RectOffset(0, 0, 0, 24);
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+
+            var hotTitleRow = CreateRect("HotTitleRow", content);
+            hotTitleRow.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
+            var hotTitleLayout = hotTitleRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            hotTitleLayout.childAlignment = TextAnchor.MiddleLeft;
+            hotTitleLayout.spacing = 12f;
+            hotTitleLayout.childControlHeight = true;
+            hotTitleLayout.childControlWidth = false;
+            hotTitleLayout.childForceExpandHeight = true;
+            hotTitleLayout.childForceExpandWidth = false;
+            var hotTitle = CreateText("HotTitle", hotTitleRow, font, 30, FontStyle.Bold, UITheme.TextLight);
+            hotTitle.alignment = TextAnchor.MiddleLeft;
+            hotTitle.text = "热门城市";
+            hotTitle.gameObject.AddComponent<LayoutElement>().preferredWidth = 220f;
+            var hotTag = CreateImage("HotTag", hotTitleRow, UITheme.Accent);
+            hotTag.gameObject.AddComponent<UiAutoRounded>();
+            hotTag.gameObject.AddComponent<LayoutElement>().preferredWidth = 104f;
+            var hotTagText = CreateText("Text", hotTag.transform, font, 20, FontStyle.Bold, Color.white);
+            Stretch(hotTagText.rectTransform);
+            hotTagText.alignment = TextAnchor.MiddleCenter;
+            hotTagText.text = "推荐";
+
+            var hotList = CreateRect("HotList", content);
+            var hotGrid = hotList.gameObject.AddComponent<GridLayoutGroup>();
+            hotGrid.cellSize = new Vector2(520f, 172f);
+            hotGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            hotGrid.constraintCount = 2;
+            hotGrid.spacing = new Vector2(24f, 24f);
+            hotGrid.childAlignment = TextAnchor.UpperCenter;
+            hotGrid.padding = new RectOffset(4, 4, 4, 4);
+            hotList.gameObject.AddComponent<LayoutElement>().preferredHeight = 368f;
+
+            var allTitleRow = CreateRect("AllTitleRow", content);
+            allTitleRow.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
+            var allTitle = CreateText("AllTitle", allTitleRow, font, 30, FontStyle.Bold, UITheme.TextLight);
+            Stretch(allTitle.rectTransform);
+            allTitle.alignment = TextAnchor.MiddleLeft;
+            allTitle.text = "全部省市";
+
+            var allList = CreateRect("AllList", content);
+            var allGrid = allList.gameObject.AddComponent<GridLayoutGroup>();
+            allGrid.cellSize = new Vector2(520f, 172f);
+            allGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            allGrid.constraintCount = 2;
+            allGrid.spacing = new Vector2(24f, 24f);
+            allGrid.childAlignment = TextAnchor.UpperCenter;
+            allGrid.padding = new RectOffset(4, 4, 4, 4);
+            allList.gameObject.AddComponent<LayoutElement>().preferredHeight = 1500f;
+
+            var footer = CreateRect("ScreenFooter", panel);
+            footer.anchorMin = new Vector2(0f, 0.04f);
+            footer.anchorMax = new Vector2(1f, 0.18f);
+            footer.offsetMin = Vector2.zero;
+            footer.offsetMax = Vector2.zero;
+
+            var infoPanel = CreateImage("ProvinceInfoPanel", footer, UITheme.CardSky);
+            infoPanel.gameObject.AddComponent<UiAutoRounded>();
+            infoPanel.rectTransform.anchorMin = new Vector2(0.02f, 0.46f);
+            infoPanel.rectTransform.anchorMax = new Vector2(0.98f, 1f);
+            infoPanel.rectTransform.offsetMin = Vector2.zero;
+            infoPanel.rectTransform.offsetMax = Vector2.zero;
+            infoPanel.gameObject.SetActive(false);
+
+            var infoName = CreateText("InfoName", infoPanel.transform, font, 34, FontStyle.Bold, UITheme.Text);
+            infoName.rectTransform.anchorMin = new Vector2(0.04f, 0.56f);
+            infoName.rectTransform.anchorMax = new Vector2(0.52f, 0.92f);
+            infoName.rectTransform.offsetMin = Vector2.zero;
+            infoName.rectTransform.offsetMax = Vector2.zero;
+            infoName.alignment = TextAnchor.MiddleLeft;
+            infoName.text = "北京 · 轻松开局";
+
+            var infoModeChip = CreateImage("InfoModeChip", infoPanel.transform, UITheme.Confirm);
+            infoModeChip.gameObject.AddComponent<UiAutoRounded>();
+            infoModeChip.rectTransform.anchorMin = new Vector2(0.56f, 0.56f);
+            infoModeChip.rectTransform.anchorMax = new Vector2(0.94f, 0.92f);
+            infoModeChip.rectTransform.offsetMin = Vector2.zero;
+            infoModeChip.rectTransform.offsetMax = Vector2.zero;
+            var infoModeText = CreateText("InfoModeText", infoModeChip.transform, font, 24, FontStyle.Bold, Color.white);
+            Stretch(infoModeText.rectTransform);
+            infoModeText.alignment = TextAnchor.MiddleCenter;
+            infoModeText.text = "新高考模式 3+1+2";
+
+            var infoDiff = CreateText("InfoDiff", infoPanel.transform, font, 24, FontStyle.Bold, UITheme.TextSoft);
+            infoDiff.rectTransform.anchorMin = new Vector2(0.04f, 0.24f);
+            infoDiff.rectTransform.anchorMax = new Vector2(0.94f, 0.50f);
+            infoDiff.rectTransform.offsetMin = Vector2.zero;
+            infoDiff.rectTransform.offsetMax = Vector2.zero;
+            infoDiff.alignment = TextAnchor.MiddleLeft;
+            infoDiff.text = "难度系数 1.00 · 整体处于常规强度";
+
+            var infoDesc = CreateText("InfoDesc", infoPanel.transform, font, 24, FontStyle.Normal, UITheme.TextLight);
+            infoDesc.rectTransform.anchorMin = new Vector2(0.04f, 0.04f);
+            infoDesc.rectTransform.anchorMax = new Vector2(0.94f, 0.24f);
+            infoDesc.rectTransform.offsetMin = Vector2.zero;
+            infoDesc.rectTransform.offsetMax = Vector2.zero;
+            infoDesc.alignment = TextAnchor.UpperLeft;
+            infoDesc.text = "语数外固定，首选1门，再选2门，更接近多数省份玩法。";
+
+            var confirm = CreateButton("BtnConfirm", footer, font, "确认进入选科 →", true);
+            confirm.GetComponent<RectTransform>().anchorMin = new Vector2(0.02f, 0f);
+            confirm.GetComponent<RectTransform>().anchorMax = new Vector2(0.98f, 0.38f);
+            confirm.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            confirm.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            var so = new SerializedObject(screen);
+            so.FindProperty("backButton").objectReferenceValue = back;
+            so.FindProperty("confirmButton").objectReferenceValue = confirm;
+            so.FindProperty("titleText").objectReferenceValue = title;
+            so.FindProperty("subtitleText").objectReferenceValue = subtitle;
+            so.FindProperty("hotListRoot").objectReferenceValue = hotList;
+            so.FindProperty("allListRoot").objectReferenceValue = allList;
+            so.FindProperty("infoPanelRoot").objectReferenceValue = infoPanel.rectTransform;
+            so.FindProperty("infoNameText").objectReferenceValue = infoName;
+            so.FindProperty("infoModeChipImage").objectReferenceValue = infoModeChip;
+            so.FindProperty("infoModeText").objectReferenceValue = infoModeText;
+            so.FindProperty("infoDiffText").objectReferenceValue = infoDiff;
+            so.FindProperty("infoDescText").objectReferenceValue = infoDesc;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            SavePrefab(root, ProvincePrefabPath);
         }
 
         private static void CreateStatItem(RectTransform parent, Font font, string label, string icon, Vector2 min, Vector2 max, out Image fillImage, out Text valueText)

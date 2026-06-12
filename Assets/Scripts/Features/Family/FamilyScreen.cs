@@ -9,6 +9,8 @@ namespace GaokaoSimulator.Features.Family
 {
     public class FamilyScreen : ScreenBase
     {
+        private const float UiTextScale = 1.45f;
+
         [Header("UI引用")]
         [SerializeField] private Button backButton;
         [SerializeField] private Button helpButton;
@@ -78,6 +80,7 @@ namespace GaokaoSimulator.Features.Family
         {
             EnsureRuntimeLayout();
             EnsureCompareLayout();
+            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Family));
             BindEvents();
             Refresh();
         }
@@ -87,8 +90,37 @@ namespace GaokaoSimulator.Features.Family
             var state = Core.GameState.Instance;
             if (state != null)
             {
-                state.CurrentProgress = Core.GameProgress.Family;
+                if (state.CurrentProgress < Core.GameProgress.Family)
+                {
+                    state.CurrentProgress = Core.GameProgress.Family;
+                }
                 state.HasSaveData = true;
+            }
+
+            GuideService.EnsureHelpButton(transform.Find("Panel/Header") ?? transform, "BtnHelp", () => GuideService.Open(ScreenType.Family, transform));
+            GuideService.TryShowOnce(ScreenType.Family, transform);
+
+            if (state != null && state.SelectedFamily != Core.FamilyBackgroundType.None && state.CurrentProgress >= Core.GameProgress.Province)
+            {
+                var candidate = FamilyCandidate.FromType(state.SelectedFamily);
+                if (candidate != null)
+                {
+                    candidate.Money = state.Money;
+                    candidate.Intelligence = state.StatIntelligence;
+                    candidate.Psychology = state.StatPsychology;
+                    candidate.Social = state.StatSocial;
+                    candidate.Health = state.StatHealth;
+                    candidate.ExamEventTitle = state.FamilyExamEventTitle;
+                    candidate.ExamEventDesc = state.FamilyExamEventDesc;
+                    candidate.VolunteerEventTitle = state.FamilyVolunteerEventTitle;
+                    candidate.VolunteerEventDesc = state.FamilyVolunteerEventDesc;
+
+                    currentCandidate = candidate;
+                    previousCandidate = null;
+                    pendingCandidate = null;
+                    ShowResult(candidate, true);
+                    return;
+                }
             }
 
             StartDraw();
@@ -120,7 +152,7 @@ namespace GaokaoSimulator.Features.Family
 
         private void EnsureRuntimeLayout()
         {
-            if (backButton != null && helpButton != null && keepButton != null && rerollButton != null && titleText != null && subtitleText != null && drawHintText != null && drawCardIconText != null && drawCardNameText != null && drawCardDescText != null && progressFillImage != null && drawStageRoot != null && resultStageRoot != null && resultIconText != null && resultNameText != null && resultDescText != null && resultMoneyText != null && statIntFill != null && statPsyFill != null && statSocFill != null && statHealthFill != null && statIntValue != null && statPsyValue != null && statSocValue != null && statHealthValue != null)
+            if (backButton != null && keepButton != null && rerollButton != null && titleText != null && subtitleText != null && drawHintText != null && drawCardIconText != null && drawCardNameText != null && drawCardDescText != null && progressFillImage != null && drawStageRoot != null && resultStageRoot != null && resultIconText != null && resultNameText != null && resultDescText != null && resultMoneyText != null && statIntFill != null && statPsyFill != null && statSocFill != null && statHealthFill != null && statIntValue != null && statPsyValue != null && statSocValue != null && statHealthValue != null)
             {
                 return;
             }
@@ -131,7 +163,6 @@ namespace GaokaoSimulator.Features.Family
         private void BindEvents()
         {
             if (backButton != null) backButton.onClick.AddListener(() => NavigateTo(ScreenType.Profile, false));
-            if (helpButton != null) helpButton.onClick.AddListener(() => ShowToast("后续会补：属性说明弹窗"));
             if (keepButton != null) keepButton.onClick.AddListener(KeepCurrent);
             if (rerollButton != null) rerollButton.onClick.AddListener(Reroll);
             if (replaceButton != null) replaceButton.onClick.AddListener(ReplaceWithPending);
@@ -239,36 +270,20 @@ namespace GaokaoSimulator.Features.Family
 
             if (compareOldIconText != null) compareOldIconText.text = oldCandidate.Icon;
             if (compareOldNameText != null) compareOldNameText.text = oldCandidate.Name;
-            if (compareOldMoneyText != null) compareOldMoneyText.text = $"{oldCandidate.Money}";
+            if (compareOldMoneyText != null) compareOldMoneyText.text = $"🪙 {oldCandidate.Money}";
 
             if (compareNewIconText != null) compareNewIconText.text = newCandidate.Icon;
             if (compareNewNameText != null) compareNewNameText.text = newCandidate.Name;
-            if (compareNewMoneyText != null) compareNewMoneyText.text = $"{newCandidate.Money}";
+            if (compareNewMoneyText != null) compareNewMoneyText.text = $"🪙 {newCandidate.Money}";
 
-            SetDelta(compareMoneyDeltaText, newCandidate.Money - oldCandidate.Money);
-
-            SetStat(compareOldIntFill, null, oldCandidate.Intelligence, 100, UITheme.Confirm, UITheme.ConfirmHover);
-            SetStat(compareOldPsyFill, null, oldCandidate.Psychology, 100, UITheme.FromHex("CE93D8"), UITheme.FromHex("AB47BC"));
-            SetStat(compareOldSocFill, null, oldCandidate.Social, 100, UITheme.FromHex("FFCC80"), UITheme.FromHex("FF9800"));
-            SetStat(compareOldHealthFill, null, oldCandidate.Health, 100, UITheme.FromHex("A5D6A7"), UITheme.FromHex("66BB6A"));
-            SetStat(compareNewIntFill, null, newCandidate.Intelligence, 100, UITheme.Confirm, UITheme.ConfirmHover);
-            SetStat(compareNewPsyFill, null, newCandidate.Psychology, 100, UITheme.FromHex("CE93D8"), UITheme.FromHex("AB47BC"));
-            SetStat(compareNewSocFill, null, newCandidate.Social, 100, UITheme.FromHex("FFCC80"), UITheme.FromHex("FF9800"));
-            SetStat(compareNewHealthFill, null, newCandidate.Health, 100, UITheme.FromHex("A5D6A7"), UITheme.FromHex("66BB6A"));
-
-            SetValue(compareOldIntValueText, oldCandidate.Intelligence);
-            SetValue(compareOldPsyValueText, oldCandidate.Psychology);
-            SetValue(compareOldSocValueText, oldCandidate.Social);
-            SetValue(compareOldHealthValueText, oldCandidate.Health);
-            SetValue(compareNewIntValueText, newCandidate.Intelligence);
-            SetValue(compareNewPsyValueText, newCandidate.Psychology);
-            SetValue(compareNewSocValueText, newCandidate.Social);
-            SetValue(compareNewHealthValueText, newCandidate.Health);
-
-            SetDelta(compareIntDeltaText, newCandidate.Intelligence - oldCandidate.Intelligence);
-            SetDelta(comparePsyDeltaText, newCandidate.Psychology - oldCandidate.Psychology);
-            SetDelta(compareSocDeltaText, newCandidate.Social - oldCandidate.Social);
-            SetDelta(compareHealthDeltaText, newCandidate.Health - oldCandidate.Health);
+            SetStat(compareOldIntFill, compareOldIntValueText, oldCandidate.Intelligence, 100, UITheme.Confirm, UITheme.ConfirmHover);
+            SetStat(compareOldPsyFill, compareOldPsyValueText, oldCandidate.Psychology, 100, UITheme.FromHex("CE93D8"), UITheme.FromHex("AB47BC"));
+            SetStat(compareOldSocFill, compareOldSocValueText, oldCandidate.Social, 100, UITheme.FromHex("FFCC80"), UITheme.FromHex("FF9800"));
+            SetStat(compareOldHealthFill, compareOldHealthValueText, oldCandidate.Health, 100, UITheme.FromHex("A5D6A7"), UITheme.FromHex("66BB6A"));
+            SetStat(compareNewIntFill, compareNewIntValueText, newCandidate.Intelligence, 100, UITheme.Confirm, UITheme.ConfirmHover);
+            SetStat(compareNewPsyFill, compareNewPsyValueText, newCandidate.Psychology, 100, UITheme.FromHex("CE93D8"), UITheme.FromHex("AB47BC"));
+            SetStat(compareNewSocFill, compareNewSocValueText, newCandidate.Social, 100, UITheme.FromHex("FFCC80"), UITheme.FromHex("FF9800"));
+            SetStat(compareNewHealthFill, compareNewHealthValueText, newCandidate.Health, 100, UITheme.FromHex("A5D6A7"), UITheme.FromHex("66BB6A"));
         }
 
         private static void SetValue(Text text, int value)
@@ -345,6 +360,10 @@ namespace GaokaoSimulator.Features.Family
                 state.StatPsychology = currentCandidate.Psychology;
                 state.StatSocial = currentCandidate.Social;
                 state.StatHealth = currentCandidate.Health;
+                state.FamilyExamEventTitle = currentCandidate.ExamEventTitle;
+                state.FamilyExamEventDesc = currentCandidate.ExamEventDesc;
+                state.FamilyVolunteerEventTitle = currentCandidate.VolunteerEventTitle;
+                state.FamilyVolunteerEventDesc = currentCandidate.VolunteerEventDesc;
                 state.CurrentProgress = Core.GameProgress.Province;
                 state.HasSaveData = true;
             }
@@ -437,14 +456,6 @@ namespace GaokaoSimulator.Features.Family
             backRect.offsetMin = Vector2.zero;
             backRect.offsetMax = Vector2.zero;
             backButton.gameObject.AddComponent<UiPressScale>();
-
-            helpButton = CreateSmallButton("?", header, font, UITheme.CardSky, UITheme.Confirm);
-            var helpRect = (RectTransform)helpButton.transform;
-            helpRect.anchorMin = new Vector2(0.90f, 0.70f);
-            helpRect.anchorMax = new Vector2(1f, 0.98f);
-            helpRect.offsetMin = Vector2.zero;
-            helpRect.offsetMax = Vector2.zero;
-            helpButton.gameObject.AddComponent<UiPressScale>();
 
             titleText = CreateText("Title", header, font, 84, FontStyle.Bold, UITheme.Text);
             titleText.alignment = TextAnchor.MiddleCenter;
@@ -540,8 +551,8 @@ namespace GaokaoSimulator.Features.Family
 
             drawHintText = CreateText("DrawHint", drawStageRoot, font, 36, FontStyle.Normal, UITheme.TextLight);
             drawHintText.alignment = TextAnchor.MiddleCenter;
-            drawHintText.rectTransform.anchorMin = new Vector2(0.08f, 0.02f);
-            drawHintText.rectTransform.anchorMax = new Vector2(0.92f, 0.10f);
+            drawHintText.rectTransform.anchorMin = new Vector2(0.08f, 0.04f);
+            drawHintText.rectTransform.anchorMax = new Vector2(0.92f, 0.14f);
             drawHintText.rectTransform.offsetMin = Vector2.zero;
             drawHintText.rectTransform.offsetMax = Vector2.zero;
             drawHintText.text = "抽卡中…";
@@ -702,62 +713,54 @@ namespace GaokaoSimulator.Features.Family
             header.text = "重置对比：是否替换为新开局？";
 
             var left = CreateUiObject("Old", compareCard);
-            left.anchorMin = new Vector2(0.04f, 0.62f);
+            left.anchorMin = new Vector2(0.04f, 0.30f);
             left.anchorMax = new Vector2(0.48f, 0.88f);
             left.offsetMin = Vector2.zero;
             left.offsetMax = Vector2.zero;
-            BuildCompareFamilyCard(left, font, "原来", UITheme.CardButter, out compareOldIconText, out compareOldNameText);
+            BuildCompareDetailCard(
+                left,
+                font,
+                "原来",
+                UITheme.CardButter,
+                out compareOldIconText,
+                out compareOldNameText,
+                out compareOldMoneyText,
+                out compareOldIntFill,
+                out compareOldIntValueText,
+                out compareOldPsyFill,
+                out compareOldPsyValueText,
+                out compareOldSocFill,
+                out compareOldSocValueText,
+                out compareOldHealthFill,
+                out compareOldHealthValueText);
 
             var right = CreateUiObject("New", compareCard);
-            right.anchorMin = new Vector2(0.52f, 0.62f);
+            right.anchorMin = new Vector2(0.52f, 0.30f);
             right.anchorMax = new Vector2(0.96f, 0.88f);
             right.offsetMin = Vector2.zero;
             right.offsetMax = Vector2.zero;
-            BuildCompareFamilyCard(right, font, "新抽到", UITheme.CardSky, out compareNewIconText, out compareNewNameText);
+            BuildCompareDetailCard(
+                right,
+                font,
+                "新抽到",
+                UITheme.CardSky,
+                out compareNewIconText,
+                out compareNewNameText,
+                out compareNewMoneyText,
+                out compareNewIntFill,
+                out compareNewIntValueText,
+                out compareNewPsyFill,
+                out compareNewPsyValueText,
+                out compareNewSocFill,
+                out compareNewSocValueText,
+                out compareNewHealthFill,
+                out compareNewHealthValueText);
 
-            var statsPanel = CreateUiObject("StatsPanel", compareCard);
-            statsPanel.anchorMin = new Vector2(0.04f, 0.30f);
-            statsPanel.anchorMax = new Vector2(0.96f, 0.54f);
-            statsPanel.offsetMin = Vector2.zero;
-            statsPanel.offsetMax = Vector2.zero;
-            var statsPanelImage = statsPanel.gameObject.AddComponent<Image>();
-            statsPanelImage.color = new Color32(250, 250, 250, 255);
-            statsPanel.gameObject.AddComponent<UiAutoRounded>();
-
-            var headRow = CreateUiObject("HeadRow", statsPanel);
-            headRow.anchorMin = new Vector2(0.06f, 0.82f);
-            headRow.anchorMax = new Vector2(0.94f, 1.0f);
-            headRow.offsetMin = Vector2.zero;
-            headRow.offsetMax = Vector2.zero;
-            var headLeft = CreateText("OldLabel", headRow, font, 26, FontStyle.Bold, UITheme.TextLight);
-            headLeft.alignment = TextAnchor.MiddleLeft;
-            headLeft.rectTransform.anchorMin = new Vector2(0.26f, 0f);
-            headLeft.rectTransform.anchorMax = new Vector2(0.44f, 1f);
-            headLeft.rectTransform.offsetMin = Vector2.zero;
-            headLeft.rectTransform.offsetMax = Vector2.zero;
-            headLeft.text = "原来";
-
-            var headMid = CreateText("DeltaLabel", headRow, font, 26, FontStyle.Bold, UITheme.TextLight);
-            headMid.alignment = TextAnchor.MiddleCenter;
-            headMid.rectTransform.anchorMin = new Vector2(0.44f, 0f);
-            headMid.rectTransform.anchorMax = new Vector2(0.56f, 1f);
-            headMid.rectTransform.offsetMin = Vector2.zero;
-            headMid.rectTransform.offsetMax = Vector2.zero;
-            headMid.text = "变化";
-
-            var headRight = CreateText("NewLabel", headRow, font, 26, FontStyle.Bold, UITheme.TextLight);
-            headRight.alignment = TextAnchor.MiddleRight;
-            headRight.rectTransform.anchorMin = new Vector2(0.56f, 0f);
-            headRight.rectTransform.anchorMax = new Vector2(0.74f, 1f);
-            headRight.rectTransform.offsetMin = Vector2.zero;
-            headRight.rectTransform.offsetMax = Vector2.zero;
-            headRight.text = "新抽到";
-
-            BuildMoneyCompareRow(statsPanel, font, new Vector2(0.06f, 0.64f), new Vector2(0.94f, 0.82f));
-            BuildStatCompareRow(statsPanel, font, "智力", "🧠", new Vector2(0.06f, 0.48f), new Vector2(0.94f, 0.64f), out compareOldIntFill, out compareOldIntValueText, out compareNewIntFill, out compareNewIntValueText, out compareIntDeltaText);
-            BuildStatCompareRow(statsPanel, font, "心理", "💜", new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.48f), out compareOldPsyFill, out compareOldPsyValueText, out compareNewPsyFill, out compareNewPsyValueText, out comparePsyDeltaText);
-            BuildStatCompareRow(statsPanel, font, "社交", "💬", new Vector2(0.06f, 0.16f), new Vector2(0.94f, 0.32f), out compareOldSocFill, out compareOldSocValueText, out compareNewSocFill, out compareNewSocValueText, out compareSocDeltaText);
-            BuildStatCompareRow(statsPanel, font, "健康", "💪", new Vector2(0.06f, 0.0f), new Vector2(0.94f, 0.16f), out compareOldHealthFill, out compareOldHealthValueText, out compareNewHealthFill, out compareNewHealthValueText, out compareHealthDeltaText);
+            compareMoneyDeltaText = null;
+            compareIntDeltaText = null;
+            comparePsyDeltaText = null;
+            compareSocDeltaText = null;
+            compareHealthDeltaText = null;
 
             replaceButton = CreatePrimaryButton("✅ 替换为新开局", compareCard, font, UITheme.Confirm, Color.white);
             var replaceRect = (RectTransform)replaceButton.transform;
@@ -824,6 +827,80 @@ namespace GaokaoSimulator.Features.Family
             nameText.rectTransform.offsetMin = Vector2.zero;
             nameText.rectTransform.offsetMax = Vector2.zero;
             nameText.text = "家庭";
+        }
+
+        private static void BuildCompareDetailCard(
+            RectTransform parent,
+            Font font,
+            string header,
+            Color headerBg,
+            out Text iconText,
+            out Text nameText,
+            out Text moneyText,
+            out Image intFill,
+            out Text intValue,
+            out Image psyFill,
+            out Text psyValue,
+            out Image socFill,
+            out Text socValue,
+            out Image healthFill,
+            out Text healthValue)
+        {
+            var bg = parent.gameObject.AddComponent<Image>();
+            bg.color = new Color32(250, 250, 250, 255);
+            parent.gameObject.AddComponent<UiAutoRounded>();
+
+            var head = CreateUiObject("Header", parent);
+            head.anchorMin = new Vector2(0.06f, 0.90f);
+            head.anchorMax = new Vector2(0.94f, 0.98f);
+            head.offsetMin = Vector2.zero;
+            head.offsetMax = Vector2.zero;
+            var headImage = head.gameObject.AddComponent<Image>();
+            headImage.color = headerBg;
+            head.gameObject.AddComponent<UiAutoRounded>();
+            var headText = CreateText("HeaderText", head, font, 28, FontStyle.Bold, UITheme.TextSoft);
+            Stretch(headText.rectTransform);
+            headText.alignment = TextAnchor.MiddleCenter;
+            headText.text = header;
+
+            var iconWrap = CreateUiObject("IconWrap", parent);
+            iconWrap.anchorMin = new Vector2(0.34f, 0.78f);
+            iconWrap.anchorMax = new Vector2(0.66f, 0.90f);
+            iconWrap.offsetMin = Vector2.zero;
+            iconWrap.offsetMax = Vector2.zero;
+            var iconWrapImage = iconWrap.gameObject.AddComponent<Image>();
+            iconWrapImage.color = Color.white;
+            iconWrap.gameObject.AddComponent<UiAutoRounded>();
+            iconText = CreateText("Icon", iconWrap, font, 58, FontStyle.Bold, UITheme.Text);
+            Stretch(iconText.rectTransform);
+            iconText.alignment = TextAnchor.MiddleCenter;
+            iconText.text = "🏠";
+
+            nameText = CreateText("Name", parent, font, 32, FontStyle.Bold, UITheme.Text);
+            nameText.alignment = TextAnchor.MiddleCenter;
+            nameText.rectTransform.anchorMin = new Vector2(0.06f, 0.70f);
+            nameText.rectTransform.anchorMax = new Vector2(0.94f, 0.78f);
+            nameText.rectTransform.offsetMin = Vector2.zero;
+            nameText.rectTransform.offsetMax = Vector2.zero;
+            nameText.text = "家庭";
+
+            var moneyCard = CreateUiObject("MoneyCard", parent);
+            moneyCard.anchorMin = new Vector2(0.10f, 0.60f);
+            moneyCard.anchorMax = new Vector2(0.90f, 0.70f);
+            moneyCard.offsetMin = Vector2.zero;
+            moneyCard.offsetMax = Vector2.zero;
+            var moneyBg = moneyCard.gameObject.AddComponent<Image>();
+            moneyBg.color = Color.white;
+            moneyCard.gameObject.AddComponent<UiAutoRounded>();
+            moneyText = CreateText("Money", moneyCard, font, 28, FontStyle.Bold, UITheme.TextSoft);
+            Stretch(moneyText.rectTransform);
+            moneyText.alignment = TextAnchor.MiddleCenter;
+            moneyText.text = "🪙 0";
+
+            BuildStatItem(parent, font, "智力", "🧠", new Vector2(0.06f, 0.46f), new Vector2(0.94f, 0.60f), out intFill, out intValue);
+            BuildStatItem(parent, font, "心理", "💜", new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.46f), out psyFill, out psyValue);
+            BuildStatItem(parent, font, "社交", "💬", new Vector2(0.06f, 0.18f), new Vector2(0.94f, 0.32f), out socFill, out socValue);
+            BuildStatItem(parent, font, "健康", "💪", new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.18f), out healthFill, out healthValue);
         }
 
         private void BuildMoneyCompareRow(RectTransform parent, Font font, Vector2 min, Vector2 max)
@@ -1054,10 +1131,11 @@ namespace GaokaoSimulator.Features.Family
             var rect = CreateUiObject(name, parent);
             var text = rect.gameObject.AddComponent<Text>();
             text.font = font;
-            text.fontSize = size;
+            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
             text.fontStyle = style;
             text.color = color;
             text.supportRichText = false;
+            text.lineSpacing = 1.12f;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;
@@ -1086,7 +1164,7 @@ namespace GaokaoSimulator.Features.Family
         {
             var btn = CreateButton(label, parent, font, bgColor, textColor);
             var text = btn.GetComponentInChildren<Text>();
-            if (text != null) text.fontSize = 40;
+            if (text != null) text.fontSize = Mathf.RoundToInt(40 * UiTextScale);
             return btn;
         }
 
@@ -1122,16 +1200,20 @@ namespace GaokaoSimulator.Features.Family
             public int Psychology;
             public int Social;
             public int Health;
+            public string ExamEventTitle;
+            public string ExamEventDesc;
+            public string VolunteerEventTitle;
+            public string VolunteerEventDesc;
 
             public static FamilyCandidate Random()
             {
                 var values = new[]
                 {
-                    Create(Core.FamilyBackgroundType.Rural, "村民之子", "家里条件一般，但你很能吃苦。", "🌾", 500, 58, 52, 46, 62),
-                    Create(Core.FamilyBackgroundType.Worker, "工薪之家", "父母踏实勤奋，给你稳定的支持。", "🧰", 900, 62, 58, 52, 60),
-                    Create(Core.FamilyBackgroundType.CivilServant, "中产家庭", "生活体面，资源中等偏上。", "🏙", 1200, 66, 60, 58, 58),
-                    Create(Core.FamilyBackgroundType.Business, "富裕家庭", "经济宽裕，试错成本更低。", "💎", 1800, 60, 56, 68, 55),
-                    Create(Core.FamilyBackgroundType.Intellectual, "书香门第", "重视教育，你从小耳濡目染。", "📚", 1500, 78, 62, 52, 56)
+                    Create(Core.FamilyBackgroundType.Rural, "田野人家", "风吹麦浪、院里有光，你从朴素日子里长出韧劲。", "🌾", 450, 48, 60, 42, 84, "秋收前夜", "高考前家里临时缺人手，你需要在帮忙与复习之间做取舍。", "乡音牵引", "填报志愿时，家里更希望你选离家近、稳定感强的学校。"),
+                    Create(Core.FamilyBackgroundType.Worker, "烟火人间", "一家人踏实过日子，柴米油盐里藏着稳定和温暖。", "🧰", 820, 56, 72, 50, 70, "夜班灯火", "临近考试时，家人的作息变化会轻微影响你的休息与情绪。", "务实选择", "志愿阶段更容易触发“就业优先”建议，偏向性价比高的院校与专业。"),
+                    Create(Core.FamilyBackgroundType.CivilServant, "清风庭院", "家风规整、节奏安稳，你从小就习惯按计划前进。", "🏙", 1180, 68, 74, 62, 58, "规矩之外", "模拟考后，家里会更关注你的排名变化，带来额外压力或督促。", "稳妥路线", "填报时更容易出现“求稳冲稳保”建议，降低冒险填报倾向。"),
+                    Create(Core.FamilyBackgroundType.Business, "锦绣商门", "眼界和资源更丰富，你更早接触到选择与试错的空间。", "💎", 2200, 58, 50, 86, 48, "外界邀约", "备考阶段可能接到竞赛、活动或资源邀约，带来额外机会也分散精力。", "名校远行", "志愿阶段更容易触发跨城升学、热门专业优先等家庭建议。"),
+                    Create(Core.FamilyBackgroundType.Intellectual, "书香门第", "书页翻动的声音陪着你长大，学习早已融进日常。", "📚", 1380, 90, 68, 48, 52, "藏书角", "重要考试前，家里会主动为你整理资料与信息，提升复习效率。", "理想之辩", "填报志愿时更容易出现“兴趣优先还是名校优先”的家庭讨论事件。")
                 };
 
                 return values[UnityEngine.Random.Range(0, values.Length)];
@@ -1152,7 +1234,35 @@ namespace GaokaoSimulator.Features.Family
                 return candidate ?? Random();
             }
 
-            private static FamilyCandidate Create(Core.FamilyBackgroundType type, string name, string desc, string icon, int money, int intelligence, int psychology, int social, int health)
+            public static FamilyCandidate FromType(Core.FamilyBackgroundType type)
+            {
+                if (type == Core.FamilyBackgroundType.None)
+                {
+                    return null;
+                }
+
+                var values = new[]
+                {
+                    Create(Core.FamilyBackgroundType.Rural, "田野人家", "风吹麦浪、院里有光，你从朴素日子里长出韧劲。", "🌾", 450, 48, 60, 42, 84, "秋收前夜", "高考前家里临时缺人手，你需要在帮忙与复习之间做取舍。", "乡音牵引", "填报志愿时，家里更希望你选离家近、稳定感强的学校。"),
+                    Create(Core.FamilyBackgroundType.Worker, "烟火人间", "一家人踏实过日子，柴米油盐里藏着稳定和温暖。", "🧰", 820, 56, 72, 50, 70, "夜班灯火", "临近考试时，家人的作息变化会轻微影响你的休息与情绪。", "务实选择", "志愿阶段更容易触发“就业优先”建议，偏向性价比高的院校与专业。"),
+                    Create(Core.FamilyBackgroundType.CivilServant, "清风庭院", "家风规整、节奏安稳，你从小就习惯按计划前进。", "🏙", 1180, 68, 74, 62, 58, "规矩之外", "模拟考后，家里会更关注你的排名变化，带来额外压力或督促。", "稳妥路线", "填报时更容易出现“求稳冲稳保”建议，降低冒险填报倾向。"),
+                    Create(Core.FamilyBackgroundType.Business, "锦绣商门", "眼界和资源更丰富，你更早接触到选择与试错的空间。", "💎", 2200, 58, 50, 86, 48, "外界邀约", "备考阶段可能接到竞赛、活动或资源邀约，带来额外机会也分散精力。", "名校远行", "志愿阶段更容易触发跨城升学、热门专业优先等家庭建议。"),
+                    Create(Core.FamilyBackgroundType.Intellectual, "书香门第", "书页翻动的声音陪着你长大，学习早已融进日常。", "📚", 1380, 90, 68, 48, 52, "藏书角", "重要考试前，家里会主动为你整理资料与信息，提升复习效率。", "理想之辩", "填报志愿时更容易出现“兴趣优先还是名校优先”的家庭讨论事件。")
+                };
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    var candidate = values[i];
+                    if (candidate != null && candidate.Type == type)
+                    {
+                        return candidate;
+                    }
+                }
+
+                return null;
+            }
+
+            private static FamilyCandidate Create(Core.FamilyBackgroundType type, string name, string desc, string icon, int money, int intelligence, int psychology, int social, int health, string examEventTitle, string examEventDesc, string volunteerEventTitle, string volunteerEventDesc)
             {
                 return new FamilyCandidate
                 {
@@ -1164,7 +1274,11 @@ namespace GaokaoSimulator.Features.Family
                     Intelligence = intelligence,
                     Psychology = psychology,
                     Social = social,
-                    Health = health
+                    Health = health,
+                    ExamEventTitle = examEventTitle,
+                    ExamEventDesc = examEventDesc,
+                    VolunteerEventTitle = volunteerEventTitle,
+                    VolunteerEventDesc = volunteerEventDesc
                 };
             }
         }

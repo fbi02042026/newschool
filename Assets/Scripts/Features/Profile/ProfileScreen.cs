@@ -12,6 +12,8 @@ namespace GaokaoSimulator.Features.Profile
     /// </summary>
     public class ProfileScreen : UI.ScreenBase
     {
+        private const float UiTextScale = 1.45f;
+
         [Header("UI引用")]
         [SerializeField] private Button backButton;
         [SerializeField] private Button maleButton;
@@ -42,6 +44,7 @@ namespace GaokaoSimulator.Features.Profile
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
+            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Profile));
             BindEvents();
             Refresh();
         }
@@ -54,6 +57,8 @@ namespace GaokaoSimulator.Features.Profile
                 Core.GameState.Instance.HasSaveData = true;
             }
 
+            GuideService.EnsureHelpButton(transform.Find("Panel/HeaderCard") ?? transform, "GuideHelpButton", () => GuideService.Open(ScreenType.Profile, transform));
+            GuideService.TryShowOnce(ScreenType.Profile, transform);
             Refresh();
         }
 
@@ -494,10 +499,11 @@ namespace GaokaoSimulator.Features.Profile
             var rect = CreateUiObject(name, parent);
             var text = rect.gameObject.AddComponent<Text>();
             text.font = font;
-            text.fontSize = size;
+            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
             text.fontStyle = style;
             text.color = color;
             text.supportRichText = false;
+            text.lineSpacing = 1.12f;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;
@@ -512,7 +518,7 @@ namespace GaokaoSimulator.Features.Profile
             if (text != null)
             {
                 text.resizeTextForBestFit = false;
-                text.fontSize = 38;
+                text.fontSize = Mathf.RoundToInt(38 * UiTextScale);
                 text.fontStyle = FontStyle.Bold;
                 text.alignment = TextAnchor.MiddleCenter;
                 var rect = text.rectTransform;
@@ -555,8 +561,8 @@ namespace GaokaoSimulator.Features.Profile
             text.alignment = TextAnchor.MiddleCenter;
             Stretch(text.rectTransform);
             text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 26;
-            text.resizeTextMaxSize = 44;
+            text.resizeTextMinSize = Mathf.RoundToInt(34 * UiTextScale);
+            text.resizeTextMaxSize = Mathf.RoundToInt(52 * UiTextScale);
 
             return button;
         }

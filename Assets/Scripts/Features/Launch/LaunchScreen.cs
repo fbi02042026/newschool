@@ -13,6 +13,8 @@ namespace GaokaoSimulator.Features.Launch
     /// </summary>
     public class LaunchScreen : UI.ScreenBase
     {
+        private const float UiTextScale = 1.25f;
+
         [Header("UI引用")]
         [SerializeField] private Button newGameButton;
         [SerializeField] private Button continueGameButton;
@@ -35,6 +37,7 @@ namespace GaokaoSimulator.Features.Launch
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
+            ScreenFlowHint.Clear(transform.Find("SafePanel") ?? transform);
 
             // 绑定按钮事件
             if (newGameButton != null)
@@ -76,6 +79,7 @@ namespace GaokaoSimulator.Features.Launch
             
             // 检查是否有存档，控制继续游戏按钮状态
             UpdateContinueButtonState();
+
         }
         
         protected override void OnScreenClose()
@@ -517,10 +521,11 @@ namespace GaokaoSimulator.Features.Launch
             var rect = CreateUiObject(name, parent);
             var text = rect.gameObject.AddComponent<Text>();
             text.font = font;
-            text.fontSize = size;
+            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
             text.fontStyle = style;
             text.color = color;
             text.supportRichText = false;
+            text.lineSpacing = 1.1f;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;

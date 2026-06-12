@@ -22,6 +22,7 @@ namespace GaokaoSimulator.UI
         protected override void Initialize()
         {
             BuildLayout();
+            ScreenFlowHint.Ensure(transform, ScreenFlowHint.GetNextLabel(configuredType));
             RefreshTexts();
         }
 
@@ -92,6 +93,7 @@ namespace GaokaoSimulator.UI
 
             titleText.text = $"{GetScreenDisplayName(configuredType)}";
             descriptionText.text = "这个界面还在开发中。\n当前先保留流程入口，方便你直接运行测试启动链路和按钮跳转。";
+            ScreenFlowHint.Ensure(transform, ScreenFlowHint.GetNextLabel(configuredType));
         }
 
         private static string GetScreenDisplayName(ScreenType screenType)

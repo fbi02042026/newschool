@@ -1,10 +1,10 @@
 {
-  "unity_port": -1,
-  "stream_port": 11161,
+  "unity_port": 3791,
+  "stream_port": 5036,
   "created_date": "2026-05-25T13:33:45.7640714Z",
-  "project_path": "E:/unity_project/project/gaokao_xin/Assets",
+  "project_path": "Z:/gaokao/newschool/Assets",
   "reloading": false,
-  "reason": "stopped",
+  "reason": "ready",
   "seq": 1,
-  "last_heartbeat": "2026-06-10T14:15:01.4337073Z"
+  "last_heartbeat": "2026-06-12T08:09:10.4370386Z"
 }
