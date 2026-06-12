@@ -14,6 +14,7 @@ namespace GaokaoSimulator.Features.Home
         [Header("UI引用")]
         [SerializeField] private Button helpButton;
         [SerializeField] private Button restartButton;
+        [SerializeField] private Button continueButton;
         [SerializeField] private Text titleText;
         [SerializeField] private Text subtitleText;
         [SerializeField] private Text summaryText;
@@ -66,6 +67,7 @@ namespace GaokaoSimulator.Features.Home
             }
 
             RefreshSummary();
+            RefreshContinueButton();
             RebuildButtons();
         }
 
@@ -105,6 +107,53 @@ namespace GaokaoSimulator.Features.Home
                 restartButton.onClick.RemoveAllListeners();
                 restartButton.onClick.AddListener(() => NavigateTo(ScreenType.Launch, false));
             }
+
+            if (continueButton != null)
+            {
+                continueButton.onClick.RemoveAllListeners();
+                continueButton.onClick.AddListener(ContinueMainline);
+            }
+        }
+
+        private void RefreshContinueButton()
+        {
+            if (continueButton == null)
+            {
+                return;
+            }
+
+            var state = GameState.Instance;
+            if (state == null)
+            {
+                continueButton.interactable = false;
+                return;
+            }
+
+            var next = GetMainlineNext(state);
+            continueButton.interactable = next != ScreenType.Home;
+
+            var label = continueButton.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.text = $"继续主线 · {GetMainlineLabel(next)}";
+            }
+        }
+
+        private void ContinueMainline()
+        {
+            var state = GameState.Instance;
+            if (state == null)
+            {
+                return;
+            }
+
+            var next = GetMainlineNext(state);
+            if (next == ScreenType.Home)
+            {
+                return;
+            }
+
+            NavigateTo(next, true);
         }
 
         private void RefreshSummary()
@@ -209,7 +258,7 @@ namespace GaokaoSimulator.Features.Home
 
         private void EnsureRuntimeLayout()
         {
-            if (restartButton != null && titleText != null && subtitleText != null && summaryText != null && avatarImage != null && avatarBadgeText != null && avatarNameText != null && buttonGroupRoot != null)
+            if (restartButton != null && continueButton != null && titleText != null && subtitleText != null && summaryText != null && avatarImage != null && avatarBadgeText != null && avatarNameText != null && buttonGroupRoot != null)
             {
                 return;
             }
@@ -273,7 +322,7 @@ namespace GaokaoSimulator.Features.Home
             body.offsetMax = Vector2.zero;
 
             var characterCard = CreateUiObject("CharacterCard", body);
-            characterCard.anchorMin = new Vector2(0.06f, 0.38f);
+            characterCard.anchorMin = new Vector2(0.06f, 0.44f);
             characterCard.anchorMax = new Vector2(0.94f, 0.98f);
             characterCard.offsetMin = Vector2.zero;
             characterCard.offsetMax = Vector2.zero;
@@ -328,7 +377,7 @@ namespace GaokaoSimulator.Features.Home
 
             var entryCard = CreateUiObject("EntryCard", body);
             entryCard.anchorMin = new Vector2(0.06f, 0.06f);
-            entryCard.anchorMax = new Vector2(0.94f, 0.34f);
+            entryCard.anchorMax = new Vector2(0.94f, 0.40f);
             entryCard.offsetMin = Vector2.zero;
             entryCard.offsetMax = Vector2.zero;
             var entryBg = entryCard.gameObject.AddComponent<Image>();
@@ -338,8 +387,22 @@ namespace GaokaoSimulator.Features.Home
             entryShadow.effectColor = new Color(0f, 0f, 0f, 0.06f);
             entryShadow.effectDistance = new Vector2(0f, -10f);
 
+            continueButton = CreatePrimaryButton("继续主线", entryCard, font, UITheme.Confirm, UITheme.Text);
+            continueButton.gameObject.AddComponent<UiPressScale>();
+            var continueRect = (RectTransform)continueButton.transform;
+            continueRect.anchorMin = new Vector2(0.04f, 0.62f);
+            continueRect.anchorMax = new Vector2(0.96f, 0.96f);
+            continueRect.offsetMin = Vector2.zero;
+            continueRect.offsetMax = Vector2.zero;
+            var continueLayout = continueButton.GetComponent<LayoutElement>();
+            if (continueLayout != null)
+            {
+                continueLayout.preferredHeight = 160f;
+            }
+
             buttonGroupRoot = CreateUiObject("Buttons", entryCard);
-            Stretch(buttonGroupRoot);
+            buttonGroupRoot.anchorMin = new Vector2(0f, 0f);
+            buttonGroupRoot.anchorMax = new Vector2(1f, 0.60f);
             buttonGroupRoot.offsetMin = Vector2.zero;
             buttonGroupRoot.offsetMax = Vector2.zero;
 
@@ -373,6 +436,100 @@ namespace GaokaoSimulator.Features.Home
                     return "公务员";
                 default:
                     return "未知";
+            }
+        }
+
+        private static ScreenType GetMainlineNext(GameState state)
+        {
+            if (state == null)
+            {
+                return ScreenType.Home;
+            }
+
+            if (state.CurrentProgress < GameProgress.Profile)
+            {
+                return ScreenType.Profile;
+            }
+
+            if (state.CurrentProgress == GameProgress.Profile)
+            {
+                return ScreenType.Family;
+            }
+
+            if (state.CurrentProgress == GameProgress.Family)
+            {
+                return ScreenType.Province;
+            }
+
+            if (state.CurrentProgress == GameProgress.Province)
+            {
+                return ScreenType.Subject;
+            }
+
+            if (state.CurrentProgress == GameProgress.Subject)
+            {
+                return ScreenType.Home;
+            }
+
+            if (state.CurrentProgress < GameProgress.Semester)
+            {
+                return ScreenType.Semester;
+            }
+
+            if (state.CurrentProgress < GameProgress.Gaokao)
+            {
+                return ScreenType.Gaokao;
+            }
+
+            if (state.CurrentProgress < GameProgress.Volunteer)
+            {
+                return ScreenType.Volunteer;
+            }
+
+            if (state.CurrentProgress < GameProgress.University)
+            {
+                return ScreenType.University;
+            }
+
+            if (state.CurrentProgress < GameProgress.Career)
+            {
+                return ScreenType.Career;
+            }
+
+            if (state.CurrentProgress < GameProgress.Summary)
+            {
+                return ScreenType.Summary;
+            }
+
+            return ScreenType.Summary;
+        }
+
+        private static string GetMainlineLabel(ScreenType next)
+        {
+            switch (next)
+            {
+                case ScreenType.Profile:
+                    return "创建人物";
+                case ScreenType.Family:
+                    return "家庭背景";
+                case ScreenType.Province:
+                    return "选择省市";
+                case ScreenType.Subject:
+                    return "选科";
+                case ScreenType.Semester:
+                    return "进入学期";
+                case ScreenType.Gaokao:
+                    return "进入高考";
+                case ScreenType.Volunteer:
+                    return "填报志愿";
+                case ScreenType.University:
+                    return "进入大学";
+                case ScreenType.Career:
+                    return "毕业去向";
+                case ScreenType.Summary:
+                    return "人生总结";
+                default:
+                    return "继续";
             }
         }
 
