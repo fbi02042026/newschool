@@ -38,6 +38,8 @@ namespace GaokaoSimulator.Core
         
         // ===== 游戏进度 =====
         public GameProgress CurrentProgress { get; set; } = GameProgress.Launch;
+        public int SemesterIndex { get; set; } = 0;
+        public int TotalSemesters { get; set; } = 6;
         public int CurrentPlaythrough { get; set; } = 1; // 第几周目
         public bool HasSaveData { get; set; } = false;
 
@@ -109,6 +111,8 @@ namespace GaokaoSimulator.Core
             FirstSubject = FirstSubject.None;
             SecondSubjects.Clear();
             CurrentProgress = GameProgress.Launch;
+            SemesterIndex = 0;
+            TotalSemesters = 6;
             seenGuideKeys.Clear();
             // 保留 CurrentPlaythrough 和 HasSaveData
             

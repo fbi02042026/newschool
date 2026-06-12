@@ -271,6 +271,10 @@ namespace GaokaoSimulator.UI
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Home.HomeScreen>();
             }
+            else if (screenType == ScreenType.Semester)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Semester.SemesterScreen>();
+            }
             else
             {
                 var placeholder = screenGo.AddComponent<RuntimePlaceholderScreen>();

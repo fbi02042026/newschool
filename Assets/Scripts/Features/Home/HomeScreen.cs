@@ -24,6 +24,7 @@ namespace GaokaoSimulator.Features.Home
         [SerializeField] private RectTransform buttonGroupRoot;
 
         private readonly List<Button> dynamicButtons = new List<Button>();
+        private RectTransform holidayPopupRoot;
 
         protected override void Initialize()
         {
@@ -200,6 +201,19 @@ namespace GaokaoSimulator.Features.Home
             var state = GameState.Instance;
             var unlocked = state != null ? state.GetUnlockedButtons() : new List<HomeButtonType>();
 
+            if (state != null && state.CurrentProgress == GameProgress.Semester)
+            {
+                var total = Mathf.Max(1, state.TotalSemesters);
+                var inVacation = state.SemesterIndex > 0 && state.SemesterIndex < total;
+                if (inVacation)
+                {
+                    var button = CreatePrimaryButton("放假活动", buttonGroupRoot, BuiltinFont(), UITheme.Gold, UITheme.Text);
+                    button.gameObject.AddComponent<UiPressScale>();
+                    button.onClick.AddListener(ShowHolidayPopup);
+                    dynamicButtons.Add(button);
+                }
+            }
+
             for (int i = 0; i < unlocked.Count; i++)
             {
                 var buttonType = unlocked[i];
@@ -236,6 +250,81 @@ namespace GaokaoSimulator.Features.Home
                     ShowToast("该功能暂未接入界面");
                     return;
             }
+        }
+
+        private void ShowHolidayPopup()
+        {
+            if (holidayPopupRoot == null)
+            {
+                holidayPopupRoot = BuildHolidayPopup();
+            }
+
+            if (holidayPopupRoot != null)
+            {
+                holidayPopupRoot.gameObject.SetActive(true);
+            }
+        }
+
+        private RectTransform BuildHolidayPopup()
+        {
+            var parent = transform.Find("Panel") as RectTransform;
+            if (parent == null)
+            {
+                parent = transform as RectTransform;
+            }
+
+            if (parent == null)
+            {
+                return null;
+            }
+
+            var font = BuiltinFont();
+            var overlay = CreateUiObject("HolidayPopup", parent);
+            Stretch(overlay);
+            var overlayImage = overlay.gameObject.AddComponent<Image>();
+            overlayImage.color = new Color(0f, 0f, 0f, 0.35f);
+
+            var card = CreateUiObject("Card", overlay);
+            card.anchorMin = new Vector2(0.08f, 0.24f);
+            card.anchorMax = new Vector2(0.92f, 0.76f);
+            card.offsetMin = Vector2.zero;
+            card.offsetMax = Vector2.zero;
+            var cardImage = card.gameObject.AddComponent<Image>();
+            cardImage.color = Color.white;
+            RuntimeArt.ApplyRounded(cardImage);
+            var shadow = card.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.10f);
+            shadow.effectDistance = new Vector2(0f, -16f);
+
+            var title = CreateText("Title", card, font, 62, FontStyle.Bold, UITheme.Text);
+            title.alignment = TextAnchor.UpperCenter;
+            title.rectTransform.anchorMin = new Vector2(0.06f, 0.70f);
+            title.rectTransform.anchorMax = new Vector2(0.94f, 0.94f);
+            title.rectTransform.offsetMin = Vector2.zero;
+            title.rectTransform.offsetMax = Vector2.zero;
+            title.text = "放假活动（开发中）";
+
+            var body = CreateText("Body", card, font, 40, FontStyle.Normal, UITheme.TextSoft);
+            body.alignment = TextAnchor.UpperLeft;
+            body.rectTransform.anchorMin = new Vector2(0.08f, 0.24f);
+            body.rectTransform.anchorMax = new Vector2(0.92f, 0.70f);
+            body.rectTransform.offsetMin = Vector2.zero;
+            body.rectTransform.offsetMax = Vector2.zero;
+            body.horizontalOverflow = HorizontalWrapMode.Wrap;
+            body.verticalOverflow = VerticalWrapMode.Overflow;
+            body.text = "这里用于接小游戏或线性支线任务，让升学过程更有“玩中学”的节奏：\n\n- 打工攒钱 / 购物\n- 社交事件（同学/老师）\n- 短测挑战（知识点+小奖励）\n- 实践任务（项目/竞赛）\n\n完成后继续下一学期。";
+
+            var close = CreatePrimaryButton("返回主界面", card, font, UITheme.Confirm, Color.white);
+            close.gameObject.AddComponent<UiPressScale>();
+            var closeRect = (RectTransform)close.transform;
+            closeRect.anchorMin = new Vector2(0.12f, 0.08f);
+            closeRect.anchorMax = new Vector2(0.88f, 0.20f);
+            closeRect.offsetMin = Vector2.zero;
+            closeRect.offsetMax = Vector2.zero;
+            close.onClick.AddListener(() => overlay.gameObject.SetActive(false));
+
+            overlay.gameObject.SetActive(false);
+            return overlay;
         }
 
         private static string GetButtonLabel(HomeButtonType buttonType)
@@ -474,6 +563,17 @@ namespace GaokaoSimulator.Features.Home
             if (state.CurrentProgress < GameProgress.Semester)
             {
                 return ScreenType.Semester;
+            }
+
+            if (state.CurrentProgress == GameProgress.Semester)
+            {
+                var total = Mathf.Max(1, state.TotalSemesters);
+                if (state.SemesterIndex < total)
+                {
+                    return ScreenType.Semester;
+                }
+
+                return ScreenType.Gaokao;
             }
 
             if (state.CurrentProgress < GameProgress.Gaokao)
