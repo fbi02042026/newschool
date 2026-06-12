@@ -75,6 +75,9 @@
 - 选科卡片可读性优化
   - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
   - 要点：把“未来发展方向”直接写进每张卡片，调整提示区高度与首选/再选布局，修复重叠和文字不清晰问题
+- 专家推荐结果可读性优化
+  - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
+  - 要点：修复结果页文字与按钮区域重叠；推荐结果追加“未来方向”简述
 
 #### 流程提示（ScreenFlowHint）
 

@@ -279,10 +279,13 @@ namespace GaokaoSimulator.Features.Subject
 
             expertResultText = CreateText("Result", card, font, 34, FontStyle.Normal, UITheme.TextSoft);
             expertResultText.alignment = TextAnchor.UpperLeft;
-            expertResultText.rectTransform.anchorMin = new Vector2(0.08f, 0.24f);
+            expertResultText.rectTransform.anchorMin = new Vector2(0.08f, 0.34f);
             expertResultText.rectTransform.anchorMax = new Vector2(0.92f, 0.74f);
             expertResultText.rectTransform.offsetMin = Vector2.zero;
             expertResultText.rectTransform.offsetMax = Vector2.zero;
+            expertResultText.resizeTextForBestFit = true;
+            expertResultText.resizeTextMinSize = 24;
+            expertResultText.resizeTextMaxSize = Mathf.RoundToInt(34 * UiTextScale);
             expertResultText.gameObject.SetActive(false);
 
             expertApplyButton = CreatePrimaryButton("采用这套推荐", card, font, UITheme.Confirm, Color.white);
@@ -298,8 +301,8 @@ namespace GaokaoSimulator.Features.Subject
             expertResetButton = CreatePrimaryButton("重新回答 / 先自己选", card, font, UITheme.Gold, UITheme.Text);
             expertResetButton.gameObject.AddComponent<UiPressScale>();
             var resetRect = (RectTransform)expertResetButton.transform;
-            resetRect.anchorMin = new Vector2(0.08f, 0.22f);
-            resetRect.anchorMax = new Vector2(0.92f, 0.34f);
+            resetRect.anchorMin = new Vector2(0.08f, 0.20f);
+            resetRect.anchorMax = new Vector2(0.92f, 0.32f);
             resetRect.offsetMin = Vector2.zero;
             resetRect.offsetMax = Vector2.zero;
             expertResetButton.onClick.AddListener(() => ResetExpertQuestionnaire());
@@ -433,6 +436,7 @@ namespace GaokaoSimulator.Features.Subject
             if (expertApplyButton != null) expertApplyButton.gameObject.SetActive(false);
             if (expertResetButton != null) expertResetButton.gameObject.SetActive(false);
 
+            expertQuestionText.gameObject.SetActive(true);
             expertOptionAButton.gameObject.SetActive(true);
             expertOptionBButton.gameObject.SetActive(true);
             expertOptionCButton.gameObject.SetActive(true);
@@ -479,14 +483,16 @@ namespace GaokaoSimulator.Features.Subject
             expertRecommendedSecondB = secondScores[1].Key;
 
             expertProgressText.text = "推荐已生成";
-            expertQuestionText.text = "根据你的回答，我更推荐这套组合：";
+            expertQuestionText.gameObject.SetActive(false);
 
             if (expertResultText != null)
             {
                 expertResultText.gameObject.SetActive(true);
                 expertResultText.text =
                     $"{GetFirstLabel(expertRecommendedFirst)} + {GetSecondLabel(expertRecommendedSecondA)} + {GetSecondLabel(expertRecommendedSecondB)}\n\n" +
-                    GetExpertReasonText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB);
+                    GetExpertReasonText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB) +
+                    "\n\n未来方向：\n" +
+                    GetExpertFutureText(expertRecommendedFirst, expertRecommendedSecondA, expertRecommendedSecondB);
             }
 
             expertOptionAButton.gameObject.SetActive(false);
@@ -505,6 +511,45 @@ namespace GaokaoSimulator.Features.Subject
             }
 
             return $"这套更偏人文与管理路线，适合表达、分析、阅读型同学。\n再选 {GetSecondLabel(a)}、{GetSecondLabel(b)} 会让方向更稳。";
+        }
+
+        private string GetExpertFutureText(FirstSubject first, SecondSubject a, SecondSubject b)
+        {
+            var lines = new List<string>();
+            if (first == FirstSubject.Physics)
+            {
+                lines.Add("主线：工程 / 计算机 / 理科");
+            }
+            else
+            {
+                lines.Add("主线：法学 / 文史 / 管理 / 教育");
+            }
+
+            AppendSecondFuture(lines, a);
+            AppendSecondFuture(lines, b);
+
+            return string.Join("\n", lines.ToArray());
+        }
+
+        private void AppendSecondFuture(List<string> lines, SecondSubject subject)
+        {
+            switch (subject)
+            {
+                case SecondSubject.Chemistry:
+                    lines.Add("化学：材料 / 化工 / 医药实验相关");
+                    return;
+                case SecondSubject.Biology:
+                    lines.Add("生物：生命科学 / 医学健康相关");
+                    return;
+                case SecondSubject.Geography:
+                    lines.Add("地理：环境 / 城市规划 / 地理信息相关");
+                    return;
+                case SecondSubject.Politics:
+                    lines.Add("政治：考公 / 公管 / 社科相关");
+                    return;
+                default:
+                    return;
+            }
         }
 
         private void ApplyExpertRecommendation()
