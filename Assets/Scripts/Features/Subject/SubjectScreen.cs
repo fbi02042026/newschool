@@ -4,6 +4,7 @@ using GaokaoSimulator.UI;
 using GaokaoSimulator.UI.Effects;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace GaokaoSimulator.Features.Subject
 {
@@ -14,6 +15,7 @@ namespace GaokaoSimulator.Features.Subject
         [Header("UI引用")]
         [SerializeField] private Button backButton;
         [SerializeField] private Button confirmButton;
+        [SerializeField] private Button expertButton;
         [SerializeField] private Text titleText;
         [SerializeField] private Text subtitleText;
         [SerializeField] private Text hintText;
@@ -29,6 +31,7 @@ namespace GaokaoSimulator.Features.Subject
 
         private FirstSubject selectedFirst = FirstSubject.None;
         private readonly List<SecondSubject> selectedSeconds = new List<SecondSubject>();
+        private RectTransform expertPopupRoot;
 
         protected override void Initialize()
         {
@@ -87,7 +90,7 @@ namespace GaokaoSimulator.Features.Subject
 
             if (hintText != null)
             {
-                hintText.text = "这是“玩中学”的第一个关键选择：后续事件、学习节奏和分数波动都会跟它有关。";
+                hintText.text = BuildHintText();
             }
 
             UpdateCardState(physicsButton, selectedFirst == FirstSubject.Physics);
@@ -100,6 +103,48 @@ namespace GaokaoSimulator.Features.Subject
 
             UpdateSelectionText();
             UpdateConfirmState();
+        }
+
+        private string BuildHintText()
+        {
+            var baseTip = "首选决定主方向（物理/历史），再选决定更具体的路线。\n它会影响后续能接到的任务线，以及部分专业的可选范围。";
+            var directions = GetDirectionPreview();
+            if (string.IsNullOrWhiteSpace(directions))
+            {
+                return baseTip;
+            }
+
+            return $"{baseTip}\n\n未来方向参考：\n{directions}";
+        }
+
+        private string GetDirectionPreview()
+        {
+            if (selectedFirst == FirstSubject.None)
+            {
+                return "物理：工科/理科/计算机/部分医学\n历史：法学/中文/新闻/教育/管理/考公";
+            }
+
+            if (selectedFirst == FirstSubject.Physics)
+            {
+                var list = new List<string> { "工科/理科/计算机" };
+                if (selectedSeconds.Contains(SecondSubject.Chemistry)) list.Add("化工/材料/医药相关");
+                if (selectedSeconds.Contains(SecondSubject.Biology)) list.Add("生命科学/医学相关");
+                if (selectedSeconds.Contains(SecondSubject.Geography)) list.Add("环境/城规/地理信息");
+                if (selectedSeconds.Contains(SecondSubject.Politics)) list.Add("公管/部分社科");
+                return string.Join("\n", list.ToArray());
+            }
+
+            if (selectedFirst == FirstSubject.History)
+            {
+                var list = new List<string> { "法学/文史/教育/管理" };
+                if (selectedSeconds.Contains(SecondSubject.Politics)) list.Add("考公/公管/法学方向更稳");
+                if (selectedSeconds.Contains(SecondSubject.Geography)) list.Add("地理/环境/城规/旅游");
+                if (selectedSeconds.Contains(SecondSubject.Biology)) list.Add("护理/运动康复/部分应用方向");
+                if (selectedSeconds.Contains(SecondSubject.Chemistry)) list.Add("少量跨学科机会（看省份规则）");
+                return string.Join("\n", list.ToArray());
+            }
+
+            return string.Empty;
         }
 
         private void BindEvents()
@@ -151,6 +196,127 @@ namespace GaokaoSimulator.Features.Subject
                 confirmButton.onClick.RemoveAllListeners();
                 confirmButton.onClick.AddListener(ConfirmSubjects);
             }
+
+            if (expertButton != null)
+            {
+                expertButton.onClick.RemoveAllListeners();
+                expertButton.onClick.AddListener(OpenExpertPopup);
+            }
+        }
+
+        private void OpenExpertPopup()
+        {
+            if (expertPopupRoot == null)
+            {
+                expertPopupRoot = BuildExpertPopup();
+            }
+
+            if (expertPopupRoot != null)
+            {
+                expertPopupRoot.gameObject.SetActive(true);
+            }
+        }
+
+        private RectTransform BuildExpertPopup()
+        {
+            var parent = transform.Find("Panel") as RectTransform;
+            if (parent == null)
+            {
+                parent = transform as RectTransform;
+            }
+
+            if (parent == null)
+            {
+                return null;
+            }
+
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var overlay = CreateUiObject("ExpertPopup", parent);
+            Stretch(overlay);
+            var overlayImage = overlay.gameObject.AddComponent<Image>();
+            overlayImage.color = new Color(0f, 0f, 0f, 0.35f);
+
+            var card = CreateUiObject("Card", overlay);
+            card.anchorMin = new Vector2(0.08f, 0.18f);
+            card.anchorMax = new Vector2(0.92f, 0.82f);
+            card.offsetMin = Vector2.zero;
+            card.offsetMax = Vector2.zero;
+            var cardImage = card.gameObject.AddComponent<Image>();
+            cardImage.color = Color.white;
+            RuntimeArt.ApplyRounded(cardImage);
+            var shadow = card.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.10f);
+            shadow.effectDistance = new Vector2(0f, -16f);
+
+            var title = CreateText("Title", card, font, 60, FontStyle.Bold, UITheme.Text);
+            title.alignment = TextAnchor.UpperCenter;
+            title.rectTransform.anchorMin = new Vector2(0.06f, 0.82f);
+            title.rectTransform.anchorMax = new Vector2(0.94f, 0.96f);
+            title.rectTransform.offsetMin = Vector2.zero;
+            title.rectTransform.offsetMax = Vector2.zero;
+            title.text = "如果不知道选什么";
+
+            var intro = CreateText("Intro", card, font, 38, FontStyle.Normal, UITheme.TextSoft);
+            intro.alignment = TextAnchor.UpperLeft;
+            intro.rectTransform.anchorMin = new Vector2(0.08f, 0.66f);
+            intro.rectTransform.anchorMax = new Vector2(0.92f, 0.82f);
+            intro.rectTransform.offsetMin = Vector2.zero;
+            intro.rectTransform.offsetMax = Vector2.zero;
+            intro.text = "点你更喜欢的方向，我给你一套更适合的选科组合。\n你仍然可以再手动调整。";
+
+            var optionsRoot = CreateUiObject("Options", card);
+            optionsRoot.anchorMin = new Vector2(0.08f, 0.18f);
+            optionsRoot.anchorMax = new Vector2(0.92f, 0.66f);
+            optionsRoot.offsetMin = Vector2.zero;
+            optionsRoot.offsetMax = Vector2.zero;
+            var layout = optionsRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.spacing = 18f;
+
+            CreateExpertOption("喜欢做题/实验/推理", () => ApplyRecommendation(FirstSubject.Physics, SecondSubject.Chemistry, SecondSubject.Biology), optionsRoot, font);
+            CreateExpertOption("想走计算机/工程", () => ApplyRecommendation(FirstSubject.Physics, SecondSubject.Chemistry, SecondSubject.Geography), optionsRoot, font);
+            CreateExpertOption("喜欢人文/阅读/表达", () => ApplyRecommendation(FirstSubject.History, SecondSubject.Politics, SecondSubject.Biology), optionsRoot, font);
+            CreateExpertOption("更倾向考公/法学/管理", () => ApplyRecommendation(FirstSubject.History, SecondSubject.Politics, SecondSubject.Geography), optionsRoot, font);
+
+            var close = CreatePrimaryButton("先自己选 →", card, font, UITheme.Confirm, Color.white);
+            close.gameObject.AddComponent<UiPressScale>();
+            var closeRect = (RectTransform)close.transform;
+            closeRect.anchorMin = new Vector2(0.12f, 0.06f);
+            closeRect.anchorMax = new Vector2(0.88f, 0.16f);
+            closeRect.offsetMin = Vector2.zero;
+            closeRect.offsetMax = Vector2.zero;
+            close.onClick.AddListener(() => overlay.gameObject.SetActive(false));
+
+            overlay.gameObject.SetActive(false);
+            return overlay;
+        }
+
+        private void CreateExpertOption(string label, UnityAction onClick, Transform parent, Font font)
+        {
+            var button = CreatePrimaryButton(label, parent, font, UITheme.Gold, UITheme.Text);
+            button.gameObject.AddComponent<UiPressScale>();
+            button.onClick.AddListener(() =>
+            {
+                if (expertPopupRoot != null)
+                {
+                    expertPopupRoot.gameObject.SetActive(false);
+                }
+                onClick?.Invoke();
+            });
+        }
+
+        private void ApplyRecommendation(FirstSubject first, SecondSubject a, SecondSubject b)
+        {
+            selectedFirst = first;
+            selectedSeconds.Clear();
+            selectedSeconds.Add(a);
+            selectedSeconds.Add(b);
+            ShowToast($"已为你勾选：{GetFirstLabel(first)} + {GetSecondLabel(a)} + {GetSecondLabel(b)}");
+            Refresh();
         }
 
         private void SelectFirst(FirstSubject subject)
@@ -163,6 +329,12 @@ namespace GaokaoSimulator.Features.Subject
         {
             if (subject == SecondSubject.None)
             {
+                return;
+            }
+
+            if (selectedFirst == FirstSubject.None)
+            {
+                ShowToast("先选首选科目（物理/历史）");
                 return;
             }
 
@@ -272,7 +444,7 @@ namespace GaokaoSimulator.Features.Subject
 
         private void EnsureRuntimeLayout()
         {
-            if (backButton != null && confirmButton != null && titleText != null && subtitleText != null && hintText != null && selectionText != null
+            if (backButton != null && confirmButton != null && expertButton != null && titleText != null && subtitleText != null && hintText != null && selectionText != null
                 && physicsButton != null && historyButton != null
                 && politicsButton != null && geographyButton != null && chemistryButton != null && biologyButton != null)
             {
@@ -329,6 +501,14 @@ namespace GaokaoSimulator.Features.Subject
             subtitleText.rectTransform.offsetMin = Vector2.zero;
             subtitleText.rectTransform.offsetMax = Vector2.zero;
 
+            expertButton = CreateExpertButton(header);
+            var expertRect = (RectTransform)expertButton.transform;
+            expertRect.anchorMin = new Vector2(0.68f, 0.72f);
+            expertRect.anchorMax = new Vector2(0.78f, 0.98f);
+            expertRect.offsetMin = Vector2.zero;
+            expertRect.offsetMax = Vector2.zero;
+            expertButton.gameObject.AddComponent<UiPressScale>();
+
             var body = CreateUiObject("Body", panel);
             body.anchorMin = new Vector2(0f, 0.16f);
             body.anchorMax = new Vector2(1f, 0.76f);
@@ -336,7 +516,7 @@ namespace GaokaoSimulator.Features.Subject
             body.offsetMax = Vector2.zero;
 
             var tip = CreateUiObject("Tip", body);
-            tip.anchorMin = new Vector2(0.06f, 0.82f);
+            tip.anchorMin = new Vector2(0.06f, 0.78f);
             tip.anchorMax = new Vector2(0.94f, 0.98f);
             tip.offsetMin = Vector2.zero;
             tip.offsetMax = Vector2.zero;
@@ -347,7 +527,7 @@ namespace GaokaoSimulator.Features.Subject
             tipShadow.effectColor = new Color(0f, 0f, 0f, 0.05f);
             tipShadow.effectDistance = new Vector2(0f, -10f);
             hintText = CreateText("HintText", tip, font, 34, FontStyle.Normal, UITheme.TextSoft);
-            hintText.alignment = TextAnchor.MiddleLeft;
+            hintText.alignment = TextAnchor.UpperLeft;
             hintText.rectTransform.anchorMin = new Vector2(0.05f, 0.10f);
             hintText.rectTransform.anchorMax = new Vector2(0.95f, 0.90f);
             hintText.rectTransform.offsetMin = Vector2.zero;
@@ -436,6 +616,27 @@ namespace GaokaoSimulator.Features.Subject
             var btn = CreateButton(label, parent, font, UITheme.BgCard, UITheme.Text);
             btn.gameObject.AddComponent<UiPressScale>();
             return btn;
+        }
+
+        private static Button CreateExpertButton(Transform parent)
+        {
+            var go = new GameObject("BtnExpert", typeof(RectTransform), typeof(Image), typeof(Button));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.localScale = Vector3.one;
+            var image = go.GetComponent<Image>();
+            image.color = Color.white;
+            RuntimeArt.ApplyRounded(image);
+            image.sprite = NpcPortraits.Load(NpcPortraitId.Expert);
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            outline.effectDistance = new Vector2(3f, -3f);
+            var shadow = go.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.10f);
+            shadow.effectDistance = new Vector2(0f, -8f);
+            return go.GetComponent<Button>();
         }
 
         private static string GetFirstLabel(FirstSubject subject)

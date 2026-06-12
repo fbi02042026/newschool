@@ -63,6 +63,21 @@
   - 新增：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
   - 路由接入：[ScreenRouter.cs](file:///z:/gaokao/newschool/Assets/Scripts/UI/ScreenRouter.cs)
   - 数据落库：`GameState.FirstSubject`、`GameState.SecondSubjects`，并将 `CurrentProgress` 推进到 `Home`
+- 选科解释与“未来方向参考”
+  - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
+  - 要点：提示文案改为解释“首选/再选”的作用，并根据当前选择动态展示方向参考
+- 专家推荐入口
+  - 修改：[SubjectScreen.cs](file:///z:/gaokao/newschool/Assets/Scripts/Features/Subject/SubjectScreen.cs)
+  - 要点：Header 增加专家图标（npc_expert），点击弹出“如果不知道选什么”的选项，按偏好自动勾选一套推荐组合
+- 选科引导补齐
+  - 修改：[GuideService.cs](file:///z:/gaokao/newschool/Assets/Scripts/UI/GuideService.cs)
+  - 要点：新增 Subject 的引导步骤，并提示可点右上角专家获取推荐
+
+#### 流程提示（ScreenFlowHint）
+
+- 调整 Subject 的下一步提示文案
+  - 修改：[ScreenFlowHint.cs](file:///z:/gaokao/newschool/Assets/Scripts/UI/ScreenFlowHint.cs)
+  - 文案：从“进入高中生活”改为“进入主界面”
 
 #### 开发环境清理
 

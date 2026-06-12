@@ -90,7 +90,7 @@ namespace GaokaoSimulator.UI
                 case ScreenType.Province:
                     return "下一步：选科 →";
                 case ScreenType.Subject:
-                    return "下一步：进入高中生活 →";
+                    return "下一步：进入主界面 →";
                 case ScreenType.Home:
                     return "下一步：天赋树 / 学期推进 →";
                 case ScreenType.TalentTree:

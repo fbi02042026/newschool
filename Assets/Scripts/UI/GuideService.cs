@@ -249,6 +249,8 @@ namespace GaokaoSimulator.UI
                     return BuildFamilySteps(tone, playerAddress);
                 case ScreenType.Province:
                     return BuildProvinceSteps(tone, playerAddress);
+                case ScreenType.Subject:
+                    return BuildSubjectSteps(tone, playerAddress);
                 default:
                     return null;
             }
@@ -325,6 +327,31 @@ namespace GaokaoSimulator.UI
                     {
                         new GuideStep("下一步是省份", $"{playerAddress}，接下来先决定你的开局战场。\n不同省份会对应不同考试模式和难度。"),
                         new GuideStep("怎么选更清楚", "上面是热门 4 个城市，下面是全部省市。\n点模式标签可以看规则说明，选科我们下一屏再聊。")
+                    };
+            }
+        }
+
+        private static GuideStep[] BuildSubjectSteps(int tone, string playerAddress)
+        {
+            switch (tone)
+            {
+                case 1:
+                    return new[]
+                    {
+                        new GuideStep("选科怎么想", $"{playerAddress}，这一步决定你后续会遇到哪些任务线，也会影响能选的专业范围。\n先选 1 门首选，再选 2 门再选就好。"),
+                        new GuideStep("不确定就问专家", "如果你不知道怎么选，可以点右上角的“专家”图标。\n按你喜欢的方向点一条，它会给你一组更适合的推荐。")
+                    };
+                case 2:
+                    return new[]
+                    {
+                        new GuideStep("别乱点", $"{playerAddress}，选科不是玄学，但也别硬选。\n选你更擅长、也更愿意长期投入的方向。"),
+                        new GuideStep("偷懒办法", "不想纠结就点右上角专家。\n按你喜欢的方向选一条，它会直接给你推荐组合。")
+                    };
+                default:
+                    return new[]
+                    {
+                        new GuideStep("选科怎么想", $"{playerAddress}，这一步会影响你的学习节奏和后续任务线。\n先选首选（物理/历史），再选两门再选科。"),
+                        new GuideStep("不会选也没关系", "点右上角专家图标。\n选你喜欢的方向，它会给你更合适的科目组合。")
                     };
             }
         }
