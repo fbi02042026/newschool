@@ -32,3 +32,6 @@
 .DS_Store
 Thumbs.db
 
+# Local tooling
+.com-unity-codely.json
+
