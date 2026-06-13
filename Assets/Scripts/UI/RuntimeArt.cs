@@ -20,6 +20,14 @@ namespace GaokaoSimulator.UI
             return loaded;
         }
 
+        /// <summary>
+        /// 加载 UI/BG/ 目录下的背景图，若不存在返回 null
+        /// </summary>
+        public static Sprite LoadBg(string bgName)
+        {
+            return LoadSprite($"UI/BG/{bgName}");
+        }
+
         public static Sprite BuiltinRoundedSprite()
         {
             if (builtinRounded != null) return builtinRounded;

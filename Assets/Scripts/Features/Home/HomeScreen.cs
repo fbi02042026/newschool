@@ -29,7 +29,6 @@ namespace GaokaoSimulator.Features.Home
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Home));
             BindEvents();
             Refresh();
         }
@@ -46,8 +45,6 @@ namespace GaokaoSimulator.Features.Home
                 }
             }
 
-            GuideService.EnsureHelpButton(transform.Find("Panel/Header") ?? transform, "BtnHelp", () => GuideService.Open(ScreenType.Home, transform));
-            GuideService.TryShowOnce(ScreenType.Home, transform);
             Refresh();
         }
 
@@ -57,16 +54,6 @@ namespace GaokaoSimulator.Features.Home
 
         public override void Refresh()
         {
-            if (titleText != null)
-            {
-                titleText.text = "主界面";
-            }
-
-            if (subtitleText != null)
-            {
-                subtitleText.text = "准备开始你的高中生活";
-            }
-
             RefreshSummary();
             RefreshContinueButton();
             RebuildButtons();
@@ -103,12 +90,6 @@ namespace GaokaoSimulator.Features.Home
 
         private void BindEvents()
         {
-            if (restartButton != null)
-            {
-                restartButton.onClick.RemoveAllListeners();
-                restartButton.onClick.AddListener(() => NavigateTo(ScreenType.Launch, false));
-            }
-
             if (continueButton != null)
             {
                 continueButton.onClick.RemoveAllListeners();
@@ -130,13 +111,37 @@ namespace GaokaoSimulator.Features.Home
                 return;
             }
 
+            // 学期全部完成后 → 决胜高考
+            if (state.CurrentProgress == GameProgress.Semester && state.SemesterIndex >= Mathf.Max(1, state.TotalSemesters))
+            {
+                continueButton.interactable = true;
+                var label = continueButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = "决胜高考";
+                }
+                return;
+            }
+
+            // 高考完成后 → 志愿抉择
+            if (state.CurrentProgress == GameProgress.Gaokao)
+            {
+                continueButton.interactable = true;
+                var label = continueButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = "志愿抉择";
+                }
+                return;
+            }
+
             var next = GetMainlineNext(state);
             continueButton.interactable = next != ScreenType.Home;
 
-            var label = continueButton.GetComponentInChildren<Text>();
-            if (label != null)
+            var lbl = continueButton.GetComponentInChildren<Text>();
+            if (lbl != null)
             {
-                label.text = $"继续主线 · {GetMainlineLabel(next)}";
+                lbl.text = $"继续主线 · {GetMainlineLabel(next)}";
             }
         }
 
@@ -145,6 +150,20 @@ namespace GaokaoSimulator.Features.Home
             var state = GameState.Instance;
             if (state == null)
             {
+                return;
+            }
+
+            // 学期全部完成后 → 高考
+            if (state.CurrentProgress == GameProgress.Semester && state.SemesterIndex >= Mathf.Max(1, state.TotalSemesters))
+            {
+                NavigateTo(ScreenType.Gaokao, true);
+                return;
+            }
+
+            // 高考完成后 → 志愿
+            if (state.CurrentProgress == GameProgress.Gaokao)
+            {
+                NavigateTo(ScreenType.Volunteer, true);
                 return;
             }
 
@@ -176,7 +195,9 @@ namespace GaokaoSimulator.Features.Home
             var subjectsReady = state.FirstSubject != FirstSubject.None && state.SecondSubjects != null && state.SecondSubjects.Count == 2;
             var subjects = subjectsReady ? $"{state.FirstSubject} + {state.SecondSubjects[0]}/{state.SecondSubjects[1]}" : "未完成选科";
 
-            summaryText.text = $"省份：{province}    家庭：{family}\n选科：{subjects}    金币：{state.Money}";
+            summaryText.text = $"省份：{province}    家庭：{family}\n" +
+                $"选科：{subjects}    金币：{state.Money}\n" +
+                $"学习能力 {state.StatIntelligence}    情绪管理 {state.StatPsychology}    人际关系 {state.StatSocial}    健康状态 {state.StatHealth}";
             RefreshAvatar();
         }
 
@@ -201,24 +222,77 @@ namespace GaokaoSimulator.Features.Home
             var state = GameState.Instance;
             var unlocked = state != null ? state.GetUnlockedButtons() : new List<HomeButtonType>();
 
+            // 设置/规则/成就/高考/志愿改为右上角或主线入口，不在底部按钮区显示
+            for (int i = unlocked.Count - 1; i >= 0; i--)
+            {
+                if (unlocked[i] == HomeButtonType.Settings || unlocked[i] == HomeButtonType.Rules || unlocked[i] == HomeButtonType.Achievements
+                    || unlocked[i] == HomeButtonType.Gaokao || unlocked[i] == HomeButtonType.Volunteer)
+                {
+                    unlocked.RemoveAt(i);
+                }
+            }
+
+            // 假期时显示放假活动入口（非 Activity 按钮，是一个独立的弹出入口）
             if (state != null && state.CurrentProgress == GameProgress.Semester)
             {
                 var total = Mathf.Max(1, state.TotalSemesters);
                 var inVacation = state.SemesterIndex > 0 && state.SemesterIndex < total;
                 if (inVacation)
                 {
-                    var button = CreatePrimaryButton("放假活动", buttonGroupRoot, BuiltinFont(), UITheme.Gold, UITheme.Text);
-                    button.gameObject.AddComponent<UiPressScale>();
-                    button.onClick.AddListener(ShowHolidayPopup);
-                    dynamicButtons.Add(button);
+                    var holidayButton = CreatePrimaryButton("放假活动", buttonGroupRoot, BuiltinFont(), UITheme.Gold, UITheme.Text);
+                    holidayButton.gameObject.AddComponent<UiPressScale>();
+                    holidayButton.onClick.AddListener(ShowHolidayPopup);
+                    dynamicButtons.Add(holidayButton);
                 }
             }
 
             for (int i = 0; i < unlocked.Count; i++)
             {
                 var buttonType = unlocked[i];
-                var button = CreatePrimaryButton(GetButtonLabel(buttonType), buttonGroupRoot, BuiltinFont(), UITheme.Confirm, UITheme.Text);
+                var label = GetButtonLabel(buttonType);
+                var button = CreatePrimaryButton(label, buttonGroupRoot, BuiltinFont(), UITheme.Confirm, UITheme.Text);
                 button.gameObject.AddComponent<UiPressScale>();
+
+                // Activity 按钮：非假期时灰显
+                if (buttonType == HomeButtonType.Activity)
+                {
+                    var isVacation = state != null && state.SemesterIndex > 0 && state.SemesterIndex < Mathf.Max(1, state.TotalSemesters);
+                    button.interactable = isVacation;
+                    if (!isVacation)
+                    {
+                        button.onClick.AddListener(() => ShowToast("学期中暂不开放"));
+                    }
+                    else
+                    {
+                        button.onClick.AddListener(() => OnButtonClicked(buttonType));
+                    }
+                    dynamicButtons.Add(button);
+                    continue;
+                }
+
+                // University / Career 按钮：未完成志愿时灰显
+                if (buttonType == HomeButtonType.University)
+                {
+                    if (state != null && state.CurrentProgress < GameProgress.Volunteer)
+                    {
+                        button.interactable = false;
+                        button.onClick.AddListener(() => ShowToast("完成志愿抉择后开启大学生活"));
+                        dynamicButtons.Add(button);
+                        continue;
+                    }
+                }
+                if (buttonType == HomeButtonType.Career)
+                {
+                    // 人生启程：大学毕业后开启
+                    if (state != null && state.CurrentProgress < GameProgress.University)
+                    {
+                        button.interactable = false;
+                        button.onClick.AddListener(() => ShowToast("大学毕业后开启人生篇章"));
+                        dynamicButtons.Add(button);
+                        continue;
+                    }
+                }
+
                 button.onClick.AddListener(() => OnButtonClicked(buttonType));
                 dynamicButtons.Add(button);
             }
@@ -243,8 +317,17 @@ namespace GaokaoSimulator.Features.Home
                 case HomeButtonType.University:
                     NavigateTo(ScreenType.University, true);
                     return;
+                case HomeButtonType.Equipment:
+                    NavigateTo(ScreenType.Shop, false);
+                    return;
                 case HomeButtonType.Career:
                     NavigateTo(ScreenType.Career, true);
+                    break;
+                case HomeButtonType.StudentProfile:
+                    NavigateTo(ScreenType.PlayerInfo, false);
+                    break;
+                case HomeButtonType.Activity:
+                    ShowToast("活动中心开发中，后续开放");
                     return;
                 default:
                     ShowToast("该功能暂未接入界面");
@@ -327,27 +410,34 @@ namespace GaokaoSimulator.Features.Home
             return overlay;
         }
 
+        private void ShowRulesHelp()
+        {
+            ShowToast("玩法百科开发中，后续开放");
+        }
+
         private static string GetButtonLabel(HomeButtonType buttonType)
         {
             switch (buttonType)
             {
-                case HomeButtonType.TalentTree: return "天赋树";
-                case HomeButtonType.Semester: return "学期推进";
-                case HomeButtonType.Equipment: return "装备";
-                case HomeButtonType.Gaokao: return "高考";
-                case HomeButtonType.Volunteer: return "志愿填报";
-                case HomeButtonType.University: return "大学";
-                case HomeButtonType.Career: return "毕业到30岁";
-                case HomeButtonType.Achievements: return "成就";
+                case HomeButtonType.TalentTree: return "成长赋能";
+                case HomeButtonType.Semester: return "校园日常";
+                case HomeButtonType.Equipment: return "商城";
+                case HomeButtonType.Gaokao: return "决胜高考";
+                case HomeButtonType.Volunteer: return "志愿抉择";
+                case HomeButtonType.University: return "大学时光";
+                case HomeButtonType.Career: return "人生启程";
+                case HomeButtonType.Achievements: return "成就殿堂";
                 case HomeButtonType.Settings: return "设置";
-                case HomeButtonType.Rules: return "规则";
+                case HomeButtonType.Rules: return "玩法百科";
+                case HomeButtonType.Activity: return "活动中心";
+                case HomeButtonType.StudentProfile: return "学生档案";
                 default: return "功能";
             }
         }
 
         private void EnsureRuntimeLayout()
         {
-            if (restartButton != null && continueButton != null && titleText != null && subtitleText != null && summaryText != null && avatarImage != null && avatarBadgeText != null && avatarNameText != null && buttonGroupRoot != null)
+            if (continueButton != null && titleText != null && subtitleText != null && summaryText != null && avatarImage != null && avatarBadgeText != null && avatarNameText != null && buttonGroupRoot != null)
             {
                 return;
             }
@@ -364,7 +454,17 @@ namespace GaokaoSimulator.Features.Home
             var background = CreateUiObject("Background", root);
             Stretch(background);
             var bgImage = background.gameObject.AddComponent<Image>();
-            bgImage.color = UITheme.Bg;
+            var bgSprite = RuntimeArt.LoadBg("bg_home");
+            if (bgSprite != null)
+            {
+                bgImage.sprite = bgSprite;
+                bgImage.type = Image.Type.Simple;
+                bgImage.color = Color.white;
+            }
+            else
+            {
+                bgImage.color = UITheme.Bg;
+            }
 
             var panel = CreateUiObject("Panel", root);
             panel.anchorMin = new Vector2(0.06f, 0.04f);
@@ -396,13 +496,32 @@ namespace GaokaoSimulator.Features.Home
             subtitleText.rectTransform.offsetMin = Vector2.zero;
             subtitleText.rectTransform.offsetMax = Vector2.zero;
 
-            restartButton = CreateSmallButton("← 返回启动页", header, font, UITheme.CardPeach, UITheme.Text);
-            var restartRect = (RectTransform)restartButton.transform;
-            restartRect.anchorMin = new Vector2(0f, 0.72f);
-            restartRect.anchorMax = new Vector2(0.30f, 0.98f);
-            restartRect.offsetMin = Vector2.zero;
-            restartRect.offsetMax = Vector2.zero;
-            restartButton.gameObject.AddComponent<UiPressScale>();
+            var topSettings = CreateSmallButton("?", header, font, UITheme.CardSky, UITheme.Text);
+            var settingsRect = (RectTransform)topSettings.transform;
+            settingsRect.anchorMin = new Vector2(0.84f, 0.72f);
+            settingsRect.anchorMax = new Vector2(1f, 0.98f);
+            settingsRect.offsetMin = Vector2.zero;
+            settingsRect.offsetMax = Vector2.zero;
+            topSettings.gameObject.AddComponent<UiPressScale>();
+            topSettings.onClick.AddListener(() => ShowRulesHelp());
+
+            var topAchievements = CreateSmallButton("🏆", header, font, UITheme.FromHex("FFF8E1"), UITheme.Text);
+            var achievementsRect = (RectTransform)topAchievements.transform;
+            achievementsRect.anchorMin = new Vector2(0.56f, 0.72f);
+            achievementsRect.anchorMax = new Vector2(0.69f, 0.98f);
+            achievementsRect.offsetMin = Vector2.zero;
+            achievementsRect.offsetMax = Vector2.zero;
+            topAchievements.gameObject.AddComponent<UiPressScale>();
+            topAchievements.onClick.AddListener(() => ShowToast("成就殿堂开发中，后续开放"));
+
+            var topRules = CreateSmallButton("⚙", header, font, UITheme.FromHex("F0F4FF"), UITheme.Text);
+            var rulesRect = (RectTransform)topRules.transform;
+            rulesRect.anchorMin = new Vector2(0.70f, 0.72f);
+            rulesRect.anchorMax = new Vector2(0.83f, 0.98f);
+            rulesRect.offsetMin = Vector2.zero;
+            rulesRect.offsetMax = Vector2.zero;
+            topRules.gameObject.AddComponent<UiPressScale>();
+            topRules.onClick.AddListener(() => ShowToast("设置功能开发中，后续开放"));
 
             var body = CreateUiObject("Body", panel);
             body.anchorMin = new Vector2(0f, 0.06f);
@@ -423,6 +542,15 @@ namespace GaokaoSimulator.Features.Home
             var characterShadow = characterCard.gameObject.AddComponent<Shadow>();
             characterShadow.effectColor = new Color(0f, 0f, 0f, 0.08f);
             characterShadow.effectDistance = new Vector2(0f, -12f);
+
+            var characterCardButton = characterCard.gameObject.AddComponent<Button>();
+            characterCardButton.transition = Selectable.Transition.None;
+            var characterCardButtonImage = characterCardButton.GetComponent<Image>();
+            if (characterCardButtonImage != null)
+            {
+                characterCardButtonImage.color = new Color(1f, 1f, 1f, 0f);
+            }
+            characterCardButton.onClick.AddListener(() => NavigateTo(ScreenType.PlayerInfo, false));
 
             var avatarRoot = CreateUiObject("Avatar", characterCard);
             avatarRoot.anchorMin = new Vector2(0.20f, 0.18f);
@@ -457,10 +585,10 @@ namespace GaokaoSimulator.Features.Home
             avatarNameText.rectTransform.offsetMax = Vector2.zero;
             avatarNameText.text = "未命名";
 
-            summaryText = CreateText("Summary", characterCard, font, 34, FontStyle.Normal, UITheme.TextSoft);
+            summaryText = CreateText("Summary", characterCard, font, 28, FontStyle.Normal, UITheme.TextSoft);
             summaryText.alignment = TextAnchor.MiddleCenter;
-            summaryText.rectTransform.anchorMin = new Vector2(0.08f, 0.18f);
-            summaryText.rectTransform.anchorMax = new Vector2(0.92f, 0.30f);
+            summaryText.rectTransform.anchorMin = new Vector2(0.06f, 0.04f);
+            summaryText.rectTransform.anchorMax = new Vector2(0.94f, 0.20f);
             summaryText.rectTransform.offsetMin = Vector2.zero;
             summaryText.rectTransform.offsetMax = Vector2.zero;
 
@@ -520,7 +648,7 @@ namespace GaokaoSimulator.Features.Home
                 case FamilyBackgroundType.Worker:
                     return "工薪";
                 case FamilyBackgroundType.Rural:
-                    return "农村";
+                    return "田园人家";
                 case FamilyBackgroundType.CivilServant:
                     return "公务员";
                 default:
@@ -617,7 +745,7 @@ namespace GaokaoSimulator.Features.Home
                 case ScreenType.Subject:
                     return "选科";
                 case ScreenType.Semester:
-                    return "进入学期";
+                    return "推进学期";
                 case ScreenType.Gaokao:
                     return "进入高考";
                 case ScreenType.Volunteer:

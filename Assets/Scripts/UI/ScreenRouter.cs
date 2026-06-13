@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GaokaoSimulator.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -23,7 +24,9 @@ namespace GaokaoSimulator.UI
         Volunteer,      // 志愿填报
         University,     // 大学
         Career,         // 毕业到30岁
-        Summary         // 人生总结
+        Summary,        // 人生总结
+        PlayerInfo,     // 人物信息
+        Shop            // 商店
     }
     
     /// <summary>
@@ -193,6 +196,12 @@ namespace GaokaoSimulator.UI
             
             yield return StartCoroutine(targetScreen.Show(transitionDuration));
             
+            // 自动切换 BGM
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayBGM(AudioManager.GetBgmForScreen(screenType));
+            }
+            
             onComplete?.Invoke();
             
             Debug.Log($"[ScreenRouter] 切换完成: {screenType}");
@@ -278,6 +287,14 @@ namespace GaokaoSimulator.UI
             else if (screenType == ScreenType.Semester)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Semester.SemesterScreen>();
+            }
+            else if (screenType == ScreenType.PlayerInfo)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.PlayerInfo.PlayerInfoScreen>();
+            }
+            else if (screenType == ScreenType.Shop)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Shop.ShopScreen>();
             }
             else
             {

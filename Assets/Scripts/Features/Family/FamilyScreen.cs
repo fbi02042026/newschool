@@ -80,7 +80,6 @@ namespace GaokaoSimulator.Features.Family
         {
             EnsureRuntimeLayout();
             EnsureCompareLayout();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Family));
             BindEvents();
             Refresh();
         }
@@ -635,10 +634,10 @@ namespace GaokaoSimulator.Features.Family
             statGrid.offsetMin = Vector2.zero;
             statGrid.offsetMax = Vector2.zero;
 
-            BuildStatItem(statGrid, font, "智力", "🧠", new Vector2(0f, 0.52f), new Vector2(0.48f, 1f), out statIntFill, out statIntValue);
-            BuildStatItem(statGrid, font, "心理", "💜", new Vector2(0.52f, 0.52f), new Vector2(1f, 1f), out statPsyFill, out statPsyValue);
-            BuildStatItem(statGrid, font, "社交", "💬", new Vector2(0f, 0f), new Vector2(0.48f, 0.48f), out statSocFill, out statSocValue);
-            BuildStatItem(statGrid, font, "健康", "💪", new Vector2(0.52f, 0f), new Vector2(1f, 0.48f), out statHealthFill, out statHealthValue);
+            BuildStatItem(statGrid, font, "学习能力", "📖", new Vector2(0f, 0.52f), new Vector2(0.48f, 1f), out statIntFill, out statIntValue);
+            BuildStatItem(statGrid, font, "情绪管理", "😊", new Vector2(0.52f, 0.52f), new Vector2(1f, 1f), out statPsyFill, out statPsyValue);
+            BuildStatItem(statGrid, font, "人际关系", "🤝", new Vector2(0f, 0f), new Vector2(0.48f, 0.48f), out statSocFill, out statSocValue);
+            BuildStatItem(statGrid, font, "健康状态", "🫀", new Vector2(0.52f, 0f), new Vector2(1f, 0.48f), out statHealthFill, out statHealthValue);
 
             EnsureCompareLayout();
 
@@ -897,10 +896,10 @@ namespace GaokaoSimulator.Features.Family
             moneyText.alignment = TextAnchor.MiddleCenter;
             moneyText.text = "🪙 0";
 
-            BuildStatItem(parent, font, "智力", "🧠", new Vector2(0.06f, 0.46f), new Vector2(0.94f, 0.60f), out intFill, out intValue);
-            BuildStatItem(parent, font, "心理", "💜", new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.46f), out psyFill, out psyValue);
-            BuildStatItem(parent, font, "社交", "💬", new Vector2(0.06f, 0.18f), new Vector2(0.94f, 0.32f), out socFill, out socValue);
-            BuildStatItem(parent, font, "健康", "💪", new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.18f), out healthFill, out healthValue);
+            BuildStatItem(parent, font, "学习能力", "📖", new Vector2(0.06f, 0.46f), new Vector2(0.94f, 0.60f), out intFill, out intValue);
+            BuildStatItem(parent, font, "情绪管理", "😊", new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.46f), out psyFill, out psyValue);
+            BuildStatItem(parent, font, "人际关系", "🤝", new Vector2(0.06f, 0.18f), new Vector2(0.94f, 0.32f), out socFill, out socValue);
+            BuildStatItem(parent, font, "健康状态", "🫀", new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.18f), out healthFill, out healthValue);
         }
 
         private void BuildMoneyCompareRow(RectTransform parent, Font font, Vector2 min, Vector2 max)

@@ -152,7 +152,7 @@ namespace GaokaoSimulator.Features.Launch
             var topBadgeText = CreateText("TopBadgeText", topBadge, font, 28, FontStyle.Bold, new Color32(153, 129, 147, 255));
             Stretch(topBadgeText.rectTransform);
             topBadgeText.alignment = TextAnchor.MiddleCenter;
-            topBadgeText.text = "2026 可试玩版 · 临时标准样机";
+            topBadgeText.text = "2026 可试玩版";
 
             var titleGroup = CreateUiObject("TitleGroup", safePanel);
             titleGroup.anchorMin = new Vector2(0f, 0.70f);
@@ -162,7 +162,7 @@ namespace GaokaoSimulator.Features.Launch
             titleTransform = titleGroup;
 
             var eyebrowText = CreateText("Eyebrow", titleGroup, font, 26, FontStyle.Bold, new Color32(167, 144, 160, 255));
-            eyebrowText.text = "从高考、志愿到大学，先做一版可试玩 DEMO";
+            eyebrowText.text = "从高中到人生选择，这一次重新开始";
             eyebrowText.alignment = TextAnchor.MiddleCenter;
             eyebrowText.rectTransform.anchorMin = new Vector2(0.06f, 0.70f);
             eyebrowText.rectTransform.anchorMax = new Vector2(0.94f, 0.98f);
@@ -175,7 +175,7 @@ namespace GaokaoSimulator.Features.Launch
             titleText.rectTransform.anchorMax = new Vector2(0.96f, 0.80f);
             titleText.rectTransform.offsetMin = Vector2.zero;
             titleText.rectTransform.offsetMax = Vector2.zero;
-            titleText.text = "我的高考\n志愿模拟器";
+            titleText.text = "重启我的\n高中人生";
             var titleShadow = titleText.gameObject.AddComponent<Shadow>();
             titleShadow.effectColor = new Color(1f, 1f, 1f, 0.85f);
             titleShadow.effectDistance = new Vector2(0f, 6f);
@@ -186,7 +186,7 @@ namespace GaokaoSimulator.Features.Launch
             subtitleText.rectTransform.anchorMax = new Vector2(0.92f, 0.30f);
             subtitleText.rectTransform.offsetMin = Vector2.zero;
             subtitleText.rectTransform.offsetMax = Vector2.zero;
-            subtitleText.text = "临时版先验证流程、手感和节奏，再逐屏替换正式美术";
+            subtitleText.text = "先从高中重新开始，试试这次能走向哪里";
 
             var heroCard = CreateUiObject("HeroCard", safePanel);
             heroCard.anchorMin = new Vector2(0.06f, 0.36f);

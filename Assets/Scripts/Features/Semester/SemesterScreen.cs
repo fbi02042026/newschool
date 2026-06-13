@@ -20,7 +20,6 @@ namespace GaokaoSimulator.Features.Semester
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Semester));
             BindEvents();
             Refresh();
         }
@@ -127,7 +126,17 @@ namespace GaokaoSimulator.Features.Semester
             var background = CreateUiObject("Background", root);
             Stretch(background);
             var bgImage = background.gameObject.AddComponent<Image>();
-            bgImage.color = UITheme.Bg;
+            var bgSprite = RuntimeArt.LoadBg("bg_highschool");
+            if (bgSprite != null)
+            {
+                bgImage.sprite = bgSprite;
+                bgImage.type = Image.Type.Simple;
+                bgImage.color = Color.white;
+            }
+            else
+            {
+                bgImage.color = UITheme.Bg;
+            }
 
             var panel = CreateUiObject("Panel", root);
             panel.anchorMin = new Vector2(0.06f, 0.04f);

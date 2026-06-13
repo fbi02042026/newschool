@@ -44,7 +44,6 @@ namespace GaokaoSimulator.Features.Profile
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Profile));
             BindEvents();
             Refresh();
         }
@@ -142,14 +141,6 @@ namespace GaokaoSimulator.Features.Profile
             Stretch(stepText.rectTransform);
             stepText.alignment = TextAnchor.MiddleCenter;
             stepText.text = "STEP 1 / 5";
-
-            backButton = CreateSmallButton("回到首页", headerCard, font, new Color32(255, 224, 202, 255), new Color32(131, 87, 63, 255));
-            var backRect = (RectTransform)backButton.transform;
-            backRect.anchorMin = new Vector2(0.02f, 0.72f);
-            backRect.anchorMax = new Vector2(0.22f, 0.98f);
-            backRect.offsetMin = Vector2.zero;
-            backRect.offsetMax = Vector2.zero;
-            backButton.gameObject.AddComponent<UiPressScale>();
 
             var title = CreateText("Title", headerCard, font, 78, FontStyle.Bold, new Color32(112, 71, 103, 255));
             title.text = "先选一个形象";
@@ -355,7 +346,6 @@ namespace GaokaoSimulator.Features.Profile
 
         private void BindEvents()
         {
-            backButton.onClick.AddListener(() => NavigateTo(UI.ScreenType.Launch, false));
             maleButton.onClick.AddListener(() => SelectGender(Core.PlayerGender.Male));
             femaleButton.onClick.AddListener(() => SelectGender(Core.PlayerGender.Female));
             randomNameButton.onClick.AddListener(ApplyRandomName);
@@ -366,6 +356,12 @@ namespace GaokaoSimulator.Features.Profile
         private void SelectGender(Core.PlayerGender gender)
         {
             selectedGender = gender;
+            // 切换性别时自动换对应的名字
+            var pool = gender == Core.PlayerGender.Male ? MaleNames : FemaleNames;
+            if (nameInputField != null)
+            {
+                nameInputField.text = pool[UnityEngine.Random.Range(0, pool.Length)];
+            }
             UpdateGenderButtons();
             UpdatePreview();
         }

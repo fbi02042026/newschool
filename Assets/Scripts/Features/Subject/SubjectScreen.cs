@@ -54,7 +54,6 @@ namespace GaokaoSimulator.Features.Subject
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Subject));
             BindEvents();
             Refresh();
         }
@@ -85,8 +84,9 @@ namespace GaokaoSimulator.Features.Subject
                 }
             }
 
-            GuideService.EnsureHelpButton(transform.Find("Panel/Header") ?? transform, "BtnHelp", () => GuideService.Open(ScreenType.Subject, transform));
-            GuideService.TryShowOnce(ScreenType.Subject, transform);
+            // 第一次进入选科时弹出确认提示
+            // （已在ConfirmSubjects中处理）
+
             Refresh();
         }
 
@@ -118,6 +118,13 @@ namespace GaokaoSimulator.Features.Subject
             UpdateCardState(geographyButton, selectedSeconds.Contains(SecondSubject.Geography));
             UpdateCardState(chemistryButton, selectedSeconds.Contains(SecondSubject.Chemistry));
             UpdateCardState(biologyButton, selectedSeconds.Contains(SecondSubject.Biology));
+
+            // 未选首选科目时，再选科目按钮灰显不可点击
+            bool canPickSecond = selectedFirst != FirstSubject.None;
+            if (politicsButton != null) politicsButton.interactable = canPickSecond;
+            if (geographyButton != null) geographyButton.interactable = canPickSecond;
+            if (chemistryButton != null) chemistryButton.interactable = canPickSecond;
+            if (biologyButton != null) biologyButton.interactable = canPickSecond;
 
             UpdateSelectionText();
             UpdateConfirmState();
@@ -277,7 +284,7 @@ namespace GaokaoSimulator.Features.Subject
             expertOptionBButton.onClick.AddListener(() => OnExpertOptionSelected(1));
             expertOptionCButton.onClick.AddListener(() => OnExpertOptionSelected(2));
 
-            expertResultText = CreateText("Result", card, font, 68, FontStyle.Normal, UITheme.TextSoft);
+            expertResultText = CreateText("Result", card, font, 30, FontStyle.Normal, UITheme.TextSoft);
             expertResultText.alignment = TextAnchor.UpperLeft;
             expertResultText.rectTransform.anchorMin = new Vector2(0.08f, 0.34f);
             expertResultText.rectTransform.anchorMax = new Vector2(0.92f, 0.74f);
@@ -632,6 +639,77 @@ namespace GaokaoSimulator.Features.Subject
                 return;
             }
 
+            // 选科完成后弹出"准备好了吗"确认
+            ShowConfirmDialog();
+        }
+
+        private bool confirmDialogShown;
+        private void ShowConfirmDialog()
+        {
+            var panel = transform.Find("Panel") as RectTransform ?? transform as RectTransform;
+            if (panel == null) return;
+
+            var font = BuiltinFont();
+            var overlay = CreateUiObject("ConfirmOverlay", panel);
+            Stretch(overlay);
+            var overlayImage = overlay.gameObject.AddComponent<Image>();
+            overlayImage.color = new Color(0f, 0f, 0f, 0.40f);
+
+            var card = CreateUiObject("DialogCard", overlay);
+            card.anchorMin = new Vector2(0.12f, 0.28f);
+            card.anchorMax = new Vector2(0.88f, 0.72f);
+            card.offsetMin = Vector2.zero;
+            card.offsetMax = Vector2.zero;
+            var cardImage = card.gameObject.AddComponent<Image>();
+            cardImage.color = Color.white;
+            RuntimeArt.ApplyRounded(cardImage);
+            var shadow = card.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.12f);
+            shadow.effectDistance = new Vector2(0f, -12f);
+
+            var title = CreateText("Title", card, font, 56, FontStyle.Bold, UITheme.Text);
+            title.alignment = TextAnchor.MiddleCenter;
+            title.rectTransform.anchorMin = new Vector2(0.08f, 0.56f);
+            title.rectTransform.anchorMax = new Vector2(0.92f, 0.88f);
+            title.rectTransform.offsetMin = Vector2.zero;
+            title.rectTransform.offsetMax = Vector2.zero;
+            title.text = "准备好了吗？";
+
+            var body = CreateText("Body", card, font, 34, FontStyle.Normal, UITheme.TextSoft);
+            body.alignment = TextAnchor.UpperCenter;
+            body.rectTransform.anchorMin = new Vector2(0.10f, 0.22f);
+            body.rectTransform.anchorMax = new Vector2(0.90f, 0.54f);
+            body.rectTransform.offsetMin = Vector2.zero;
+            body.rectTransform.offsetMax = Vector2.zero;
+            body.text = "选好科目后就会进入主界面，之前的过程就告一段落了。\n从这里开始，你的选择将决定最终走向。";
+
+            var confirm = CreatePrimaryButton("我准备好了", card, font, UITheme.Confirm, Color.white);
+            confirm.gameObject.AddComponent<UiPressScale>();
+            var confirmRect = (RectTransform)confirm.transform;
+            confirmRect.anchorMin = new Vector2(0.12f, 0.06f);
+            confirmRect.anchorMax = new Vector2(0.54f, 0.20f);
+            confirmRect.offsetMin = Vector2.zero;
+            confirmRect.offsetMax = Vector2.zero;
+            confirm.onClick.AddListener(() =>
+            {
+                Destroy(overlay.gameObject);
+                ExecuteConfirm();
+            });
+
+            var rethink = CreateSmallButton("我再想想", card, font, UITheme.CardPeach, UITheme.Text);
+            rethink.gameObject.AddComponent<UiPressScale>();
+            var rethinkRect = (RectTransform)rethink.transform;
+            rethinkRect.anchorMin = new Vector2(0.58f, 0.06f);
+            rethinkRect.anchorMax = new Vector2(0.88f, 0.20f);
+            rethinkRect.offsetMin = Vector2.zero;
+            rethinkRect.offsetMax = Vector2.zero;
+            rethink.onClick.AddListener(() => Destroy(overlay.gameObject));
+
+            overlay.gameObject.SetActive(true);
+        }
+
+        private void ExecuteConfirm()
+        {
             var state = GameState.Instance;
             if (state != null)
             {
@@ -1049,6 +1127,11 @@ namespace GaokaoSimulator.Features.Subject
                 shadow.effectDistance = new Vector2(0f, -12f);
             }
             return button;
+        }
+
+        private static Font BuiltinFont()
+        {
+            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
     }
 }

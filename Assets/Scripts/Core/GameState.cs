@@ -18,8 +18,6 @@ namespace GaokaoSimulator.Core
         public FamilyBackgroundType SelectedFamily { get; set; } = FamilyBackgroundType.None;
         public string SelectedProvince { get; set; } = "";
         public string SelectedProvinceMode { get; set; } = "";
-        public float SelectedProvinceDifficulty { get; set; } = 1f;
-        public string SelectedProvinceDifficultyText { get; set; } = "";
         public int Money { get; set; } = 0;
         public int GuideToneVariant { get; set; } = -1;
         public string FamilyExamEventTitle { get; set; } = "";
@@ -31,6 +29,7 @@ namespace GaokaoSimulator.Core
         public int StatPsychology { get; set; } = 0;
         public int StatSocial { get; set; } = 0;
         public int StatHealth { get; set; } = 0;
+        public List<string> OwnedItems { get; set; } = new List<string>();
         
         // ===== 选科信息 =====
         public FirstSubject FirstSubject { get; set; } = FirstSubject.None;
@@ -96,8 +95,6 @@ namespace GaokaoSimulator.Core
             SelectedFamily = FamilyBackgroundType.None;
             SelectedProvince = "";
             SelectedProvinceMode = "";
-            SelectedProvinceDifficulty = 1f;
-            SelectedProvinceDifficultyText = "";
             Money = 0;
             StatIntelligence = 0;
             StatPsychology = 0;
@@ -114,6 +111,7 @@ namespace GaokaoSimulator.Core
             SemesterIndex = 0;
             TotalSemesters = 6;
             seenGuideKeys.Clear();
+            OwnedItems.Clear();
             // 保留 CurrentPlaythrough 和 HasSaveData
             
             Debug.Log("[GameState] 状态已重置");
@@ -159,37 +157,24 @@ namespace GaokaoSimulator.Core
         {
             var unlocked = new List<HomeButtonType>();
             
-            // 基础按钮总是解锁
-            unlocked.Add(HomeButtonType.Settings);
-            unlocked.Add(HomeButtonType.Achievements);
-            unlocked.Add(HomeButtonType.Rules);
+            // 基础按钮 + 商城(独立入口) + 活动中心(始终可见) + 学生档案
+            unlocked.Add(HomeButtonType.Equipment);      // 商城 - 独立入口
+            unlocked.Add(HomeButtonType.Activity);       // 活动中心 - 始终可见
+            unlocked.Add(HomeButtonType.StudentProfile); // 学生档案 - 独立入口
+            unlocked.Add(HomeButtonType.Settings);        // 右上角
+            unlocked.Add(HomeButtonType.Achievements);    // 右上角
+            unlocked.Add(HomeButtonType.Rules);           // 右上角
             
             // 选科完成后解锁
             if (FirstSubject != FirstSubject.None && SecondSubjects.Count == 2)
             {
                 unlocked.Add(HomeButtonType.TalentTree);
                 unlocked.Add(HomeButtonType.Semester);
-                unlocked.Add(HomeButtonType.Equipment);
             }
             
-            // 学期完成后解锁高考
-            if (CurrentProgress >= GameProgress.Semester)
-            {
-                unlocked.Add(HomeButtonType.Gaokao);
-            }
-            
-            // 高考完成后解锁志愿
-            if (CurrentProgress >= GameProgress.Gaokao)
-            {
-                unlocked.Add(HomeButtonType.Volunteer);
-            }
-            
-            // 志愿完成后解锁大学
-            if (CurrentProgress >= GameProgress.Volunteer)
-            {
-                unlocked.Add(HomeButtonType.University);
-                unlocked.Add(HomeButtonType.Career);
-            }
+            // 大学时光和人生启程始终显示，灰显由 HomeScreen 控制
+            unlocked.Add(HomeButtonType.University);
+            unlocked.Add(HomeButtonType.Career);
             
             return unlocked;
         }
@@ -248,7 +233,9 @@ namespace GaokaoSimulator.Core
         Career,
         Achievements,
         Settings,
-        Rules
+        Rules,
+        Activity,
+        StudentProfile
     }
     
     #endregion

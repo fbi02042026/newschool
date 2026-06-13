@@ -136,7 +136,7 @@ namespace GaokaoSimulator.EditorTools
             titleText.rectTransform.offsetMin = Vector2.zero;
             titleText.rectTransform.offsetMax = Vector2.zero;
             titleText.alignment = TextAnchor.MiddleCenter;
-            titleText.text = "我的高考志愿模拟器";
+            titleText.text = "重启我的高中人生";
             titleText.gameObject.AddComponent<Shadow>().effectColor = new Color(1f, 1f, 1f, 0.85f);
             titleText.GetComponent<Shadow>().effectDistance = new Vector2(0, 6);
 
@@ -563,10 +563,10 @@ namespace GaokaoSimulator.EditorTools
             statGrid.offsetMin = Vector2.zero;
             statGrid.offsetMax = Vector2.zero;
 
-            CreateStatItem(statGrid, font, "智力", "🧠", new Vector2(0f, 0.52f), new Vector2(0.48f, 1f), out var statIntFill, out var statIntValue);
-            CreateStatItem(statGrid, font, "心理", "💜", new Vector2(0.52f, 0.52f), new Vector2(1f, 1f), out var statPsyFill, out var statPsyValue);
-            CreateStatItem(statGrid, font, "社交", "💬", new Vector2(0f, 0f), new Vector2(0.48f, 0.48f), out var statSocFill, out var statSocValue);
-            CreateStatItem(statGrid, font, "健康", "💪", new Vector2(0.52f, 0f), new Vector2(1f, 0.48f), out var statHealthFill, out var statHealthValue);
+            CreateStatItem(statGrid, font, "学习能力", "📖", new Vector2(0f, 0.52f), new Vector2(0.48f, 1f), out var statIntFill, out var statIntValue);
+            CreateStatItem(statGrid, font, "情绪管理", "😊", new Vector2(0.52f, 0.52f), new Vector2(1f, 1f), out var statPsyFill, out var statPsyValue);
+            CreateStatItem(statGrid, font, "人际关系", "🤝", new Vector2(0f, 0f), new Vector2(0.48f, 0.48f), out var statSocFill, out var statSocValue);
+            CreateStatItem(statGrid, font, "健康状态", "🫀", new Vector2(0.52f, 0f), new Vector2(1f, 0.48f), out var statHealthFill, out var statHealthValue);
 
             var footer = CreateRect("ScreenFooter", panel);
             footer.anchorMin = new Vector2(0f, 0.04f);

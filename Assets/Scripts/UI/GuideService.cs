@@ -313,19 +313,19 @@ namespace GaokaoSimulator.UI
                 case 1:
                     return new[]
                     {
-                        new GuideStep("下一步是省份", $"{playerAddress}，这一页我们先决定开局省份。\n它会影响考试规则和整体难度。"),
+                        new GuideStep("下一步是省份", $"{playerAddress}，这一页我们先决定开局省份。\n省份的考试命题方式不同，会影响后续规则。"),
                         new GuideStep("怎么选更清楚", "上面是热门 4 个城市，下面是全部省市。\n点考试模式标签还能看对应规则说明。")
                     };
                 case 2:
                     return new[]
                     {
-                        new GuideStep("省份要认真选", $"{playerAddress}，这一步可别乱点。\n省份一变，考试模式和难度都会跟着变。"),
+                        new GuideStep("省份要认真选", $"{playerAddress}，这一步可别乱点。\n省份的考试命题方式不同，会影响后续规则。"),
                         new GuideStep("记住这两个点", "热门城市固定在上面，全省列表在下面。\n选科细节别急，我们下一屏再聊。")
                     };
                 default:
                     return new[]
                     {
-                        new GuideStep("下一步是省份", $"{playerAddress}，接下来先决定你的开局战场。\n不同省份会对应不同考试模式和难度。"),
+                        new GuideStep("下一步是省份", $"{playerAddress}，接下来先决定你的开局战场。\n省份的考试命题方式不同，会影响后续规则。"),
                         new GuideStep("怎么选更清楚", "上面是热门 4 个城市，下面是全部省市。\n点模式标签可以看规则说明，选科我们下一屏再聊。")
                     };
             }

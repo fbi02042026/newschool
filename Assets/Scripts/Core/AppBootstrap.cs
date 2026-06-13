@@ -74,6 +74,13 @@ namespace GaokaoSimulator.Core
                 }
             }
             
+            // 3. 确保AudioManager单例存在
+            if (AudioManager.Instance == null)
+            {
+                var audioGo = new GameObject("AudioManager");
+                audioGo.AddComponent<AudioManager>();
+            }
+            
             Debug.Log("[AppBootstrap] 核心系统初始化完成");
         }
         

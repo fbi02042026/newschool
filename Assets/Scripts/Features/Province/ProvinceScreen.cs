@@ -36,12 +36,12 @@ namespace GaokaoSimulator.Features.Province
         private LayoutElement allListLayoutElement;
         private string selectedProvinceName;
         private bool cardsBuilt;
+        private RectTransform modeExplainPopupRoot;
 
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
             EnsureListContainers();
-            ScreenFlowHint.Ensure(transform.Find("Panel") ?? transform, ScreenFlowHint.GetNextLabel(ScreenType.Province));
             BindEvents();
             BuildProvinceCards();
             Refresh();
@@ -78,7 +78,7 @@ namespace GaokaoSimulator.Features.Province
 
             if (subtitleText != null)
             {
-                subtitleText.text = "不同地区有不同的新高考模式和难度，先决定你的开局战场";
+                subtitleText.text = "每个地区的考试命题方式不同，选择你想参加高考的省份";
             }
 
             UpdateListLayoutHeights();
@@ -166,14 +166,14 @@ namespace GaokaoSimulator.Features.Province
             ClearChildren(allListRoot);
 
             var hot = new List<ProvinceOption>(ProvinceCatalog.HotOptions);
-            hot.Sort(CompareOptionsByDifficulty);
+            hot.Sort(CompareOptionsByName);
             foreach (var option in hot)
             {
                 CreateProvinceCard(hotListRoot, option);
             }
 
             var all = new List<ProvinceOption>(ProvinceCatalog.AllOptions);
-            all.Sort(CompareOptionsByDifficulty);
+            all.Sort(CompareOptionsByName);
             foreach (var option in all)
             {
                 CreateProvinceCard(allListRoot, option);
@@ -193,7 +193,7 @@ namespace GaokaoSimulator.Features.Province
             rect.localScale = Vector3.one;
 
             var bg = card.GetComponent<Image>();
-            bg.color = GetDifficultyCardColor(option.DiffClass);
+            bg.color = GetModeCardColor(option.Mode);
             card.AddComponent<UiAutoRounded>();
 
             var outline = card.AddComponent<Outline>();
@@ -217,14 +217,14 @@ namespace GaokaoSimulator.Features.Province
             nameText.rectTransform.offsetMax = Vector2.zero;
             nameText.text = option.Name;
 
-            var diffText = CreateText("DiffText", rect, BuiltinFont(), 24, FontStyle.Normal, UITheme.TextLight);
-            diffText.alignment = TextAnchor.MiddleLeft;
-            diffText.rectTransform.anchorMin = new Vector2(0.08f, 0.18f);
-            diffText.rectTransform.anchorMax = new Vector2(0.92f, 0.46f);
-            diffText.rectTransform.offsetMin = Vector2.zero;
-            diffText.rectTransform.offsetMax = Vector2.zero;
-            diffText.text = $"难度：{NormalizeDifficultyText(option.DiffText)}";
-            diffText.color = GetDifficultyAccentColor(option.DiffClass);
+            var modeText = CreateText("ModeText", rect, BuiltinFont(), 24, FontStyle.Normal, UITheme.TextLight);
+            modeText.alignment = TextAnchor.MiddleLeft;
+            modeText.rectTransform.anchorMin = new Vector2(0.08f, 0.18f);
+            modeText.rectTransform.anchorMax = new Vector2(0.92f, 0.46f);
+            modeText.rectTransform.offsetMin = Vector2.zero;
+            modeText.rectTransform.offsetMax = Vector2.zero;
+            modeText.text = option.Mode;
+            modeText.color = GetModeAccentColor(option.Mode);
 
             var view = new ProvinceCardView
             {
@@ -233,7 +233,7 @@ namespace GaokaoSimulator.Features.Province
                 Background = bg,
                 Outline = outline,
                 NameText = nameText,
-                DiffText = diffText
+                ModeText = modeText
             };
 
             if (!cardViewsByProvince.TryGetValue(option.Name, out var list))
@@ -272,7 +272,7 @@ namespace GaokaoSimulator.Features.Province
 
             if (view.Background != null)
             {
-                view.Background.color = GetDifficultyCardColor(view.Option.DiffClass);
+                view.Background.color = GetModeCardColor(view.Option.Mode);
             }
 
             if (view.Outline != null)
@@ -288,9 +288,9 @@ namespace GaokaoSimulator.Features.Province
                 view.NameText.color = isSelected ? UITheme.ConfirmHover : UITheme.Text;
             }
 
-            if (view.DiffText != null)
+            if (view.ModeText != null)
             {
-                view.DiffText.color = isSelected ? GetSelectedDifficultyAccentColor(view.Option.DiffClass) : GetDifficultyAccentColor(view.Option.DiffClass);
+                view.ModeText.color = isSelected ? GetSelectedModeAccentColor(view.Option.Mode) : GetModeAccentColor(view.Option.Mode);
             }
         }
 
@@ -332,15 +332,10 @@ namespace GaokaoSimulator.Features.Province
                 infoModeChipButton.interactable = true;
             }
 
-            if (infoDiffText != null)
-            {
-                infoDiffText.text = $"难度系数 {option.Difficulty:0.00} · {GetDifficultySummary(option.DiffClass)}";
-            }
-
             if (infoDescText != null)
             {
-                infoDescText.text = string.Empty;
-                infoDescText.gameObject.SetActive(false);
+                infoDescText.text = option.Description ?? string.Empty;
+                infoDescText.gameObject.SetActive(true);
             }
         }
 
@@ -374,6 +369,22 @@ namespace GaokaoSimulator.Features.Province
             if (modeTipRoot != null)
             {
                 modeTipRoot.gameObject.SetActive(false);
+            }
+        }
+
+        private void ShowModeExplainPopup()
+        {
+            if (modeExplainPopupRoot != null)
+            {
+                modeExplainPopupRoot.gameObject.SetActive(true);
+            }
+        }
+
+        private void CloseModeExplainPopup()
+        {
+            if (modeExplainPopupRoot != null)
+            {
+                modeExplainPopupRoot.gameObject.SetActive(false);
             }
         }
 
@@ -416,8 +427,6 @@ namespace GaokaoSimulator.Features.Province
             {
                 state.SelectedProvince = option.Name;
                 state.SelectedProvinceMode = option.Mode;
-                state.SelectedProvinceDifficulty = option.Difficulty;
-                state.SelectedProvinceDifficultyText = option.DiffText;
                 state.CurrentProgress = Core.GameProgress.Subject;
                 state.HasSaveData = true;
             }
@@ -448,45 +457,42 @@ namespace GaokaoSimulator.Features.Province
             }
         }
 
-        private static int CompareOptionsByDifficulty(ProvinceOption a, ProvinceOption b)
+        private static int CompareOptionsByName(ProvinceOption a, ProvinceOption b)
         {
-            var ra = GetDifficultyRank(a);
-            var rb = GetDifficultyRank(b);
-            if (ra != rb) return ra.CompareTo(rb);
             return string.CompareOrdinal(a?.Name ?? string.Empty, b?.Name ?? string.Empty);
         }
 
-        private static int GetDifficultyRank(ProvinceOption option)
+        private static Color32 GetModeChipColor(string mode)
         {
-            if (option == null) return 99;
-            var t = NormalizeDifficultyText(option.DiffText);
-            switch (t)
-            {
-                case "轻松": return 0;
-                case "正常": return 1;
-                case "地狱": return 2;
-                default: return 3;
-            }
+            if (string.IsNullOrEmpty(mode)) return UITheme.Confirm;
+            if (mode.Contains("自主") || mode.Contains("命题")) return UITheme.FromHex("4DB38A");
+            if (mode.Contains("民族") || mode.Contains("专项")) return UITheme.FromHex("E8A53A");
+            return UITheme.FromHex("4F7BD9");
         }
 
-        private static string NormalizeDifficultyText(string diffText)
+        private static string GetConfirmModeLabel(ProvinceOption option)
         {
-            if (string.IsNullOrWhiteSpace(diffText))
+            if (option == null || string.IsNullOrWhiteSpace(option.Mode))
             {
-                return "正常";
+                return "查看模式";
             }
+            if (option.Mode.Contains("自主") || option.Mode.Contains("命题")) return "自主命题模式";
+            if (option.Mode.Contains("民族") || option.Mode.Contains("专项")) return "全国卷(含专项计划)";
+            return "统一卷模式";
+        }
 
-            if (diffText == "困难")
+        private static string GetModeTipBody(string mode)
+        {
+            if (string.IsNullOrEmpty(mode)) return "请先选择一个地区查看详情。";
+            if (mode.Contains("自主") || mode.Contains("命题"))
             {
-                return "正常";
+                return "自主命题由本省自行组织命题。\n试题风格和方向更贴近当地学习特点。";
             }
-
-            if (diffText == "传统")
+            if (mode.Contains("民族") || mode.Contains("专项"))
             {
-                return "正常";
+                return "全国统一命题框架下，有专项计划支持。\n部分地区有独立的录取安排和加分政策。";
             }
-
-            return diffText;
+            return "统一卷模式采用全国统一命题。\n标准更统一，全国范围内可比较性更强。";
         }
 
         private void BuildRuntimeLayout()
@@ -549,6 +555,15 @@ namespace GaokaoSimulator.Features.Province
             subtitleText.rectTransform.offsetMin = Vector2.zero;
             subtitleText.rectTransform.offsetMax = Vector2.zero;
             subtitleText.alignment = TextAnchor.MiddleCenter;
+
+            var modeHelpButton = CreateSmallButton("?", header, font, UITheme.CardSky, UITheme.Text);
+            var modeHelpRect = (RectTransform)modeHelpButton.transform;
+            modeHelpRect.anchorMin = new Vector2(0.82f, 0.68f);
+            modeHelpRect.anchorMax = new Vector2(0.98f, 0.96f);
+            modeHelpRect.offsetMin = Vector2.zero;
+            modeHelpRect.offsetMax = Vector2.zero;
+            modeHelpButton.gameObject.AddComponent<UiPressScale>();
+            modeHelpButton.onClick.AddListener(ShowModeExplainPopup);
 
             var body = CreateUiObject("ScreenBody", panel);
             body.anchorMin = new Vector2(0f, 0.26f);
@@ -766,6 +781,91 @@ namespace GaokaoSimulator.Features.Province
             tipCloseText.text = "我知道啦";
 
             infoPanelRoot.gameObject.SetActive(false);
+
+            modeExplainPopupRoot = CreateUiObject("ModeExplainPopup", transform);
+            Stretch(modeExplainPopupRoot);
+            modeExplainPopupRoot.gameObject.SetActive(false);
+            var explainMaskImage = modeExplainPopupRoot.gameObject.AddComponent<Image>();
+            explainMaskImage.color = new Color(0f, 0f, 0f, 0.45f);
+            var explainMaskButton = modeExplainPopupRoot.gameObject.AddComponent<Button>();
+            explainMaskButton.onClick.AddListener(CloseModeExplainPopup);
+
+            var explainCard = CreateUiObject("Card", modeExplainPopupRoot);
+            explainCard.anchorMin = new Vector2(0.08f, 0.18f);
+            explainCard.anchorMax = new Vector2(0.92f, 0.82f);
+            explainCard.offsetMin = Vector2.zero;
+            explainCard.offsetMax = Vector2.zero;
+            var explainCardImage = explainCard.gameObject.AddComponent<Image>();
+            explainCardImage.color = Color.white;
+            explainCard.gameObject.AddComponent<UiAutoRounded>();
+            var explainCardShadow = explainCard.gameObject.AddComponent<Shadow>();
+            explainCardShadow.effectColor = new Color(0f, 0f, 0f, 0.10f);
+            explainCardShadow.effectDistance = new Vector2(0f, -16f);
+
+            var explainTitle = CreateText("Title", explainCard, font, 56, FontStyle.Bold, UITheme.Text);
+            explainTitle.alignment = TextAnchor.UpperCenter;
+            explainTitle.rectTransform.anchorMin = new Vector2(0.06f, 0.74f);
+            explainTitle.rectTransform.anchorMax = new Vector2(0.94f, 0.94f);
+            explainTitle.rectTransform.offsetMin = Vector2.zero;
+            explainTitle.rectTransform.offsetMax = Vector2.zero;
+            explainTitle.text = "考试模式说明";
+
+            var blueCard = CreateUiObject("BlueCard", explainCard);
+            blueCard.anchorMin = new Vector2(0.06f, 0.56f);
+            blueCard.anchorMax = new Vector2(0.94f, 0.72f);
+            blueCard.offsetMin = Vector2.zero;
+            blueCard.offsetMax = Vector2.zero;
+            var blueBg = blueCard.gameObject.AddComponent<Image>();
+            blueBg.color = UITheme.CardSky;
+            blueCard.gameObject.AddComponent<UiAutoRounded>();
+            var blueText = CreateText("BlueText", blueCard, font, 28, FontStyle.Normal, UITheme.Text);
+            Stretch(blueText.rectTransform);
+            blueText.alignment = TextAnchor.MiddleCenter;
+            blueText.text = "🔵 蓝色卡片 = 统一卷模式（大多数省份采用全国统一命题）";
+
+            var greenCard = CreateUiObject("GreenCard", explainCard);
+            greenCard.anchorMin = new Vector2(0.06f, 0.40f);
+            greenCard.anchorMax = new Vector2(0.94f, 0.56f);
+            greenCard.offsetMin = Vector2.zero;
+            greenCard.offsetMax = Vector2.zero;
+            var greenBg = greenCard.gameObject.AddComponent<Image>();
+            greenBg.color = UITheme.CardMint;
+            greenCard.gameObject.AddComponent<UiAutoRounded>();
+            var greenText = CreateText("GreenText", greenCard, font, 28, FontStyle.Normal, UITheme.Text);
+            Stretch(greenText.rectTransform);
+            greenText.alignment = TextAnchor.MiddleCenter;
+            greenText.text = "🟢 绿色卡片 = 自主命题模式（本省自行命题，风格各有特点）";
+
+            var orangeCard = CreateUiObject("OrangeCard", explainCard);
+            orangeCard.anchorMin = new Vector2(0.06f, 0.24f);
+            orangeCard.anchorMax = new Vector2(0.94f, 0.40f);
+            orangeCard.offsetMin = Vector2.zero;
+            orangeCard.offsetMax = Vector2.zero;
+            var orangeBg = orangeCard.gameObject.AddComponent<Image>();
+            orangeBg.color = UITheme.CardButter;
+            orangeCard.gameObject.AddComponent<UiAutoRounded>();
+            var orangeText = CreateText("OrangeText", orangeCard, font, 28, FontStyle.Normal, UITheme.Text);
+            Stretch(orangeText.rectTransform);
+            orangeText.alignment = TextAnchor.MiddleCenter;
+            orangeText.text = "🟠 橙色卡片 = 全国卷含专项计划（统一命题框架下有专门安排）";
+
+            var note = CreateText("Note", explainCard, font, 26, FontStyle.Normal, UITheme.TextSoft);
+            note.alignment = TextAnchor.UpperLeft;
+            note.rectTransform.anchorMin = new Vector2(0.06f, 0.12f);
+            note.rectTransform.anchorMax = new Vector2(0.94f, 0.24f);
+            note.rectTransform.offsetMin = Vector2.zero;
+            note.rectTransform.offsetMax = Vector2.zero;
+            note.horizontalOverflow = HorizontalWrapMode.Wrap;
+            note.text = "不同模式考试流程和计分方式有差异，但不影响你的选择本身";
+
+            var explainClose = CreatePrimaryButton("知道了", explainCard, font, UITheme.Confirm, Color.white);
+            explainClose.gameObject.AddComponent<UiPressScale>();
+            var explainCloseRect = (RectTransform)explainClose.transform;
+            explainCloseRect.anchorMin = new Vector2(0.12f, 0.02f);
+            explainCloseRect.anchorMax = new Vector2(0.88f, 0.10f);
+            explainCloseRect.offsetMin = Vector2.zero;
+            explainCloseRect.offsetMax = Vector2.zero;
+            explainClose.onClick.AddListener(CloseModeExplainPopup);
         }
 
         private static RectTransform CreateSectionHeader(Transform parent, Font font, string title, string tag)
@@ -857,6 +957,16 @@ namespace GaokaoSimulator.Features.Province
             }
 
             return button;
+        }
+
+        private static Button CreateSmallButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
+        {
+            var btn = CreateButton(label, parent, font, true);
+            var text = btn.GetComponentInChildren<Text>();
+            if (text != null) text.fontSize = Mathf.RoundToInt(36 * UiTextScale);
+            var image = btn.GetComponent<Image>();
+            if (image != null) image.color = bgColor;
+            return btn;
         }
 
         private static Button CreateButton(string label, Transform parent, Font font, bool primary)
@@ -985,121 +1095,28 @@ namespace GaokaoSimulator.Features.Province
             }
         }
 
-        private static Color32 GetDifficultyCardColor(string diffClass)
+        private static Color32 GetModeCardColor(string mode)
         {
-            switch (diffClass)
-            {
-                case "diff-hell":
-                    return UITheme.FromHex("FFE3E3");
-                case "diff-easy":
-                    return UITheme.CardMint;
-                case "diff-normal":
-                    return UITheme.CardSky;
-                default:
-                    return UITheme.BgCard;
-            }
+            if (string.IsNullOrEmpty(mode)) return UITheme.BgCard;
+            if (mode.Contains("自主") || mode.Contains("命题")) return UITheme.CardMint;       // 绿色 - 自主命题
+            if (mode.Contains("民族") || mode.Contains("专项")) return UITheme.CardButter;       // 橙色 - 专项计划
+            return UITheme.CardSky;                                                             // 蓝色 - 统一卷
         }
 
-        private static Color32 GetModeChipColor(string mode)
+        private static Color32 GetModeAccentColor(string mode)
         {
-            if (mode == "3+3")
-            {
-                return UITheme.FromHex("B39DDB");
-            }
-
-            if (mode == "传统")
-            {
-                return UITheme.FromHex("FFB74D");
-            }
-
-            return UITheme.Confirm;
+            if (string.IsNullOrEmpty(mode)) return UITheme.TextLight;
+            if (mode.Contains("自主") || mode.Contains("命题")) return UITheme.FromHex("4DB38A");    // 绿色
+            if (mode.Contains("民族") || mode.Contains("专项")) return UITheme.FromHex("E8A53A");    // 橙色
+            return UITheme.FromHex("4F7BD9");                                                       // 蓝色
         }
 
-        private static string GetModeDescription(string mode)
+        private static Color32 GetSelectedModeAccentColor(string mode)
         {
-            if (mode == "传统")
-            {
-                return "仍按传统文理分科推进，整体规则更直接，也更强调稳定选择。";
-            }
-
-            return mode == "3+3"
-                ? "可组合空间更大，适合更早规划自己的学科方向。"
-                : "首选方向更明确，整体更接近多数省份的实际玩法。";
-        }
-
-        private static string GetModeTipBody(string mode)
-        {
-            if (mode == "传统")
-            {
-                return "传统高考会更强调文理分科路线。\n选择更直观，但后续可调整空间相对更少。";
-            }
-
-            if (mode == "3+3")
-            {
-                return "3+3 模式的组合空间更大。\n更适合想保留多种专业方向、后续再细化搭配的路线。";
-            }
-
-            return "3+1+2 模式会先确定一个主方向，再补两门搭配。\n整体更贴近现在大多数省份的真实规则。";
-        }
-
-        private static string GetConfirmModeLabel(ProvinceOption option)
-        {
-            if (option == null || string.IsNullOrWhiteSpace(option.Mode))
-            {
-                return "新高考";
-            }
-
-            if (option.Mode == "传统")
-            {
-                return "传统高考";
-            }
-
-            return $"新高考 {option.Mode}";
-        }
-
-        private static Color32 GetDifficultyAccentColor(string diffClass)
-        {
-            switch (diffClass)
-            {
-                case "diff-hell":
-                    return UITheme.FromHex("E04B4B");
-                case "diff-easy":
-                    return UITheme.FromHex("4DB38A");
-                case "diff-normal":
-                    return UITheme.FromHex("4F7BD9");
-                default:
-                    return UITheme.TextLight;
-            }
-        }
-
-        private static Color32 GetSelectedDifficultyAccentColor(string diffClass)
-        {
-            switch (diffClass)
-            {
-                case "diff-hell":
-                    return UITheme.FromHex("C62828");
-                case "diff-easy":
-                    return UITheme.FromHex("339C72");
-                case "diff-normal":
-                    return UITheme.FromHex("3B64C7");
-                default:
-                    return UITheme.ConfirmHover;
-            }
-        }
-
-        private static string GetDifficultySummary(string diffClass)
-        {
-            switch (diffClass)
-            {
-                case "diff-easy":
-                    return "赛道相对宽松，更适合平稳开局";
-                case "diff-normal":
-                    return "整体处于常规强度，适合稳步推进";
-                case "diff-hell":
-                    return "卷度很高，适合挑战高压路线";
-                default:
-                    return "整体处于常规强度，适合稳步推进";
-            }
+            if (string.IsNullOrEmpty(mode)) return UITheme.Text;
+            if (mode.Contains("自主") || mode.Contains("命题")) return UITheme.FromHex("2D8A5A");
+            if (mode.Contains("民族") || mode.Contains("专项")) return UITheme.FromHex("C87828");
+            return UITheme.FromHex("2F5BB9");
         }
 
         private sealed class ProvinceCardView
@@ -1109,24 +1126,20 @@ namespace GaokaoSimulator.Features.Province
             public Image Background;
             public Outline Outline;
             public Text NameText;
-            public Text DiffText;
+            public Text ModeText;
         }
 
         private sealed class ProvinceOption
         {
             public string Name;
             public string Mode;
-            public float Difficulty;
-            public string DiffText;
-            public string DiffClass;
+            public string Description;
 
-            public ProvinceOption(string name, string mode, float difficulty, string diffText, string diffClass)
+            public ProvinceOption(string name, string mode, string description)
             {
                 Name = name;
                 Mode = mode;
-                Difficulty = difficulty;
-                DiffText = diffText;
-                DiffClass = diffClass;
+                Description = description;
             }
         }
 
@@ -1134,43 +1147,41 @@ namespace GaokaoSimulator.Features.Province
         {
             public static readonly ProvinceOption[] HotOptions =
             {
-                new ProvinceOption("北京", "3+3", 0.88f, "轻松", "diff-easy"),
-                new ProvinceOption("上海", "3+3", 0.90f, "轻松", "diff-easy"),
-                new ProvinceOption("广州", "3+1+2", 1.10f, "正常", "diff-normal"),
-                new ProvinceOption("深圳", "3+1+2", 1.10f, "正常", "diff-normal")
+                new ProvinceOption("北京", "自主命题", "京派试题风格灵活，综合素养导向明显"),
+                new ProvinceOption("上海", "自主命题", "海派命题侧重实际应用和跨学科思维"),
+                new ProvinceOption("江苏", "统一卷(新高考Ⅰ卷)", "学科竞赛氛围浓厚，考试竞争有挑战"),
+                new ProvinceOption("浙江", "自主命题", "率先试行选考赋分，组合空间更大")
             };
 
             public static readonly ProvinceOption[] AllOptions =
             {
-                new ProvinceOption("天津", "3+3", 0.92f, "轻松", "diff-easy"),
-                new ProvinceOption("浙江", "3+3", 1.12f, "地狱", "diff-hell"),
-                new ProvinceOption("山东", "3+3", 1.18f, "地狱", "diff-hell"),
-                new ProvinceOption("海南", "3+3", 0.95f, "正常", "diff-normal"),
-                new ProvinceOption("河北", "3+1+2", 1.20f, "地狱", "diff-hell"),
-                new ProvinceOption("山西", "3+1+2", 1.06f, "正常", "diff-normal"),
-                new ProvinceOption("内蒙古", "3+1+2", 0.95f, "正常", "diff-normal"),
-                new ProvinceOption("辽宁", "3+1+2", 1.00f, "正常", "diff-normal"),
-                new ProvinceOption("吉林", "3+1+2", 0.97f, "正常", "diff-normal"),
-                new ProvinceOption("黑龙江", "3+1+2", 0.98f, "正常", "diff-normal"),
-                new ProvinceOption("江苏", "3+1+2", 1.18f, "地狱", "diff-hell"),
-                new ProvinceOption("安徽", "3+1+2", 1.08f, "正常", "diff-normal"),
-                new ProvinceOption("福建", "3+1+2", 1.02f, "正常", "diff-normal"),
-                new ProvinceOption("重庆", "3+1+2", 1.03f, "正常", "diff-normal"),
-                new ProvinceOption("江西", "3+1+2", 1.08f, "正常", "diff-normal"),
-                new ProvinceOption("河南", "3+1+2", 1.22f, "地狱", "diff-hell"),
-                new ProvinceOption("湖北", "3+1+2", 1.12f, "正常", "diff-normal"),
-                new ProvinceOption("湖南", "3+1+2", 1.12f, "正常", "diff-normal"),
-                new ProvinceOption("广东", "3+1+2", 1.10f, "正常", "diff-normal"),
-                new ProvinceOption("广西", "3+1+2", 0.97f, "正常", "diff-normal"),
-                new ProvinceOption("四川", "3+1+2", 1.10f, "正常", "diff-normal"),
-                new ProvinceOption("贵州", "3+1+2", 1.00f, "正常", "diff-normal"),
-                new ProvinceOption("云南", "3+1+2", 0.98f, "正常", "diff-normal"),
-                new ProvinceOption("陕西", "3+1+2", 1.05f, "正常", "diff-normal"),
-                new ProvinceOption("甘肃", "3+1+2", 0.96f, "正常", "diff-normal"),
-                new ProvinceOption("青海", "3+1+2", 0.93f, "正常", "diff-normal"),
-                new ProvinceOption("宁夏", "3+1+2", 0.94f, "正常", "diff-normal"),
-                new ProvinceOption("新疆", "传统", 0.92f, "正常", "diff-normal"),
-                new ProvinceOption("西藏", "传统", 0.90f, "正常", "diff-normal"),
+                new ProvinceOption("广东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
+                new ProvinceOption("山东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
+                new ProvinceOption("河南", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
+                new ProvinceOption("河北", "统一卷(新高考Ⅰ卷)", "考试组织规范，积累深厚"),
+                new ProvinceOption("湖北", "统一卷(新高考Ⅰ卷)", "教育资源集中，学习节奏紧凑"),
+                new ProvinceOption("湖南", "统一卷(新高考Ⅰ卷)", "文理交流传统，风格兼具灵活"),
+                new ProvinceOption("福建", "统一卷(新高考Ⅰ卷)", "气候宜人，考试环境较为轻松"),
+                new ProvinceOption("安徽", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
+                new ProvinceOption("江西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
+                new ProvinceOption("山西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
+                new ProvinceOption("陕西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
+                new ProvinceOption("吉林", "统一卷(全国甲卷)", "四季分明，备考节奏分明"),
+                new ProvinceOption("辽宁", "统一卷(新高考Ⅱ卷)", "工业底蕴深厚，理科思维活跃"),
+                new ProvinceOption("黑龙江", "统一卷(新高考Ⅱ卷)", "辽阔大气，学习环境安稳"),
+                new ProvinceOption("内蒙古", "统一卷(全国甲卷)", "地域广阔，视野开阔"),
+                new ProvinceOption("甘肃", "统一卷(全国甲卷)", "积淀深厚，学习风气质朴"),
+                new ProvinceOption("青海", "统一卷(全国甲卷)", "环境单纯，专注力较易保持"),
+                new ProvinceOption("宁夏", "统一卷(全国甲卷)", "环境单纯，专注力较易保持"),
+                new ProvinceOption("四川", "统一卷(全国甲卷)", "天府之国，生活气息浓厚"),
+                new ProvinceOption("重庆", "统一卷(新高考Ⅱ卷)", "山城风貌，教材版本较新"),
+                new ProvinceOption("贵州", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳"),
+                new ProvinceOption("云南", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳"),
+                new ProvinceOption("广西", "统一卷(全国甲卷)", "气候温和，备考环境舒适"),
+                new ProvinceOption("海南", "自主命题", "旅游资源丰富，考试模式有一定特色"),
+                new ProvinceOption("新疆", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径"),
+                new ProvinceOption("西藏", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径"),
+                new ProvinceOption("天津", "自主命题", "邻近首都，考查方向偏实用")
             };
 
             public static ProvinceOption Find(string provinceName)
