@@ -20,6 +20,7 @@ namespace GaokaoSimulator.Features.Launch
         [SerializeField] private Button continueGameButton;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button aboutButton;
+        [SerializeField] private Button logoutButton;
         
         [Header("标题动画")]
         [SerializeField] private RectTransform titleTransform;
@@ -58,6 +59,11 @@ namespace GaokaoSimulator.Features.Launch
             if (aboutButton != null)
             {
                 aboutButton.onClick.AddListener(OnAboutClicked);
+            }
+            
+            if (logoutButton != null)
+            {
+                logoutButton.onClick.AddListener(OnLogoutClicked);
             }
             
             // 设置版本号
@@ -110,7 +116,7 @@ namespace GaokaoSimulator.Features.Launch
 
         private void EnsureRuntimeLayout()
         {
-            if (newGameButton != null && continueGameButton != null && titleTransform != null && versionText != null)
+            if (newGameButton != null && continueGameButton != null && titleTransform != null && versionText != null && logoutButton != null)
             {
                 return;
             }
@@ -128,8 +134,18 @@ namespace GaokaoSimulator.Features.Launch
             Stretch(background);
             var backgroundImage = background.gameObject.AddComponent<Image>();
             backgroundImage.color = Color.white;
-            var bgGradient = background.gameObject.AddComponent<UiVerticalGradient>();
-            bgGradient.SetColors(new Color32(255, 248, 233, 255), new Color32(255, 234, 246, 255));
+            var bgSprite = RuntimeArt.LoadSprite("UI/Launch/bg_launch_full");
+            if (bgSprite != null)
+            {
+                backgroundImage.sprite = bgSprite;
+                backgroundImage.type = Image.Type.Simple;
+                backgroundImage.preserveAspect = true;
+            }
+            else
+            {
+                var bgGradient = background.gameObject.AddComponent<UiVerticalGradient>();
+                bgGradient.SetColors(new Color32(255, 248, 233, 255), new Color32(255, 234, 246, 255));
+            }
 
             CreateDecorBubble(root, "BubbleTopLeft", new Vector2(110f, -160f), 220f, new Color32(255, 210, 228, 120));
             CreateDecorBubble(root, "BubbleTopRight", new Vector2(-120f, -250f), 300f, new Color32(198, 235, 255, 110), true);
@@ -205,7 +221,19 @@ namespace GaokaoSimulator.Features.Launch
             hero.anchorMax = new Vector2(0.82f, 0.92f);
             hero.offsetMin = Vector2.zero;
             hero.offsetMax = Vector2.zero;
-            CreateHeroPlaceholder(hero, font);
+            var heroSprite = RuntimeArt.LoadSprite("UI/Launch/hero_chibi_macaron");
+            if (heroSprite != null)
+            {
+                var heroImage = hero.gameObject.AddComponent<Image>();
+                heroImage.sprite = heroSprite;
+                heroImage.type = Image.Type.Simple;
+                heroImage.preserveAspect = true;
+                heroImage.color = Color.white;
+            }
+            else
+            {
+                CreateHeroPlaceholder(hero, font);
+            }
             hero.gameObject.AddComponent<UiFloatBob>().Configure(7f, 0.42f, 0f);
 
             CreateFeatureChip(heroCard, font, "选科", new Vector2(0.10f, 0.10f), new Vector2(0.30f, 0.26f), new Color32(255, 231, 190, 255), new Color32(159, 113, 64, 255));
@@ -229,13 +257,13 @@ namespace GaokaoSimulator.Features.Launch
             StylePrimaryButton(newGameButton, new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
             newGameButton.gameObject.AddComponent<UiPressScale>();
 
-            continueGameButton = CreateButton("继续", safePanel, font, Color.white, new Color32(255, 104, 126, 255));
+            continueGameButton = CreateButton("返回校园", safePanel, font, Color.white, new Color32(255, 104, 126, 255));
             var continueRect = (RectTransform)continueGameButton.transform;
-            continueRect.anchorMin = new Vector2(0.32f, 0.125f);
-            continueRect.anchorMax = new Vector2(0.68f, 0.165f);
+            continueRect.anchorMin = new Vector2(0.12f, 0.16f);
+            continueRect.anchorMax = new Vector2(0.88f, 0.26f);
             continueRect.offsetMin = Vector2.zero;
             continueRect.offsetMax = Vector2.zero;
-            StyleOutlineButton(continueGameButton, new Color32(255, 104, 126, 255));
+            StylePrimaryButton(continueGameButton, new Color32(255, 140, 160, 255), new Color32(255, 104, 126, 255));
             continueGameButton.gameObject.AddComponent<UiPressScale>();
 
             aboutButton = CreateIconButton("?", safePanel, font);
@@ -253,6 +281,14 @@ namespace GaokaoSimulator.Features.Launch
             settingsRect.offsetMin = Vector2.zero;
             settingsRect.offsetMax = Vector2.zero;
             settingsButton.gameObject.AddComponent<UiPressScale>();
+
+            logoutButton = CreateIconButton("↺", safePanel, font);
+            var logoutRect = (RectTransform)logoutButton.transform;
+            logoutRect.anchorMin = new Vector2(0.12f, 0.08f);
+            logoutRect.anchorMax = new Vector2(0.20f, 0.14f);
+            logoutRect.offsetMin = Vector2.zero;
+            logoutRect.offsetMax = Vector2.zero;
+            logoutButton.gameObject.AddComponent<UiPressScale>();
 
             var tipRect = CreateUiObject("TipText", safePanel);
             tipRect.anchorMin = new Vector2(0.08f, 0.30f);
@@ -619,6 +655,25 @@ namespace GaokaoSimulator.Features.Launch
             // 显示关于信息弹窗
             ShowAboutDialog();
         }
+
+        /// <summary>
+        /// 注销按钮点击
+        /// </summary>
+        private void OnLogoutClicked()
+        {
+            Debug.Log("[LaunchScreen] 点击注销");
+
+            if (Core.GameState.Instance != null)
+            {
+                Core.GameState.Instance.ResetState();
+                Core.GameState.Instance.HasSaveData = false;
+            }
+
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.Save();
+            UpdateContinueButtonState();
+            ShowToast("已清除存档，可以重新开始");
+        }
         
         #endregion
         
@@ -676,17 +731,11 @@ namespace GaokaoSimulator.Features.Launch
         /// </summary>
         private void UpdateContinueButtonState()
         {
-            if (continueGameButton == null) return;
+            if (newGameButton == null || continueGameButton == null) return;
             
             bool hasSave = Core.GameState.Instance != null && Core.GameState.Instance.HasSaveData;
-            continueGameButton.interactable = hasSave;
-            
-            // 可以在这里改变按钮的视觉状态（如变灰）
-            var buttonImage = continueGameButton.GetComponent<Image>();
-            if (buttonImage != null)
-            {
-                buttonImage.color = hasSave ? Color.white : new Color(0.7f, 0.7f, 0.7f, 1f);
-            }
+            newGameButton.gameObject.SetActive(!hasSave);
+            continueGameButton.gameObject.SetActive(hasSave);
         }
         
         /// <summary>

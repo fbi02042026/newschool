@@ -75,6 +75,7 @@ namespace GaokaoSimulator.Features.Family
         private FamilyCandidate currentCandidate;
         private FamilyCandidate previousCandidate;
         private FamilyCandidate pendingCandidate;
+        private GameObject ribbonRoot;
 
         protected override void Initialize()
         {
@@ -251,6 +252,9 @@ namespace GaokaoSimulator.Features.Family
 
             if (drawHintText != null) drawHintText.text = "抽卡完成";
 
+            // 只有重抽/替换后才显示NEW
+            if (ribbonRoot != null) ribbonRoot.SetActive(previousCandidate != null);
+
             UpdateRerollButtonState();
         }
 
@@ -264,6 +268,7 @@ namespace GaokaoSimulator.Features.Family
 
             ShowResult(oldCandidate, false);
             compareStageRoot.gameObject.SetActive(true);
+            if (ribbonRoot != null) ribbonRoot.SetActive(true);
 
             if (drawHintText != null) drawHintText.text = "抽到新开局！对比后选择是否替换";
 
@@ -283,6 +288,11 @@ namespace GaokaoSimulator.Features.Family
             SetStat(compareNewPsyFill, compareNewPsyValueText, newCandidate.Psychology, 100, UITheme.FromHex("CE93D8"), UITheme.FromHex("AB47BC"));
             SetStat(compareNewSocFill, compareNewSocValueText, newCandidate.Social, 100, UITheme.FromHex("FFCC80"), UITheme.FromHex("FF9800"));
             SetStat(compareNewHealthFill, compareNewHealthValueText, newCandidate.Health, 100, UITheme.FromHex("A5D6A7"), UITheme.FromHex("66BB6A"));
+
+            SetDeltaText(compareIntDeltaText, oldCandidate.Intelligence, newCandidate.Intelligence);
+            SetDeltaText(comparePsyDeltaText, oldCandidate.Psychology, newCandidate.Psychology);
+            SetDeltaText(compareSocDeltaText, oldCandidate.Social, newCandidate.Social);
+            SetDeltaText(compareHealthDeltaText, oldCandidate.Health, newCandidate.Health);
         }
 
         private static void SetValue(Text text, int value)
@@ -322,6 +332,27 @@ namespace GaokaoSimulator.Features.Family
             var grad = fill.GetComponent<UiCornerGradient>();
             if (grad == null) grad = fill.gameObject.AddComponent<UiCornerGradient>();
             grad.SetColors(a, b, b, a);
+        }
+
+        private static void SetDeltaText(Text text, int oldValue, int newValue)
+        {
+            if (text == null) return;
+            int delta = newValue - oldValue;
+            if (delta > 0)
+            {
+                text.text = $"+{delta}";
+                text.color = UITheme.FromHex("43A047");
+            }
+            else if (delta < 0)
+            {
+                text.text = delta.ToString();
+                text.color = UITheme.FromHex("E53935");
+            }
+            else
+            {
+                text.text = "—";
+                text.color = UITheme.FromHex("BDBDBD");
+            }
         }
 
         private void SetProgress(float t)
@@ -584,6 +615,8 @@ namespace GaokaoSimulator.Features.Family
             Stretch(ribbonText.rectTransform);
             ribbonText.alignment = TextAnchor.MiddleCenter;
             ribbonText.text = "NEW";
+            ribbonRoot = ribbon.gameObject;
+            ribbonRoot.SetActive(false);
 
             var resultIconWrap = CreateUiObject("ResultIconWrap", resultCard);
             resultIconWrap.anchorMin = new Vector2(0.32f, 0.70f);

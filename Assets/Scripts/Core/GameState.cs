@@ -39,7 +39,9 @@ namespace GaokaoSimulator.Core
         public GameProgress CurrentProgress { get; set; } = GameProgress.Launch;
         public int SemesterIndex { get; set; } = 0;
         public int TotalSemesters { get; set; } = 6;
+        public List<string> SemesterGrades { get; set; } = new List<string>();
         public int CurrentPlaythrough { get; set; } = 1; // 第几周目
+        public int UniversityYearIndex { get; set; } = 0; // 大学当前学年 0=大一 1=大二 2=大三 3=大四
         public bool HasSaveData { get; set; } = false;
 
         private readonly HashSet<string> seenGuideKeys = new HashSet<string>();
@@ -109,12 +111,82 @@ namespace GaokaoSimulator.Core
             SecondSubjects.Clear();
             CurrentProgress = GameProgress.Launch;
             SemesterIndex = 0;
+            SemesterGrades.Clear();
             TotalSemesters = 6;
+            UniversityYearIndex = 0;
             seenGuideKeys.Clear();
             OwnedItems.Clear();
             // 保留 CurrentPlaythrough 和 HasSaveData
             
             Debug.Log("[GameState] 状态已重置");
+        }
+
+        public void SaveGame()
+        {
+            PlayerPrefs.SetInt("HasSaveData", HasSaveData ? 1 : 0);
+            PlayerPrefs.SetInt("CurrentProgress", (int)CurrentProgress);
+            PlayerPrefs.SetInt("SemesterIndex", SemesterIndex);
+            PlayerPrefs.SetInt("Money", Money);
+            PlayerPrefs.SetInt("StatIntelligence", StatIntelligence);
+            PlayerPrefs.SetInt("StatPsychology", StatPsychology);
+            PlayerPrefs.SetInt("StatSocial", StatSocial);
+            PlayerPrefs.SetInt("StatHealth", StatHealth);
+            PlayerPrefs.SetString("PlayerName", PlayerName ?? "");
+            PlayerPrefs.SetString("SelectedProvince", SelectedProvince ?? "");
+            PlayerPrefs.SetInt("SelectedFamily", (int)SelectedFamily);
+            PlayerPrefs.SetInt("FirstSubject", (int)FirstSubject);
+            PlayerPrefs.SetInt("UniversityYearIndex", UniversityYearIndex);
+
+            // 持久化学期成绩列表
+            var gradesStr = SemesterGrades != null && SemesterGrades.Count > 0
+                ? string.Join(",", SemesterGrades)
+                : "";
+            PlayerPrefs.SetString("SemesterGrades", gradesStr);
+
+            PlayerPrefs.Save();
+            Debug.Log("[GameState] 存档已保存");
+        }
+
+        public void LoadGame()
+        {
+            if (PlayerPrefs.GetInt("HasSaveData", 0) == 0) return;
+
+            HasSaveData = true;
+            CurrentProgress = (GameProgress)PlayerPrefs.GetInt("CurrentProgress", 0);
+            SemesterIndex = PlayerPrefs.GetInt("SemesterIndex", 0);
+            Money = PlayerPrefs.GetInt("Money", 0);
+            StatIntelligence = PlayerPrefs.GetInt("StatIntelligence", 0);
+            StatPsychology = PlayerPrefs.GetInt("StatPsychology", 0);
+            StatSocial = PlayerPrefs.GetInt("StatSocial", 0);
+            StatHealth = PlayerPrefs.GetInt("StatHealth", 0);
+            PlayerName = PlayerPrefs.GetString("PlayerName", "");
+            SelectedProvince = PlayerPrefs.GetString("SelectedProvince", "");
+            SelectedFamily = (FamilyBackgroundType)PlayerPrefs.GetInt("SelectedFamily", 0);
+            FirstSubject = (FirstSubject)PlayerPrefs.GetInt("FirstSubject", 0);
+            UniversityYearIndex = PlayerPrefs.GetInt("UniversityYearIndex", 0);
+
+            // 加载学期成绩列表
+            var gradesStr = PlayerPrefs.GetString("SemesterGrades", "");
+            SemesterGrades.Clear();
+            if (!string.IsNullOrEmpty(gradesStr))
+            {
+                var parts = gradesStr.Split(',');
+                foreach (var p in parts)
+                {
+                    if (!string.IsNullOrEmpty(p))
+                        SemesterGrades.Add(p);
+                }
+            }
+
+            Debug.Log("[GameState] 存档已加载");
+        }
+
+        public void OnApplicationQuit()
+        {
+            if (HasSaveData)
+            {
+                SaveGame();
+            }
         }
         
         /// <summary>
@@ -165,11 +237,10 @@ namespace GaokaoSimulator.Core
             unlocked.Add(HomeButtonType.Achievements);    // 右上角
             unlocked.Add(HomeButtonType.Rules);           // 右上角
             
-            // 选科完成后解锁
+            // 选科完成后解锁（校园日常已合并到主线流程，不再作为独立按钮）
             if (FirstSubject != FirstSubject.None && SecondSubjects.Count == 2)
             {
                 unlocked.Add(HomeButtonType.TalentTree);
-                unlocked.Add(HomeButtonType.Semester);
             }
             
             // 大学时光和人生启程始终显示，灰显由 HomeScreen 控制

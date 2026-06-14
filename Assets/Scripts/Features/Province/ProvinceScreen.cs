@@ -166,14 +166,14 @@ namespace GaokaoSimulator.Features.Province
             ClearChildren(allListRoot);
 
             var hot = new List<ProvinceOption>(ProvinceCatalog.HotOptions);
-            hot.Sort(CompareOptionsByName);
+            hot.Sort(CompareOptionsByDifficulty);
             foreach (var option in hot)
             {
                 CreateProvinceCard(hotListRoot, option);
             }
 
             var all = new List<ProvinceOption>(ProvinceCatalog.AllOptions);
-            all.Sort(CompareOptionsByName);
+            all.Sort(CompareOptionsByDifficulty);
             foreach (var option in all)
             {
                 CreateProvinceCard(allListRoot, option);
@@ -193,7 +193,7 @@ namespace GaokaoSimulator.Features.Province
             rect.localScale = Vector3.one;
 
             var bg = card.GetComponent<Image>();
-            bg.color = GetModeCardColor(option.Mode);
+            bg.color = GetDifficultyCardColor(option.DifficultyScore);
             card.AddComponent<UiAutoRounded>();
 
             var outline = card.AddComponent<Outline>();
@@ -272,7 +272,7 @@ namespace GaokaoSimulator.Features.Province
 
             if (view.Background != null)
             {
-                view.Background.color = GetModeCardColor(view.Option.Mode);
+                view.Background.color = GetDifficultyCardColor(view.Option.DifficultyScore);
             }
 
             if (view.Outline != null)
@@ -457,8 +457,10 @@ namespace GaokaoSimulator.Features.Province
             }
         }
 
-        private static int CompareOptionsByName(ProvinceOption a, ProvinceOption b)
+        private static int CompareOptionsByDifficulty(ProvinceOption a, ProvinceOption b)
         {
+            var diffCompare = a.DifficultyScore.CompareTo(b.DifficultyScore);
+            if (diffCompare != 0) return diffCompare;
             return string.CompareOrdinal(a?.Name ?? string.Empty, b?.Name ?? string.Empty);
         }
 
@@ -1095,6 +1097,13 @@ namespace GaokaoSimulator.Features.Province
             }
         }
 
+        private static Color32 GetDifficultyCardColor(int difficultyScore)
+        {
+            if (difficultyScore <= 2) return UITheme.CardMint;       // 绿色 - 轻松
+            if (difficultyScore <= 3) return UITheme.CardSky;         // 蓝色 - 正常
+            return new Color32(255, 215, 215, 255);                   // 红色 - 困难
+        }
+
         private static Color32 GetModeCardColor(string mode)
         {
             if (string.IsNullOrEmpty(mode)) return UITheme.BgCard;
@@ -1134,12 +1143,14 @@ namespace GaokaoSimulator.Features.Province
             public string Name;
             public string Mode;
             public string Description;
+            public int DifficultyScore;
 
-            public ProvinceOption(string name, string mode, string description)
+            public ProvinceOption(string name, string mode, string description, int difficultyScore = 3)
             {
                 Name = name;
                 Mode = mode;
                 Description = description;
+                DifficultyScore = difficultyScore;
             }
         }
 
@@ -1147,41 +1158,44 @@ namespace GaokaoSimulator.Features.Province
         {
             public static readonly ProvinceOption[] HotOptions =
             {
-                new ProvinceOption("北京", "自主命题", "京派试题风格灵活，综合素养导向明显"),
-                new ProvinceOption("上海", "自主命题", "海派命题侧重实际应用和跨学科思维"),
-                new ProvinceOption("江苏", "统一卷(新高考Ⅰ卷)", "学科竞赛氛围浓厚，考试竞争有挑战"),
-                new ProvinceOption("浙江", "自主命题", "率先试行选考赋分，组合空间更大")
+                new ProvinceOption("北京", "自主命题", "京派试题风格灵活，综合素养导向明显", 1),
+                new ProvinceOption("上海", "自主命题", "海派命题侧重实际应用和跨学科思维", 1),
+                new ProvinceOption("浙江", "自主命题", "率先试行选考赋分，组合空间更大", 2),
+                new ProvinceOption("江苏", "统一卷(新高考Ⅰ卷)", "学科竞赛氛围浓厚，考试竞争有挑战", 5)
             };
 
             public static readonly ProvinceOption[] AllOptions =
             {
-                new ProvinceOption("广东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
-                new ProvinceOption("山东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
-                new ProvinceOption("河南", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟"),
-                new ProvinceOption("河北", "统一卷(新高考Ⅰ卷)", "考试组织规范，积累深厚"),
-                new ProvinceOption("湖北", "统一卷(新高考Ⅰ卷)", "教育资源集中，学习节奏紧凑"),
-                new ProvinceOption("湖南", "统一卷(新高考Ⅰ卷)", "文理交流传统，风格兼具灵活"),
-                new ProvinceOption("福建", "统一卷(新高考Ⅰ卷)", "气候宜人，考试环境较为轻松"),
-                new ProvinceOption("安徽", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
-                new ProvinceOption("江西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
-                new ProvinceOption("山西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
-                new ProvinceOption("陕西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实"),
-                new ProvinceOption("吉林", "统一卷(全国甲卷)", "四季分明，备考节奏分明"),
-                new ProvinceOption("辽宁", "统一卷(新高考Ⅱ卷)", "工业底蕴深厚，理科思维活跃"),
-                new ProvinceOption("黑龙江", "统一卷(新高考Ⅱ卷)", "辽阔大气，学习环境安稳"),
-                new ProvinceOption("内蒙古", "统一卷(全国甲卷)", "地域广阔，视野开阔"),
-                new ProvinceOption("甘肃", "统一卷(全国甲卷)", "积淀深厚，学习风气质朴"),
-                new ProvinceOption("青海", "统一卷(全国甲卷)", "环境单纯，专注力较易保持"),
-                new ProvinceOption("宁夏", "统一卷(全国甲卷)", "环境单纯，专注力较易保持"),
-                new ProvinceOption("四川", "统一卷(全国甲卷)", "天府之国，生活气息浓厚"),
-                new ProvinceOption("重庆", "统一卷(新高考Ⅱ卷)", "山城风貌，教材版本较新"),
-                new ProvinceOption("贵州", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳"),
-                new ProvinceOption("云南", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳"),
-                new ProvinceOption("广西", "统一卷(全国甲卷)", "气候温和，备考环境舒适"),
-                new ProvinceOption("海南", "自主命题", "旅游资源丰富，考试模式有一定特色"),
-                new ProvinceOption("新疆", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径"),
-                new ProvinceOption("西藏", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径"),
-                new ProvinceOption("天津", "自主命题", "邻近首都，考查方向偏实用")
+                new ProvinceOption("海南", "自主命题", "旅游资源丰富，考试模式有一定特色", 1),
+                new ProvinceOption("天津", "自主命题", "邻近首都，考查方向偏实用", 1),
+                new ProvinceOption("台湾", "自主命题", "海岛风情，教育体系独具特色", 1),
+                new ProvinceOption("香港", "自主命题", "中西融合，国际视野开阔", 1),
+                new ProvinceOption("澳门", "自主命题", "中西融合，文化底蕴深厚", 1),
+                new ProvinceOption("新疆", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径", 1),
+                new ProvinceOption("西藏", "全国卷(民族类考生有专项计划)", "广袤土地上自有独特学习路径", 1),
+                new ProvinceOption("安徽", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实", 2),
+                new ProvinceOption("江西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实", 2),
+                new ProvinceOption("山西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实", 2),
+                new ProvinceOption("陕西", "统一卷(全国甲卷)", "中规中矩，学习氛围踏实", 2),
+                new ProvinceOption("吉林", "统一卷(全国甲卷)", "四季分明，备考节奏分明", 2),
+                new ProvinceOption("内蒙古", "统一卷(全国甲卷)", "地域广阔，视野开阔", 2),
+                new ProvinceOption("甘肃", "统一卷(全国甲卷)", "积淀深厚，学习风气质朴", 2),
+                new ProvinceOption("青海", "统一卷(全国甲卷)", "环境单纯，专注力较易保持", 2),
+                new ProvinceOption("宁夏", "统一卷(全国甲卷)", "环境单纯，专注力较易保持", 2),
+                new ProvinceOption("四川", "统一卷(全国甲卷)", "天府之国，生活气息浓厚", 2),
+                new ProvinceOption("贵州", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳", 2),
+                new ProvinceOption("云南", "统一卷(全国甲卷)", "地貌多样，节奏相对平稳", 2),
+                new ProvinceOption("广西", "统一卷(全国甲卷)", "气候温和，备考环境舒适", 2),
+                new ProvinceOption("辽宁", "统一卷(新高考Ⅱ卷)", "工业底蕴深厚，理科思维活跃", 3),
+                new ProvinceOption("黑龙江", "统一卷(新高考Ⅱ卷)", "辽阔大气，学习环境安稳", 3),
+                new ProvinceOption("重庆", "统一卷(新高考Ⅱ卷)", "山城风貌，教材版本较新", 3),
+                new ProvinceOption("广东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟", 4),
+                new ProvinceOption("山东", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟", 5),
+                new ProvinceOption("河北", "统一卷(新高考Ⅰ卷)", "考试组织规范，积累深厚", 5),
+                new ProvinceOption("湖北", "统一卷(新高考Ⅰ卷)", "教育资源集中，学习节奏紧凑", 4),
+                new ProvinceOption("湖南", "统一卷(新高考Ⅰ卷)", "文理交流传统，风格兼具灵活", 4),
+                new ProvinceOption("福建", "统一卷(新高考Ⅰ卷)", "气候宜人，考试环境较为轻松", 4),
+                new ProvinceOption("河南", "统一卷(新高考Ⅰ卷)", "人口基数大，考试组织成熟", 5),
             };
 
             public static ProvinceOption Find(string provinceName)

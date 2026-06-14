@@ -36,6 +36,7 @@ namespace GaokaoSimulator.Core
         
         private void Start()
         {
+            GameState.Instance?.LoadGame();
             // 延迟一帧确保所有系统就绪
             Invoke(nameof(EnterFirstScreen), 0.1f);
         }

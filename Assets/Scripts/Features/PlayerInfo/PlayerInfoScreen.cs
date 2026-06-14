@@ -13,7 +13,6 @@ namespace GaokaoSimulator.Features.PlayerInfo
 
         [Header("UI引用")]
         [SerializeField] private Button backButton;
-        [SerializeField] private Button closeButton;
         [SerializeField] private Text titleText;
         [SerializeField] private Image avatarImage;
         [SerializeField] private Text nameText;
@@ -77,9 +76,9 @@ namespace GaokaoSimulator.Features.PlayerInfo
             if (avatarImage != null)
             {
                 var avatarPath = state.Gender == PlayerGender.Female
-                    ? "UI/Profile/avatar_girl"
-                    : "UI/Profile/avatar_boy";
-                var sprite = Resources.Load<Sprite>(avatarPath);
+                    ? "UI/女"
+                    : "UI/男";
+                var sprite = RuntimeArt.LoadSprite(avatarPath);
                 if (sprite != null)
                 {
                     avatarImage.sprite = sprite;
@@ -149,17 +148,11 @@ namespace GaokaoSimulator.Features.PlayerInfo
                 backButton.onClick.RemoveAllListeners();
                 backButton.onClick.AddListener(() => NavigateTo(ScreenType.Home, false));
             }
-
-            if (closeButton != null)
-            {
-                closeButton.onClick.RemoveAllListeners();
-                closeButton.onClick.AddListener(() => NavigateTo(ScreenType.Home, false));
-            }
         }
 
         private void EnsureRuntimeLayout()
         {
-            if (backButton != null && closeButton != null && titleText != null &&
+            if (backButton != null && titleText != null &&
                 avatarImage != null && nameText != null && genderText != null &&
                 moneyText != null && infoText != null &&
                 statIntelligenceLabel != null && statIntelligenceBar != null &&
@@ -270,13 +263,6 @@ namespace GaokaoSimulator.Features.PlayerInfo
             footer.anchorMax = new Vector2(1f, 0.14f);
             footer.offsetMin = Vector2.zero;
             footer.offsetMax = Vector2.zero;
-
-            closeButton = CreatePrimaryButton("关闭", footer, font, UITheme.Confirm, Color.white);
-            var closeRect = (RectTransform)closeButton.transform;
-            closeRect.anchorMin = new Vector2(0.15f, 0.1f);
-            closeRect.anchorMax = new Vector2(0.85f, 0.9f);
-            closeRect.offsetMin = Vector2.zero;
-            closeRect.offsetMax = Vector2.zero;
         }
 
         private void BuildStatCardRow(int index, RectTransform parent, Font font, out Text label, out Text bar)

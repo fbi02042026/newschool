@@ -16,6 +16,7 @@ namespace GaokaoSimulator.Features.Semester
         [SerializeField] private Text titleText;
         [SerializeField] private Text subtitleText;
         [SerializeField] private Text bodyText;
+        [SerializeField] private Text progressText;
 
         protected override void Initialize()
         {
@@ -36,8 +37,6 @@ namespace GaokaoSimulator.Features.Semester
                 }
             }
 
-            GuideService.EnsureHelpButton(transform.Find("Panel/Header") ?? transform, "BtnHelp", () => GuideService.Open(ScreenType.Semester, transform));
-            GuideService.TryShowOnce(ScreenType.Semester, transform);
             Refresh();
         }
 
@@ -58,12 +57,35 @@ namespace GaokaoSimulator.Features.Semester
 
             if (subtitleText != null)
             {
-                subtitleText.text = "学期推进（临时版）";
+                var labels = new[] { "高一上", "高一下", "高二上", "高二下", "高三上", "高三下" };
+                var label = semester <= labels.Length ? labels[semester - 1] : $"第{semester}学期";
+                subtitleText.text = $"「{label}」";
             }
 
             if (bodyText != null)
             {
-                bodyText.text = $"这里后续接：课程安排 / 事件 / 任务链。\n\n完成后会回到主界面（放假），可进入小游戏/线性支线。\n\n进度：{semester - 1}/{total} 学期已完成";
+                bodyText.text = $"第 {semester} 学期\n\n" +
+                    $"课堂学习、课后作业、社团活动、同学交往……\n" +
+                    $"一个学期的时光匆匆而过。\n\n" +
+                    $"当前能力值：\n" +
+                    $"学习能力 {state?.StatIntelligence ?? 0}    情绪管理 {state?.StatPsychology ?? 0}\n" +
+                    $"人际关系 {state?.StatSocial ?? 0}    健康状态 {state?.StatHealth ?? 0}\n" +
+                    $"金币：{state?.Money ?? 0}\n\n" +
+                    $"点击按钮结算本学期成绩，进入放假。";
+            }
+
+            if (progressText != null)
+            {
+                progressText.text = $"进度：{semester - 1}/{total} 学期已完成";
+            }
+
+            if (finishSemesterButton != null)
+            {
+                var label = finishSemesterButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = "结算本学期 → 进入假期";
+                }
             }
         }
 
@@ -92,6 +114,15 @@ namespace GaokaoSimulator.Features.Semester
             }
 
             var total = Mathf.Max(1, state.TotalSemesters);
+
+            var completedIndex = state.SemesterIndex;
+            var grade = GenerateGrade(completedIndex, state);
+            while (state.SemesterGrades.Count <= completedIndex)
+            {
+                state.SemesterGrades.Add(grade);
+            }
+            state.SemesterGrades[completedIndex] = grade;
+
             state.SemesterIndex = Mathf.Clamp(state.SemesterIndex + 1, 0, total);
 
             if (state.SemesterIndex >= total)
@@ -104,7 +135,14 @@ namespace GaokaoSimulator.Features.Semester
             }
 
             state.HasSaveData = true;
-            NavigateTo(ScreenType.Home, false);
+            NavigateTo(ScreenType.SemesterResult, false);
+        }
+
+        private static string GenerateGrade(int semesterIndex, GameState state)
+        {
+            var seed = semesterIndex * 31 + state.StatIntelligence * 7 + state.StatPsychology * 3;
+            var gradePool = new[] { "A", "A", "B", "B", "B", "C", "C" };
+            return gradePool[Mathf.Abs(seed) % gradePool.Length];
         }
 
         private void EnsureRuntimeLayout()
@@ -156,14 +194,14 @@ namespace GaokaoSimulator.Features.Semester
             header.offsetMin = Vector2.zero;
             header.offsetMax = Vector2.zero;
 
-            titleText = CreateText("Title", header, font, 84, FontStyle.Bold, UITheme.Text);
+            titleText = CreateText("Title", header, font, 74, FontStyle.Bold, UITheme.Text);
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.rectTransform.anchorMin = new Vector2(0.06f, 0.36f);
             titleText.rectTransform.anchorMax = new Vector2(0.94f, 0.88f);
             titleText.rectTransform.offsetMin = Vector2.zero;
             titleText.rectTransform.offsetMax = Vector2.zero;
 
-            subtitleText = CreateText("Subtitle", header, font, 42, FontStyle.Normal, UITheme.TextLight);
+            subtitleText = CreateText("Subtitle", header, font, 38, FontStyle.Normal, UITheme.TextLight);
             subtitleText.alignment = TextAnchor.MiddleCenter;
             subtitleText.rectTransform.anchorMin = new Vector2(0.06f, 0.06f);
             subtitleText.rectTransform.anchorMax = new Vector2(0.94f, 0.42f);
@@ -185,7 +223,7 @@ namespace GaokaoSimulator.Features.Semester
             body.offsetMax = Vector2.zero;
 
             var infoCard = CreateUiObject("InfoCard", body);
-            infoCard.anchorMin = new Vector2(0.06f, 0.28f);
+            infoCard.anchorMin = new Vector2(0.06f, 0.18f);
             infoCard.anchorMax = new Vector2(0.94f, 0.98f);
             infoCard.offsetMin = Vector2.zero;
             infoCard.offsetMax = Vector2.zero;
@@ -196,19 +234,26 @@ namespace GaokaoSimulator.Features.Semester
             infoShadow.effectColor = new Color(0f, 0f, 0f, 0.05f);
             infoShadow.effectDistance = new Vector2(0f, -10f);
 
-            bodyText = CreateText("BodyText", infoCard, font, 38, FontStyle.Normal, UITheme.TextSoft);
+            bodyText = CreateText("BodyText", infoCard, font, 34, FontStyle.Normal, UITheme.TextSoft);
             bodyText.alignment = TextAnchor.UpperLeft;
-            bodyText.rectTransform.anchorMin = new Vector2(0.06f, 0.06f);
+            bodyText.rectTransform.anchorMin = new Vector2(0.06f, 0.14f);
             bodyText.rectTransform.anchorMax = new Vector2(0.94f, 0.94f);
             bodyText.rectTransform.offsetMin = Vector2.zero;
             bodyText.rectTransform.offsetMax = Vector2.zero;
             bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
             bodyText.verticalOverflow = VerticalWrapMode.Overflow;
 
-            finishSemesterButton = CreatePrimaryButton("结束本学期 → 放假回主界面", body, font, UITheme.Confirm, Color.white);
+            progressText = CreateText("ProgressText", infoCard, font, 30, FontStyle.Bold, UITheme.FromHex("888888"));
+            progressText.alignment = TextAnchor.UpperRight;
+            progressText.rectTransform.anchorMin = new Vector2(0.06f, 0.0f);
+            progressText.rectTransform.anchorMax = new Vector2(0.94f, 0.12f);
+            progressText.rectTransform.offsetMin = Vector2.zero;
+            progressText.rectTransform.offsetMax = Vector2.zero;
+
+            finishSemesterButton = CreatePrimaryButton("结算本学期 → 进入假期", body, font, UITheme.Confirm, Color.white);
             var finishRect = (RectTransform)finishSemesterButton.transform;
-            finishRect.anchorMin = new Vector2(0.10f, 0.06f);
-            finishRect.anchorMax = new Vector2(0.90f, 0.20f);
+            finishRect.anchorMin = new Vector2(0.10f, 0.04f);
+            finishRect.anchorMax = new Vector2(0.90f, 0.14f);
             finishRect.offsetMin = Vector2.zero;
             finishRect.offsetMax = Vector2.zero;
             finishSemesterButton.gameObject.AddComponent<UiPressScale>();
@@ -269,9 +314,9 @@ namespace GaokaoSimulator.Features.Semester
         {
             var btn = CreateButton(label, parent, font, bgColor, textColor);
             var text = btn.GetComponentInChildren<Text>();
-            if (text != null) text.fontSize = Mathf.RoundToInt(40 * UiTextScale);
+            if (text != null) text.fontSize = Mathf.RoundToInt(36 * UiTextScale);
             var layout = btn.GetComponent<LayoutElement>();
-            if (layout != null) layout.preferredHeight = 120f;
+            if (layout != null) layout.preferredHeight = 100f;
             return btn;
         }
 
@@ -292,4 +337,3 @@ namespace GaokaoSimulator.Features.Semester
         }
     }
 }
-

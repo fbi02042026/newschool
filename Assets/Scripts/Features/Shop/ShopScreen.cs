@@ -60,7 +60,7 @@ namespace GaokaoSimulator.Features.Shop
             if (backButton != null)
             {
                 backButton.onClick.RemoveAllListeners();
-                backButton.onClick.AddListener(GoBack);
+                backButton.onClick.AddListener(() => NavigateTo(ScreenType.Home, false));
             }
         }
 

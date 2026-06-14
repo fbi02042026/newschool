@@ -20,6 +20,7 @@ namespace GaokaoSimulator.UI
         Home,           // 主界面Hub
         TalentTree,     // 天赋树
         Semester,       // 学期主界面
+        SemesterResult, // 学期结算（成绩单）
         Gaokao,         // 高考
         Volunteer,      // 志愿填报
         University,     // 大学
@@ -288,6 +289,10 @@ namespace GaokaoSimulator.UI
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Semester.SemesterScreen>();
             }
+            else if (screenType == ScreenType.SemesterResult)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Semester.SemesterResultScreen>();
+            }
             else if (screenType == ScreenType.PlayerInfo)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.PlayerInfo.PlayerInfoScreen>();
@@ -295,6 +300,26 @@ namespace GaokaoSimulator.UI
             else if (screenType == ScreenType.Shop)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Shop.ShopScreen>();
+            }
+            else if (screenType == ScreenType.Gaokao)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Gaokao.GaokaoScreen>();
+            }
+            else if (screenType == ScreenType.Volunteer)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Volunteer.VolunteerScreen>();
+            }
+            else if (screenType == ScreenType.University)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.University.UniversityScreen>();
+            }
+            else if (screenType == ScreenType.Career)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Career.CareerScreen>();
+            }
+            else if (screenType == ScreenType.Summary)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Summary.SummaryScreen>();
             }
             else
             {

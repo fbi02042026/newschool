@@ -92,11 +92,13 @@ namespace GaokaoSimulator.UI
                 case ScreenType.Subject:
                     return "下一步：进入主界面 →";
                 case ScreenType.Home:
-                    return "下一步：天赋树 / 学期推进 →";
+                    return "继续主线推进学期，或探索功能 →";
                 case ScreenType.TalentTree:
                     return "下一步：进入学期 →";
                 case ScreenType.Semester:
-                    return "下一步：高考阶段 →";
+                    return "结算成绩，推进学期 →";
+                case ScreenType.SemesterResult:
+                    return "查看成绩后返回主界面 →";
                 case ScreenType.Gaokao:
                     return "下一步：志愿填报 →";
                 case ScreenType.Volunteer:
@@ -105,6 +107,8 @@ namespace GaokaoSimulator.UI
                     return "下一步：毕业去向 →";
                 case ScreenType.Career:
                     return "下一步：人生总结 →";
+                case ScreenType.Summary:
+                    return "回顾一生，可选择重新开始 →";
                 default:
                     return string.Empty;
             }
