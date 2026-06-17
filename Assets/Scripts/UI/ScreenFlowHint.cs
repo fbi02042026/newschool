@@ -84,6 +84,8 @@ namespace GaokaoSimulator.UI
                 case ScreenType.Launch:
                     return "下一步：创建人物 →";
                 case ScreenType.Profile:
+                    return "下一步：选择性格 →";
+                case ScreenType.Personality:
                     return "下一步：家庭背景 →";
                 case ScreenType.Family:
                     return "下一步：选择省市 →";

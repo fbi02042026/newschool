@@ -348,7 +348,7 @@ namespace GaokaoSimulator.Features.Profile
                 Core.GameState.Instance.HasSaveData = true;
             }
 
-            NavigateTo(UI.ScreenType.Family, true);
+            NavigateTo(UI.ScreenType.Personality, true);
         }
 
         private void UpdateGenderButtons()
@@ -420,23 +420,6 @@ namespace GaokaoSimulator.Features.Profile
             return name.Length > 8 ? name.Substring(0, 8) : name;
         }
 
-        private static RectTransform CreateUiObject(string name, Transform parent)
-        {
-            var go = new GameObject(name);
-            var rect = go.AddComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            return rect;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
         private static void CreateDecorCircle(RectTransform parent, string name, Vector2 anchoredPosition, float size, Color color, bool anchorRight = false)
         {
             var circle = CreateUiObject(name, parent);
@@ -446,21 +429,6 @@ namespace GaokaoSimulator.Features.Profile
             circle.sizeDelta = new Vector2(size, size);
             var image = circle.gameObject.AddComponent<Image>();
             image.color = color;
-        }
-
-        private static Text CreateText(string name, Transform parent, Font font, int size, FontStyle style, Color color)
-        {
-            var rect = CreateUiObject(name, parent);
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
-            text.fontStyle = style;
-            text.color = color;
-            text.supportRichText = false;
-            text.lineSpacing = 1.12f;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            return text;
         }
 
         private static Button CreateGenderButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
@@ -481,42 +449,6 @@ namespace GaokaoSimulator.Features.Profile
                 rect.offsetMin = Vector2.zero;
                 rect.offsetMax = Vector2.zero;
             }
-
-            return button;
-        }
-
-        private static Button CreateSmallButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
-        {
-            var button = CreatePrimaryButton(label, parent, font, bgColor, textColor);
-            var rect = (RectTransform)button.transform;
-            rect.sizeDelta = Vector2.zero;
-            return button;
-        }
-
-        private static Button CreatePrimaryButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
-        {
-            var rect = CreateUiObject($"Button_{label}", parent);
-            var image = rect.gameObject.AddComponent<Image>();
-            image.color = bgColor;
-            RuntimeArt.ApplyRounded(image);
-
-            var button = rect.gameObject.AddComponent<Button>();
-            var colors = button.colors;
-            colors.normalColor = bgColor;
-            colors.highlightedColor = bgColor * 1.03f;
-            colors.pressedColor = bgColor * 0.92f;
-            colors.selectedColor = bgColor;
-            button.colors = colors;
-
-            AddSoftShadow(rect.gameObject, new Color(0.35f, 0.24f, 0.34f, 0.16f), new Vector2(0f, -8f));
-
-            var text = CreateText("Label", rect, font, 44, FontStyle.Bold, textColor);
-            text.text = label;
-            text.alignment = TextAnchor.MiddleCenter;
-            Stretch(text.rectTransform);
-            text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = Mathf.RoundToInt(34 * UiTextScale);
-            text.resizeTextMaxSize = Mathf.RoundToInt(52 * UiTextScale);
 
             return button;
         }

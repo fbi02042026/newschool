@@ -14,6 +14,7 @@ namespace GaokaoSimulator.UI
     {
         Launch,         // 启动画面
         Profile,        // 创建人物
+        Personality,    // 性格选择
         Family,         // 家庭背景
         Province,       // 选择省份
         Subject,        // 选科
@@ -270,6 +271,10 @@ namespace GaokaoSimulator.UI
             else if (screenType == ScreenType.Profile)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Profile.ProfileScreen>();
+            }
+            else if (screenType == ScreenType.Personality)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.Personality.PersonalityScreen>();
             }
             else if (screenType == ScreenType.Family)
             {

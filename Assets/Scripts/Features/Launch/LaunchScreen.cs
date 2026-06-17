@@ -535,76 +535,8 @@ namespace GaokaoSimulator.Features.Launch
             badgeText.text = "软萌临时主视觉";
         }
 
-        private static RectTransform CreateUiObject(string name, Transform parent)
-        {
-            var go = new GameObject(name);
-            var rect = go.AddComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            return rect;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static Text CreateText(string name, Transform parent, Font font, int size, FontStyle style, Color color)
-        {
-            var rect = CreateUiObject(name, parent);
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
-            text.fontStyle = style;
-            text.color = color;
-            text.supportRichText = false;
-            text.lineSpacing = 1.1f;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            return text;
-        }
-
-        private static Button CreateButton(string label, Transform parent, Font font, Color backgroundColor, Color textColor)
-        {
-            var rect = CreateUiObject($"Button_{label}", parent);
-            rect.sizeDelta = new Vector2(0f, 168f);
-
-            var image = rect.gameObject.AddComponent<Image>();
-            image.color = backgroundColor;
-            RuntimeArt.ApplyRounded(image);
-
-            var button = rect.gameObject.AddComponent<Button>();
-            var colors = button.colors;
-            colors.normalColor = backgroundColor;
-            colors.highlightedColor = backgroundColor * 1.03f;
-            colors.pressedColor = backgroundColor * 0.9f;
-            colors.selectedColor = backgroundColor;
-            colors.disabledColor = new Color32(220, 220, 220, 255);
-            button.colors = colors;
-
-            var shadow = rect.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0.35f, 0.25f, 0.32f, 0.14f);
-            shadow.effectDistance = new Vector2(0f, -7f);
-
-            var labelText = CreateText("Label", rect, font, 54, FontStyle.Bold, textColor);
-            Stretch(labelText.rectTransform);
-            labelText.alignment = TextAnchor.MiddleCenter;
-            labelText.text = label;
-            labelText.resizeTextForBestFit = true;
-            labelText.resizeTextMinSize = 28;
-            labelText.resizeTextMaxSize = 54;
-
-            var layout = rect.gameObject.AddComponent<LayoutElement>();
-            layout.preferredHeight = 168f;
-
-            return button;
-        }
-
         #endregion
-        
+
         #region 按钮事件处理
         
         /// <summary>

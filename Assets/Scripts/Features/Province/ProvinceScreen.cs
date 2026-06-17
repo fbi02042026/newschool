@@ -943,34 +943,6 @@ namespace GaokaoSimulator.Features.Province
             return CreateButton(label, parent, font, false);
         }
 
-        private static Button CreatePrimaryButton(string label, Transform parent, Font font, Color a, Color textColor)
-        {
-            var button = CreateButton(label, parent, font, true);
-            var text = button.GetComponentInChildren<Text>();
-            if (text != null)
-            {
-                text.color = textColor;
-            }
-
-            var gradient = button.gameObject.GetComponent<UiCornerGradient>();
-            if (gradient != null)
-            {
-                gradient.SetColors(a, UITheme.ConfirmHover, UITheme.ConfirmHover, a);
-            }
-
-            return button;
-        }
-
-        private static Button CreateSmallButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
-        {
-            var btn = CreateButton(label, parent, font, true);
-            var text = btn.GetComponentInChildren<Text>();
-            if (text != null) text.fontSize = Mathf.RoundToInt(36 * UiTextScale);
-            var image = btn.GetComponent<Image>();
-            if (image != null) image.color = bgColor;
-            return btn;
-        }
-
         private static Button CreateButton(string label, Transform parent, Font font, bool primary)
         {
             var buttonGo = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -1001,21 +973,6 @@ namespace GaokaoSimulator.Features.Province
 
             buttonGo.AddComponent<UiPressScale>();
             return buttonGo.GetComponent<Button>();
-        }
-
-        private static Text CreateText(string name, Transform parent, Font font, int size, FontStyle style, Color color)
-        {
-            var rect = CreateUiObject(name, parent);
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
-            text.fontStyle = style;
-            text.color = color;
-            text.supportRichText = false;
-            text.lineSpacing = 1.12f;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            return text;
         }
 
         private static LayoutElement EnsureGridContainerStyle(RectTransform root)
@@ -1060,28 +1017,6 @@ namespace GaokaoSimulator.Features.Province
 
             layoutElement.preferredHeight = 360f;
             return layoutElement;
-        }
-
-        private static RectTransform CreateUiObject(string name, Transform parent)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            return rect;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static Font BuiltinFont()
-        {
-            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
         private static void ClearChildren(RectTransform parent)

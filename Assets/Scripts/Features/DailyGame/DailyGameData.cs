@@ -7,7 +7,7 @@ namespace GaokaoSimulator.Features.DailyGame
     public static class DailyGameData
     {
         public const int TOTAL_EVENTS = 5;
-        public const int TOTAL_STREAMS = 33;
+        public const int TOTAL_STREAMS = 31;
 
         private static List<GameEvent> allEvents;
         private static List<StreamItem> allStreams;
@@ -357,8 +357,7 @@ namespace GaokaoSimulator.Features.DailyGame
                 new StreamItem { Time = "20:30", Text = "班主任突然推门进来，教室里瞬间安静下来。", EventId = "ev_night" },
                 new StreamItem { Time = "21:30", Text = "晚自习结束，你收拾书包，和同学一起走出教室。", EventId = "" },
                 new StreamItem { Time = "22:00", Text = "回到家，你洗了个热水澡，感觉一天的疲惫都洗掉了。", EventId = "" },
-                new StreamItem { Time = "22:30", Text = "躺在床上，你回想今天发生的事情，嘴角微微上扬。", EventId = "" },
-                new StreamItem { Time = "23:00", Text = "夜深了，窗外的星星闪烁着，你渐渐进入梦乡...", EventId = "" }
+                new StreamItem { Time = "22:30", Text = "躺在床上，你回想今天发生的事情，嘴角微微上扬。", EventId = "" }
             };
         }
 

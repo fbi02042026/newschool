@@ -15,6 +15,7 @@ namespace GaokaoSimulator.Core
         // ===== 玩家基础信息 =====
         public string PlayerName { get; set; } = "";
         public PlayerGender Gender { get; set; } = PlayerGender.Male;
+        public string PersonalityName { get; set; } = "";
         public FamilyBackgroundType SelectedFamily { get; set; } = FamilyBackgroundType.None;
         public string SelectedProvince { get; set; } = "";
         public string SelectedProvinceMode { get; set; } = "";
@@ -108,6 +109,7 @@ namespace GaokaoSimulator.Core
         {
             PlayerName = "";
             Gender = PlayerGender.Male;
+            PersonalityName = "";
             SelectedFamily = FamilyBackgroundType.None;
             SelectedProvince = "";
             SelectedProvinceMode = "";
@@ -155,6 +157,7 @@ namespace GaokaoSimulator.Core
             PlayerPrefs.SetInt("StatSocial", StatSocial);
             PlayerPrefs.SetInt("StatHealth", StatHealth);
             PlayerPrefs.SetString("PlayerName", PlayerName ?? "");
+            PlayerPrefs.SetString("PersonalityName", PersonalityName ?? "");
             PlayerPrefs.SetString("SelectedProvince", SelectedProvince ?? "");
             PlayerPrefs.SetInt("SelectedFamily", (int)SelectedFamily);
             PlayerPrefs.SetInt("FirstSubject", (int)FirstSubject);
@@ -197,6 +200,7 @@ namespace GaokaoSimulator.Core
             StatSocial = PlayerPrefs.GetInt("StatSocial", 0);
             StatHealth = PlayerPrefs.GetInt("StatHealth", 0);
             PlayerName = PlayerPrefs.GetString("PlayerName", "");
+            PersonalityName = PlayerPrefs.GetString("PersonalityName", "");
             SelectedProvince = PlayerPrefs.GetString("SelectedProvince", "");
             SelectedFamily = (FamilyBackgroundType)PlayerPrefs.GetInt("SelectedFamily", 0);
             FirstSubject = (FirstSubject)PlayerPrefs.GetInt("FirstSubject", 0);
@@ -338,6 +342,7 @@ namespace GaokaoSimulator.Core
     { 
         Launch,         // 启动
         Profile,        // 创建人物
+        Personality,    // 性格选择
         Family,         // 家庭背景
         Province,       // 选择省份
         Subject,        // 选科

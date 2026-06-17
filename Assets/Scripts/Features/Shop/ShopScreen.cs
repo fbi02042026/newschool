@@ -297,41 +297,6 @@ namespace GaokaoSimulator.Features.Shop
             itemButtons.Add(buyBtn);
         }
 
-        private static Font BuiltinFont()
-        {
-            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        }
-
-        private static RectTransform CreateUiObject(string name, Transform parent)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            return rect;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static Text CreateText(string name, Transform parent, Font font, int size, FontStyle style, Color color)
-        {
-            var rect = CreateUiObject(name, parent);
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = Mathf.RoundToInt(size * UiTextScale);
-            text.fontStyle = style;
-            text.color = color;
-            text.supportRichText = false;
-            text.resizeTextForBestFit = false;
-            return text;
-        }
-
         private static Button CreateOutlineButton(string label, Transform parent, Font font)
         {
             var buttonGo = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -345,29 +310,6 @@ namespace GaokaoSimulator.Features.Shop
             outline.effectDistance = new Vector2(4f, -4f);
 
             var text = CreateText("Text", buttonGo.transform, font, 42, FontStyle.Bold, UITheme.Text);
-            Stretch(text.rectTransform);
-            text.alignment = TextAnchor.MiddleCenter;
-            text.text = label;
-
-            buttonGo.AddComponent<UiPressScale>();
-            return buttonGo.GetComponent<Button>();
-        }
-
-        private static Button CreatePrimaryButton(string label, Transform parent, Font font, Color a, Color textColor)
-        {
-            var buttonGo = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonGo.transform.SetParent(parent, false);
-            var image = buttonGo.GetComponent<Image>();
-            image.color = Color.white;
-            buttonGo.AddComponent<UiAutoRounded>();
-
-            var gradient = buttonGo.AddComponent<UiCornerGradient>();
-            gradient.SetColors(a, UITheme.ConfirmHover, UITheme.ConfirmHover, a);
-            var shadow = buttonGo.AddComponent<Shadow>();
-            shadow.effectColor = new Color(a.r / 255f, a.g / 255f, a.b / 255f, 0.35f);
-            shadow.effectDistance = new Vector2(0f, -12f);
-
-            var text = CreateText("Text", buttonGo.transform, font, 42, FontStyle.Bold, textColor);
             Stretch(text.rectTransform);
             text.alignment = TextAnchor.MiddleCenter;
             text.text = label;

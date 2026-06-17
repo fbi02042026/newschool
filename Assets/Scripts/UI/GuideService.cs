@@ -245,6 +245,8 @@ namespace GaokaoSimulator.UI
                     return null;
                 case ScreenType.Profile:
                     return BuildProfileSteps(tone);
+                case ScreenType.Personality:
+                    return BuildPersonalitySteps(tone);
                 case ScreenType.Family:
                     return BuildFamilySteps(tone, playerAddress);
                 case ScreenType.Province:
@@ -277,6 +279,31 @@ namespace GaokaoSimulator.UI
                     {
                         new GuideStep("初次见面", "嗨，同学好，我是你的重生小助手小灯。\n先告诉我，你想让我怎么称呼你呀？"),
                         new GuideStep("很快就好", "选好形象、定好名字，我们就进入下一步。\n后面的家庭背景会更影响开局。")
+                    };
+            }
+        }
+
+        private static GuideStep[] BuildPersonalitySteps(int tone)
+        {
+            switch (tone)
+            {
+                case 1:
+                    return new[]
+                    {
+                        new GuideStep("性格决定命运", "选一个适合你的性格吧，不同性格会带来不同的属性加成。"),
+                        new GuideStep("各具特色", "每个性格都有自己的特点，没有绝对的好坏，跟着感觉走就对了。")
+                    };
+                case 2:
+                    return new[]
+                    {
+                        new GuideStep("这一步很重要", "性格会影响你的开局属性，好好想想你想成为什么样的人。"),
+                        new GuideStep("别犹豫太久", "反正选错了大不了重来，快点选一个开始吧。")
+                    };
+                default:
+                    return new[]
+                    {
+                        new GuideStep("性格决定命运", "选一个适合你的性格吧，不同性格会带来不同的属性加成哦。"),
+                        new GuideStep("各具特色", "每个性格都有自己的特点，没有绝对的好坏，跟着感觉走就对了。")
                     };
             }
         }
