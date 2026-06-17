@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>重启我的高中人生·爽玩版 — V6.8 卡牌消耗制 Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#F0E6DC;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;overflow:hidden}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden}
+:root{--bg-page:#FFF8F0;--primary:#6B9DF7;--secondary:#FFB5B5;--gold:#FFD580;--green:#7BC06B;--orange:#FF9E5C;--red:#FF6B6B;--dark-red:#C93030;--text:#4A3A2E;--text-soft:#9B7E6E;--line:#F0E0D0;--si-color:#6B9DF7;--si-soft:#E5F0FB;--xing-color:#FF9E5C;--xing-soft:#FFE5D9;--relief-color:#7BC06B;--relief-soft:#E8F5E0;--selected-gold:#FFD580}
+.phone-frame{width:414px;height:920px;background:#1a1a1a;border-radius:48px;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,0.25),0 0 0 2px #2a2a2a;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);transform-origin:center center;will-change:transform;aspect-ratio:414/920}
+.phone-frame::before{content:'';position:absolute;top:18px;left:50%;transform:translateX(-50%);width:110px;height:28px;background:#1a1a1a;border-radius:14px;z-index:2}
+.screen{width:100%;height:100%;background:var(--bg-page);border-radius:36px;overflow:hidden;display:flex;flex-direction:column;padding:50px 14px 12px 14px;position:relative;transition:all .3s}
+.screen.danger-pulse{animation:edge-pulse .8s ease-in-out infinite}
+.screen.collapse-pulse{animation:edge-pulse-collapse .4s ease-in-out infinite}
+@keyframes edge-pulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(255,107,107,0)}50%{box-shadow:inset 0 0 0 4px rgba(255,107,107,.6)}}
+@keyframes edge-pulse-collapse{0%,100%{box-shadow:inset 0 0 0 0 rgba(201,48,48,0);background-color:var(--bg-page)}50%{box-shadow:inset 0 0 0 6px rgba(201,48,48,.8);background-color:#FFE5E5}}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:5px}
+.stat-chip{background:#fff;border-radius:12px;padding:5px 3px;text-align:center;box-shadow:0 2px 0 var(--c,#ccc)}
+.stat-chip .stat-emoji{font-size:14px;line-height:1}
+.stat-chip .stat-name{font-size:9px;color:var(--text-soft);margin-top:1px}
+.stat-chip .stat-value{font-size:15px;font-weight:700;color:var(--c,#555);line-height:1.1}
+.hud-extras{display:flex;gap:5px;margin-bottom:6px;align-items:center;flex-wrap:wrap}
+.energy-chip{background:#fff;border-radius:10px;padding:3px 8px;font-size:11px;display:flex;align-items:center;gap:3px;border:2px solid transparent;transition:all .2s}
+.energy-chip .ec-label{color:var(--text-soft)}
+.energy-chip .ec-value{font-weight:700}
+.energy-chip.high{border-color:var(--orange);background:#FFF4E5}
+.energy-chip.danger{border-color:var(--red);background:#FFE5E5}
+/* V6.9 顶部精力条（显眼 + 档位 + 乘数） */
+.energy-hud-bar{background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;margin:0 16px 6px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 0 var(--line);position:relative;z-index:5}
+.ehb-left{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ehb-emoji{font-size:18px;line-height:1}
+.ehb-label{font-size:11px;color:var(--text-soft);font-weight:bold}
+.ehb-zone{font-size:12px;font-weight:bold;letter-spacing:1px}
+.ehb-bar{flex:1;height:14px;background:#F0E0D0;border-radius:7px;overflow:hidden;border:1.5px solid var(--line);position:relative}
+.ehb-fill{height:100%;border-radius:5px;transition:width .4s ease,background .4s ease;box-shadow:0 0 6px rgba(0,0,0,.08) inset}
+.ehb-right{display:flex;align-items:baseline;gap:4px;flex-shrink:0;min-width:60px;justify-content:flex-end}
+.ehb-value{font-size:18px;font-weight:900;line-height:1}
+.ehb-mult{font-size:10px;color:var(--text-soft);font-weight:bold;background:#FFE5D0;padding:1px 5px;border-radius:6px}
+.energy-chip.collapse{border-color:var(--dark-red);background:#FFD5D5}
+.deck-chip{background:#fff;border-radius:10px;padding:3px 7px;font-size:10px;display:flex;align-items:center;gap:3px}
+.deck-chip .dc-label{color:var(--text-soft)}
+.deck-chip .dc-value{font-weight:700;color:var(--primary)}
+.deck-chip .dc-mini{font-size:9px;color:var(--text-soft);margin-left:2px}
+.combo-chip{background:linear-gradient(135deg,#FFD580,#FFB5B5);border-radius:10px;padding:3px 7px;font-size:10px;font-weight:700;color:#fff;display:none}
+.combo-chip.active{display:inline-flex;align-items:center;gap:2px}
+.combo-chip.epic{background:linear-gradient(135deg,#FF6B6B,#FFD580);box-shadow:0 0 12px rgba(255,107,107,.6);animation:combo-glow .6s ease-in-out infinite}
+@keyframes combo-glow{0%,100%{box-shadow:0 0 12px rgba(255,107,107,.6)}50%{box-shadow:0 0 24px rgba(255,107,107,1)}}
+.stream-area{background:linear-gradient(180deg,#FFF4E5 0%,#FFF8F0 100%);border-radius:12px;padding:4px 8px;margin-bottom:6px;border-left:3px solid var(--gold);position:relative;height:74px;overflow:hidden}
+.stream-list{position:relative;height:100%}
+.stream-item{font-size:11px;color:var(--text);line-height:1.35;padding:1px 0;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stream-item.show{opacity:1;transform:translateY(0)}
+.stream-item .stream-time{font-size:9px;color:#fff;font-weight:700;padding:1px 5px;background:var(--gold);border-radius:4px;margin-right:4px;flex-shrink:0}
+.event-card{background:#fff;border-radius:14px;padding:10px 12px;margin-bottom:6px;box-shadow:0 2px 6px rgba(0,0,0,.04);position:relative;border-left:4px solid var(--secondary);flex-shrink:0}
+.event-card.si-type{border-left-color:var(--si-color)}
+.event-card.xing-type{border-left-color:var(--xing-color)}
+.event-type-tag{display:inline-block;padding:2px 7px;border-radius:6px;font-size:9px;font-weight:700;color:#fff;margin-bottom:4px}
+.event-type-tag.si{background:var(--si-color)}
+.event-type-tag.xing{background:var(--xing-color)}
+.event-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.event-desc{font-size:11px;color:var(--text-soft);line-height:1.45}
+.event-meta{display:flex;gap:6px;margin-top:4px;font-size:10px;color:var(--text-soft);align-items:center;flex-wrap:wrap}
+.event-meta .event-complexity{color:var(--primary);font-weight:700}
+.event-meta .event-observer{color:var(--orange);font-weight:700}
+.hand-tip{font-size:10px;color:var(--text-soft);text-align:center;margin-bottom:4px;line-height:1.3}
+.hand-tip b{color:var(--primary)}
+.hand{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;flex:1;overflow-y:auto;padding-right:2px}
+.hand::-webkit-scrollbar{width:2px}
+.hand::-webkit-scrollbar-thumb{background:var(--line);border-radius:1px}
+.hand-card{background:#fff;border-radius:10px;padding:7px 9px;display:flex;align-items:center;gap:7px;position:relative;border:2px solid #fff;box-shadow:0 2px 0 var(--line);transition:all .15s;overflow:visible}
+.hand-card:active{transform:scale(.98)}
+.hand-card.si{box-shadow:0 2px 0 var(--si-soft)}
+.hand-card.xing{box-shadow:0 2px 0 var(--xing-soft)}
+.hand-card.relief{box-shadow:0 2px 0 var(--relief-soft);background:linear-gradient(180deg,#F5FBEF 0%,#fff 100%)}
+.hand-card.selected{border-color:var(--selected-gold)!important;box-shadow:0 0 0 2px var(--selected-gold),0 4px 10px rgba(255,213,128,.4)!important;transform:translateY(-2px)}
+.hand-card.selected::before{content:'✓';position:absolute;top:-6px;left:-6px;width:18px;height:18px;background:var(--selected-gold);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.hand-card.disabled{opacity:.4;pointer-events:none}
+.hc-type-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.hc-type-icon.si{background:var(--si-soft)}
+.hc-type-icon.xing{background:var(--xing-soft)}
+.hc-type-icon.relief{background:var(--relief-soft)}
+.hc-content{flex:1;min-width:0}
+.hc-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-effects{font-size:10px;line-height:1.3}
+.hc-effects .positive{color:var(--green);font-weight:700}
+.hc-effects .negative{color:var(--red);font-weight:700}
+.hc-cost{font-size:9px;color:var(--orange);margin-top:1px}
+.hc-discard-btn{font-size:9px;padding:3px 6px;border-radius:6px;border:1px solid #DDD;background:#fff;color:var(--text-soft);flex-shrink:0;font-weight:700}
+.hc-discard-btn:active{background:#FFE5E5;border-color:var(--red);color:var(--red)}
+.selection-info{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-soft);margin-bottom:4px;padding:0 2px}
+.selection-info .sel-num{font-weight:700;color:var(--primary)}
+.action-row{display:flex;gap:6px;margin-bottom:4px}
+.btn-play{flex:2;padding:10px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;font-size:13px;font-weight:700;box-shadow:0 3px 0 #5A87D8;transition:all .1s}
+.btn-play:disabled{background:#DDD;color:#999;box-shadow:0 2px 0 #BBB;pointer-events:none}
+.btn-play:active{transform:translateY(1px);box-shadow:0 2px 0 #5A87D8}
+.btn-ad{flex:1;padding:10px 6px;border-radius:12px;border:2px dashed var(--gold);background:#FFFBF0;color:var(--orange);font-size:11px;font-weight:700;transition:all .1s}
+.btn-ad:disabled{background:#F5F5F5;color:#CCC;border-color:#DDD;pointer-events:none}
+.btn-ad:active{background:#FFF4E5}
+.progress{margin-top:3px}
+.progress-text{font-size:10px;color:var(--text-soft);text-align:center;margin-bottom:2px}
+.progress-track{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .3s}
+.footer-tip{font-size:9px;color:var(--text-soft);text-align:center;padding:2px 0;opacity:.6}
+/* V6.9.3 流水事件按钮 */
+.stream-event-btn{background:linear-gradient(135deg,#FF7B7B,#FF6B6B);color:#FFF;border:none;padding:6px 14px;border-radius:14px;font-size:11px;font-weight:bold;margin-top:6px;margin-left:6px;cursor:pointer;box-shadow:0 3px 0 #C93030,0 4px 8px rgba(255,107,107,.3);display:inline-block;animation:eventBtnPulse 1.5s ease-in-out infinite;letter-spacing:0.5px}
+.stream-event-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #C93030}
+.stream-item.has-event{background:linear-gradient(90deg,#FFF5F0,#FFE5D0);border-left:3px solid #FF7B7B;border-radius:0 12px 12px 0;padding:8px 10px;margin:6px 0;box-shadow:0 2px 6px rgba(255,123,123,.15)}
+@keyframes eventBtnPulse{0%,100%{box-shadow:0 3px 0 #C93030,0 4px 8px rgba(255,107,107,.3),0 0 0 0 rgba(255,107,107,.6)}50%{box-shadow:0 3px 0 #C93030,0 4px 8px rgba(255,107,107,.3),0 0 0 8px rgba(255,107,107,0)}}
+
+/* V6.9.3 黑屏转场 */
+.blackout-overlay{position:absolute;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:blackoutFade 1.6s ease-out}
+.blackout-emoji{font-size:64px;margin-bottom:20px;animation:moonFloat 2s ease-in-out infinite}
+.blackout-text{color:#FFF;font-size:18px;font-weight:bold;letter-spacing:2px;opacity:0.85}
+@keyframes blackoutFade{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:1}}
+@keyframes moonFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* V6.9.3 结算页半身像 */
+.settle-portrait-big{position:relative;width:90px;height:90px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#FFE5D0,#FFD0C0);border:4px solid #FFF;box-shadow:0 6px 16px rgba(217,119,87,.3);display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;animation:popIn .6s cubic-bezier(.34,1.56,.64,1)}
+.settle-portrait-big img{width:100%;height:100%;object-fit:cover;display:block}
+.settle-portrait-big::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #FFF}
+
+.init-screen{padding:50px 20px 20px;overflow-y:auto}
+.game-title{font-size:22px;font-weight:800;color:var(--text);text-align:center;margin-top:6px;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.game-subtitle{font-size:13px;color:var(--text-soft);text-align:center;margin-top:4px;margin-bottom:10px}
+.init-tip{font-size:11px;color:var(--text-soft);background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.6;border-left:3px solid var(--primary)}
+.init-tip b{color:var(--text)}
+.init-tip .legend{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.init-tip .legend-item{display:flex;align-items:center;gap:3px;padding:2px 6px;background:var(--bg-page);border-radius:6px;font-size:10px}
+.legend-item.si{color:var(--si-color)}
+.legend-item.xing{color:var(--xing-color)}
+.legend-item.relief{color:var(--relief-color)}
+.personality-grid{display:flex;flex-direction:column;gap:8px}
+.personality-card{background:#fff;border-radius:14px;padding:10px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 0 var(--line);transition:transform .1s}
+.personality-card:active{transform:scale(.98)}
+.p-emoji{font-size:26px;width:44px;height:44px;background:#FFF4E5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:13px;font-weight:700;color:var(--text)}
+.p-tag{font-size:9px;color:var(--text-soft);margin:1px 0}
+.p-desc{font-size:10px;color:var(--text-soft);line-height:1.4}
+.p-deck-preview{font-size:10px;margin-top:3px;padding:3px 6px;background:var(--bg-page);border-radius:6px;line-height:1.5}
+.p-deck-preview .si{color:var(--si-color);font-weight:700}
+.p-deck-preview .xing{color:var(--xing-color);font-weight:700}
+.p-deck-preview .relief{color:var(--relief-color);font-weight:700}
+.settlement{padding:50px 18px 18px;overflow-y:auto}
+.settle-title{font-size:20px;font-weight:800;text-align:center;margin-top:4px;color:var(--text)}
+.settle-sub{font-size:10px;text-align:center;color:var(--text-soft);margin:3px 0 10px}
+.energy-final{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 0 var(--line)}
+.energy-final .pf-label{font-size:11px;color:var(--text-soft);flex-shrink:0}
+.energy-final .pf-bar{flex:1;height:14px;background:#F0E0D0;border-radius:7px;overflow:hidden;position:relative}
+.energy-final .pf-fill{height:100%;background:linear-gradient(90deg,#7BC06B,#FFD580,#FF6B6B,#C93030);transition:width .5s;border-radius:7px}
+.energy-final .pf-value{font-size:18px;font-weight:800;flex-shrink:0}
+.final-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.fs-item{background:#fff;border-radius:10px;padding:6px 3px;text-align:center;box-shadow:0 2px 0 var(--c)}
+.fs-item .fs-emoji{font-size:18px}
+.fs-item .fs-name{font-size:9px;color:var(--text-soft)}
+.fs-item .fs-value{font-size:16px;font-weight:800;color:var(--c)}
+.settle-extras{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.se-item{background:#fff;border-radius:10px;padding:6px;text-align:center}
+.se-item .se-label{font-size:9px;color:var(--text-soft)}
+.se-item .se-value{font-size:14px;font-weight:800;margin-top:2px}
+.log-list{background:#fff;border-radius:12px;padding:8px;margin-bottom:10px}
+.log-list-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.log-item{font-size:10px;padding:4px 0;border-bottom:1px solid var(--line);line-height:1.4}
+.log-item:last-child{border-bottom:none}
+.log-event{font-weight:700;color:var(--text)}
+.log-action{color:var(--text-soft);font-size:9px}
+.log-result.success{color:var(--green)}
+.log-result.soft-mis{color:var(--orange)}
+.log-result.mid-mis{color:#FF6B3B}
+.log-result.hard-mis{color:var(--red)}
+.log-result.relief{color:var(--relief-color)}
+.action-row-end{display:flex;gap:6px}
+.btn{flex:1;padding:10px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;box-shadow:0 3px 0 #5A87D8}
+.modal{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10;border-radius:36px}
+.modal-content{background:#fff;border-radius:18px;padding:14px 16px;width:85%;max-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.2);animation:modal-in .25s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes modal-in{from{transform:scale(.8) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-title{font-size:15px;font-weight:800;margin-bottom:5px}
+.modal-title.success{color:var(--green)}
+.modal-title.soft-mis{color:var(--orange)}
+.modal-title.mid-mis{color:#FF6B3B}
+.modal-title.hard-mis{color:var(--red)}
+.modal-title.info{color:var(--text)}
+.modal-title.relief{color:var(--relief-color)}
+.modal-desc{font-size:11px;color:var(--text-soft);line-height:1.5;margin-bottom:8px}
+.modal-stats{background:var(--bg-page);border-radius:10px;padding:6px 8px;margin-bottom:10px}
+.ms-row{display:flex;justify-content:space-between;font-size:10px;padding:2px 0}
+.ms-label{color:var(--text-soft)}
+.ms-value{font-weight:700}
+.ms-value.positive{color:var(--green)}
+.ms-value.negative{color:var(--red)}
+.modal-close-btn{width:100%;padding:9px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-size:12px;font-weight:700;transition:transform .1s}
+.modal-close-btn:active{transform:scale(.95);background:#5A87D8}
+.screen-shake-light{animation:shake-light .2s}
+@keyframes shake-light{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+.fly-number{position:fixed;pointer-events:none;z-index:200;font-size:24px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.2);animation:fly-up 2.5s ease-out forwards}
+.fly-number.positive{color:var(--green)}
+.fly-number.combo{color:var(--gold);font-size:30px}
+@keyframes fly-up{0%{transform:translateY(0) scale(.5);opacity:0}20%{transform:translateY(-20px) scale(1.2);opacity:1}100%{transform:translateY(-160px) scale(1);opacity:0}}
+.fly-number-down{position:fixed;pointer-events:none;z-index:200;font-size:22px;font-weight:900;color:var(--red);text-shadow:0 2px 4px rgba(0,0,0,.2);animation:fly-down 2.5s ease-out forwards}
+@keyframes fly-down{0%{transform:translateY(0) scale(.5);opacity:0}20%{transform:translateY(20px) scale(1.2);opacity:1}100%{transform:translateY(120px) scale(.8);opacity:0}}
+.perfect-burst{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:999}
+.perfect-particle{position:absolute;width:10px;height:10px;border-radius:50%;animation:perfect-burst 1.2s ease-out forwards}
+@keyframes perfect-burst{0%{transform:translate(0,0) scale(0);opacity:1}50%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+.ad-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;border-radius:36px}
+.ad-content{color:#fff;text-align:center}
+.ad-content .ad-title{font-size:16px;font-weight:800;margin-bottom:8px}
+.ad-content .ad-desc{font-size:11px;color:#FFD580;margin-bottom:12px}
+.ad-content .ad-timer{font-size:24px;font-weight:800;color:var(--gold);margin-bottom:12px}
+.ad-skip{padding:8px 16px;background:#555;color:#fff;border:none;border-radius:8px;font-size:11px}
+
+/* V6.4-V6.5 新增：事件作为弹窗（覆盖在流水账上） */
+.event-modal-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,248,240,.92);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .25s ease;padding:14px}
+.event-modal{width:100%;max-width:540px;background:#FFF8F0;border-radius:18px;padding:16px;box-shadow:0 8px 32px rgba(107,159,247,.25);border:3px solid #FFD8B5;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);max-height:96%;overflow-y:auto}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.event-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:2px dashed #FFE0CC}
+.event-modal-header .emh-left{font-size:11px;color:#9B7E6E;font-weight:bold}
+.event-modal-header .emh-close{width:28px;height:28px;border-radius:50%;background:#FFE0CC;color:#9B7E6E;border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.event-modal-header .emh-close:active{transform:scale(.92)}
+.npc-dialogue{background:linear-gradient(135deg,#FFF4E6,#FFE8D0);border-radius:14px;padding:10px 14px;margin:8px 0 10px;border-left:4px solid #FFB088;position:relative;font-size:12px;line-height:1.5;color:#6B5840}
+.npc-dialogue::before{content:'';position:absolute;left:-4px;top:14px;width:0;height:0;border:6px solid transparent;border-right-color:#FFB088}
+.npc-dialogue .nd-name{font-weight:bold;color:#D97757;margin-right:6px}
+.npc-dialogue .nd-text{color:#6B5840}
+
+/* V6.9.2 精力警告横幅 */
+.energy-warn{text-align:center;padding:6px 10px;margin:4px 0 8px;border-radius:8px;font-size:11px;font-weight:bold;animation:pulse-warn 1.5s ease infinite}
+.energy-warn.caution{background:linear-gradient(135deg,#FFE8C0,#FFD580);color:#8B5A1A;border:1.5px solid #D5A85C}
+.energy-warn.danger{background:linear-gradient(135deg,#FFD5D5,#FFB0B0);color:#8B1A1A;border:1.5px solid #C93030}
+@keyframes pulse-warn{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+
+/* V6.9.2 保守选项随机属性标识 */
+.opt-random{display:inline-block;padding:1px 6px;border-radius:6px;background:linear-gradient(135deg,#9F7AEA,#6B9DF7);color:#fff;font-size:10px;font-weight:bold;animation:opt-random-glow 2s ease infinite}
+@keyframes opt-random-glow{0%,100%{box-shadow:0 0 0 rgba(159,122,234,0)}50%{box-shadow:0 0 6px rgba(159,122,234,.6)}}
+
+/* V6.9.2 加精力事件 tip */
+.energy-event-tip{text-align:center;font-size:10px;color:#5A9A4A;background:rgba(213,240,204,.5);border-radius:6px;padding:4px 8px;margin-top:6px;font-weight:bold}
+.event-modal.energy-event{border-color:#5A9A4A;background:linear-gradient(135deg,#F0F8E8,#E8F8E0)}
+.inner-monologue{background:rgba(255,229,236,.6);border-radius:8px;padding:4px 10px;margin:4px 12px;font-size:11px;color:#C77B8E;font-style:italic;border-left:3px solid #FFB5B5;animation:fadeIn .4s ease}
+.inner-monologue::before{content:'💭 ';opacity:.7}
+
+/* V6.4-V6.5 结算页：综合评语 + 高光瞬间 */
+.settle-summary{background:linear-gradient(135deg,#FFE5D0,#FFD0C0);border-radius:18px;padding:18px 20px;margin:14px 16px;text-align:center;border:3px solid #FFB088;box-shadow:0 4px 12px rgba(217,119,87,.2)}
+.settle-summary .ss-rating{font-size:22px;font-weight:bold;color:#6B5840;margin-bottom:4px;letter-spacing:1px}
+.settle-summary .ss-rating::before{content:'✨';margin-right:6px}
+.settle-summary .ss-sub{font-size:13px;color:#9B7E6E;margin-top:2px}
+.settle-summary .ss-comment{font-size:12px;color:#6B5840;line-height:1.6;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.5);border-radius:10px}
+
+/* 高光瞬间卡片 */
+.highlight-section{padding:0 16px;margin-top:8px}
+.highlight-section-title{font-size:13px;font-weight:bold;color:#6B5840;margin-bottom:8px;display:flex;align-items:center;gap:6px;padding-left:4px}
+.highlight-section-title::before{content:'🌟';font-size:16px}
+.highlight-card{background:#FFF8F0;border-radius:14px;padding:12px 14px;margin-bottom:8px;border-left:5px solid;border-right:2px solid #FFE0CC;border-top:2px solid #FFE0CC;border-bottom:2px solid #FFE0CC;box-shadow:0 2px 6px rgba(107,159,247,.08);display:flex;align-items:flex-start;gap:10px;animation:slideIn .4s ease}
+.highlight-card.epic{border-left-color:#FF7B7B;background:linear-gradient(135deg,#FFF8F0,#FFE5E5)}
+.highlight-card.great{border-left-color:#FFB088;background:linear-gradient(135deg,#FFF8F0,#FFE5D0)}
+.highlight-card.ok{border-left-color:#6B9DF7;background:linear-gradient(135deg,#FFF8F0,#E5F0FF)}
+.highlight-card.fun{border-left-color:#9F7AEA;background:linear-gradient(135deg,#FFF8F0,#F0E5FF)}
+.highlight-card.fumble{border-left-color:#9B7E6E;background:linear-gradient(135deg,#FFF8F0,#F0E8E0)}
+@keyframes slideIn{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+.highlight-card .hc-emoji{font-size:24px;flex-shrink:0;line-height:1}
+.highlight-card .hc-body{flex:1;min-width:0}
+.highlight-card .hc-label{font-size:10px;font-weight:bold;color:#9B7E6E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.highlight-card .hc-title{font-size:13px;font-weight:bold;color:#6B5840;line-height:1.4;margin-bottom:3px}
+.highlight-card .hc-detail{font-size:11px;color:#9B7E6E;line-height:1.4}
+.highlight-card .hc-gain{font-size:11px;color:#6B9DF7;font-weight:bold;margin-top:3px}
+.highlight-card .hc-gain.negative{color:#E88A8A}
+.personality-card .p-npc-dialogue{margin-top:8px;padding:6px 10px;background:linear-gradient(135deg,#FFF4E6,#FFE8D0);border-radius:10px;border-left:3px solid #FFB088;font-size:11px;line-height:1.5;color:#6B5840}
+.personality-card .p-npc-dialogue .nd-name{font-weight:bold;color:#D97757;margin-right:3px}.wait-hint{text-align:center;color:#9B7E6E;font-size:12px;padding:8px 12px;background:rgba(255,229,236,.5);border-radius:10px;margin:6px 16px;border:1.5px dashed #FFB5B5;animation:pulse 1.6s ease infinite}
+@keyframes pulse{0%,100%{opacity:.65}50%{opacity:1}}
+/* V6.5 新增：开屏"美好的一天" */
+.intro-screen{position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#FFE5D0,#FFD0C0 50%,#FFB5B5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;animation:fadeIn .6s ease}
+.intro-screen .is-emoji{font-size:80px;margin-bottom:20px;animation:float 2.4s ease infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.intro-screen .is-title{font-size:24px;font-weight:bold;color:#6B5840;margin-bottom:8px;letter-spacing:2px;animation:fadeInUp 1s ease .3s both}
+.intro-screen .is-sub{font-size:13px;color:#9B7E6E;margin-bottom:30px;animation:fadeInUp 1s ease .6s both}
+.intro-screen .is-start{margin-top:36px;padding:12px 32px;background:linear-gradient(135deg,#FFB088,#FF7B7B);color:#FFF;border-radius:24px;font-size:15px;font-weight:bold;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(255,123,123,.4);animation:fadeInUp 1s ease 1.2s both}
+.intro-screen .is-start:active{transform:scale(.96)}
+@keyframes fadeInUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* V6.5 暂停按钮 */
+.pause-btn{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:rgba(255,224,204,.9);border:2px solid #FFB088;color:#6B5840;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:50;box-shadow:0 2px 6px rgba(217,119,87,.2)}
+.pause-btn:active{transform:scale(.92)}
+.pause-btn.paused{background:#FF7B7B;color:#FFF;border-color:#FF7B7B}
+.pause-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,248,240,.85);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:80;animation:fadeIn .25s ease}
+.pause-overlay .po-emoji{font-size:60px;margin-bottom:12px}
+.pause-overlay .po-title{font-size:20px;font-weight:bold;color:#6B5840;margin-bottom:6px}
+.pause-overlay .po-sub{font-size:12px;color:#9B7E6E;margin-bottom:20px}
+.pause-overlay .po-resume{padding:10px 28px;background:linear-gradient(135deg,#FFB088,#FF7B7B);color:#FFF;border-radius:20px;font-size:14px;font-weight:bold;border:none;cursor:pointer}
+
+/* V6.5 流水账区域变大 */
+.screen{display:flex;flex-direction:column;min-height:100%}
+.screen .stream-area{flex:1;min-height:280px;overflow-y:auto;padding:8px 12px;background:linear-gradient(180deg,#FFFCF6 0%,#FFF8F0 100%);border-radius:14px;margin:6px 12px;border:2px solid #FFE0CC;box-shadow:inset 0 2px 8px rgba(255,176,136,.08)}
+.screen .stream-area .stream-item{position:relative;padding:8px 4px 8px 6px;border-bottom:1px dashed rgba(255,176,136,.2);font-size:13px;color:#6B5840;line-height:1.6;animation:slideInLeft .4s ease}
+.screen .stream-area .stream-item.typing{overflow:hidden;white-space:nowrap;border-right:2px solid #FFB088;animation:typing-width 1.6s steps(40) forwards,blink-caret .8s step-end infinite}
+@keyframes typing-width{from{max-width:0;opacity:1}to{max-width:100%;opacity:1}}
+@keyframes blink-caret{50%{border-color:transparent}}
+@keyframes slideInLeft{from{transform:translateX(-12px);opacity:0}to{transform:translateX(0);opacity:1}}
+.screen .stream-area .stream-item .stream-time{color:#9B7E6E;font-weight:bold;margin-right:8px;font-size:11px;display:inline-block;min-width:48px}
+.screen .stream-area .stream-item .stream-energy{font-size:10px;font-weight:800;padding:1px 4px;border-radius:4px;margin-left:4px;display:inline-block;animation:energy-pop .6s ease}
+.stream-energy.positive{color:#fff;background:linear-gradient(135deg,#5A9A4A,#7BB66A)}
+.stream-energy.negative{color:#fff;background:linear-gradient(135deg,#C93030,#E85A5A)}
+@keyframes energy-pop{0%{transform:scale(.6);opacity:0}50%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes slideInLeft{from{transform:translateX(-12px);opacity:0}to{transform:translateX(0);opacity:1}}
+.wait-hint{text-align:center;color:#9B7E6E;font-size:12px;padding:8px 12px;background:rgba(255,229,236,.5);border-radius:10px;margin:6px 16px;border:1.5px dashed #FFB5B5;animation:pulse 1.6s ease infinite}
+@keyframes pulse{0%,100%{opacity:.65}50%{opacity:1}}
+
+/* V6.5 结算页：半身像 + 对话框 + 属性加减 */
+.settle-dialog{position:relative;padding:80px 16px 16px;margin:0 12px 12px;min-height:200px}
+.settle-portrait{position:absolute;left:50%;top:0;transform:translateX(-50%);width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#FFE5D0,#FFD0C0);border:5px solid #FFF;box-shadow:0 6px 16px rgba(217,119,87,.3);display:flex;align-items:center;justify-content:center;font-size:64px;z-index:5;animation:popIn .6s cubic-bezier(.34,1.56,.64,1)}
+.settle-portrait::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:14px solid #FFF}
+.settle-portrait .sp-name{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:bold;color:#6B5840;background:#FFF;padding:2px 10px;border-radius:10px;border:2px solid #FFE0CC;white-space:nowrap}
+.settle-dialog-bubble{position:relative;background:#FFF;border-radius:16px;padding:14px 16px;margin-top:40px;border:2px solid #FFE0CC;box-shadow:0 4px 10px rgba(107,159,247,.1)}
+.settle-dialog-bubble::before{content:'';position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:10px solid #FFE0CC}
+.settle-dialog-bubble::after{content:'';position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:8px solid #FFF}
+.settle-dialog-bubble .sdb-rating{font-size:16px;font-weight:bold;color:#6B5840;margin-bottom:4px;text-align:center}
+.settle-dialog-bubble .sdb-rating::before{content:'✨';margin-right:4px}
+.settle-dialog-bubble .sdb-comment{font-size:12px;color:#6B5840;line-height:1.6;text-align:center}
+.settle-dialog-bubble .sdb-npc{margin-top:8px;font-size:10px;color:#9B7E6E;text-align:center;font-style:italic}
+.settle-dialog-bubble .sdb-npc::before{content:'— ';color:#FFB088}
+
+.settle-delta-section{margin:8px 12px}
+.settle-delta-section-title{font-size:12px;font-weight:bold;color:#6B5840;margin-bottom:6px;padding-left:4px}
+.settle-delta-section-title::before{content:'📊';margin-right:4px}
+.settle-delta-row{display:flex;align-items:center;gap:8px;background:#FFF8F0;border-radius:10px;padding:8px 12px;margin-bottom:4px;border:1.5px solid #FFE0CC}
+.settle-delta-row .sdr-emoji{font-size:18px}
+.settle-delta-row .sdr-name{flex:1;font-size:12px;color:#6B5840;font-weight:bold}
+.settle-delta-row .sdr-from{font-size:12px;color:#9B7E6E}
+.settle-delta-row .sdr-arrow{color:#FFB088;font-size:12px}
+.settle-delta-row .sdr-to{font-size:13px;font-weight:bold;color:#6B9DF7}
+.settle-delta-row .sdr-delta{margin-left:auto;font-size:13px;font-weight:bold;padding:2px 8px;border-radius:8px;min-width:48px;text-align:center}
+.settle-delta-row .sdr-delta.positive{background:rgba(107,159,247,.15);color:#6B9DF7}
+.settle-delta-row .sdr-delta.negative{background:rgba(232,138,138,.15);color:#E88A8A}
+.settle-delta-row .sdr-delta.zero{background:rgba(155,126,110,.15);color:#9B7E6E}
+
+/* V6.9.2 段 1+2 合并：评语 + 属性 + 精力（紧凑） */
+.settle-player-name{text-align:center;font-size:13px;font-weight:bold;color:#6B5840;margin:-4px 0 8px;letter-spacing:1px}
+.settle-player-name::before{content:'🌟 '}
+.settle-player-name::after{content:' 🌟'}
+.settle-rating{text-align:center;padding:10px 12px 8px;margin:0 12px 8px;background:linear-gradient(135deg,#FFE5D0 0%,#FFD0C0 100%);border-radius:14px;border:2px solid #FFB088;box-shadow:0 2px 8px rgba(217,119,87,.18);position:relative;overflow:hidden}
+.settle-rating::before{content:'';position:absolute;top:-30px;right:-30px;width:60px;height:60px;background:radial-gradient(circle,rgba(255,255,255,.4) 0%,transparent 70%);border-radius:50%}
+.settle-rating .sr-emoji{font-size:26px;line-height:1;margin-bottom:2px;display:inline-block}
+.settle-rating .sr-title{font-size:16px;font-weight:900;color:#6B5840;letter-spacing:1px;margin-bottom:3px}
+.settle-rating .sr-comment{font-size:10px;color:#6B5840;line-height:1.5;opacity:.85;margin-bottom:6px}
+.settle-rating .sr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 6px}
+.settle-rating .ss-stat{display:flex;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.55);border-radius:8px;padding:3px 2px;font-size:10px;font-weight:800;border:1px solid rgba(255,255,255,.6)}
+.settle-rating .ss-stat .sss-emoji{font-size:11px;line-height:1}
+.settle-rating .ss-stat .sss-num{font-size:11px;font-weight:900;line-height:1}
+.settle-rating .ss-stat.positive .sss-num{color:#4A8A3A}
+.settle-rating .ss-stat.negative .sss-num{color:#C93030}
+.settle-rating .ss-stat.zero .sss-num{color:#9B7E6E}
+.settle-rating .sr-energy{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.5);border-radius:10px;padding:5px 8px;margin-top:4px}
+.settle-rating .sr-energy .sre-emoji{font-size:16px;line-height:1;flex-shrink:0}
+.settle-rating .sr-energy .sre-label{font-size:10px;color:#9B7E6E;font-weight:bold;letter-spacing:.5px}
+.settle-rating .sr-energy .sre-value{font-size:16px;font-weight:900;line-height:1}
+.settle-rating .sr-energy .sre-zone{font-size:10px;font-weight:bold;margin-left:2px;opacity:.85}
+.settle-rating .sr-energy .settle-chart{width:80px;height:30px;flex-shrink:0;background:none;margin-left:auto}
+
+/* V6.9 段 3 夸赞 */
+.highlight-card .hc-praise{font-size:11px;color:#9B7E6E;line-height:1.5;margin-top:4px;padding:4px 8px;background:rgba(255,255,255,.5);border-radius:6px;font-style:italic}
+
+/* V6.9.2 段 4 紧凑独白（横排） */
+.settle-mini-dialog{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FFF8F0,#FFFAF0);border-radius:12px;padding:6px 10px;margin:8px 12px;border:1.5px solid #FFE0CC}
+.settle-mini-dialog .smd-portrait{font-size:24px;line-height:1;flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFE5D0,#FFD0C0);border-radius:50%;border:2px solid #FFF}
+.settle-mini-dialog .smd-mono{flex:1;font-size:11px;color:#6B5840;line-height:1.5;font-style:italic}
+@keyframes bounce-soft{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.settle-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 12px 0}
+.settle-actions .sa-btn{padding:12px;border-radius:14px;font-size:13px;font-weight:bold;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s ease}
+.settle-actions .sa-btn:active{transform:scale(.96)}
+.settle-actions .sa-home{background:linear-gradient(135deg,#FFE5D0,#FFD0C0);color:#6B5840;border:2px solid #FFB088}
+.settle-actions .sa-home .sa-emoji{font-size:22px}
+.settle-actions .sa-home .sa-sub{font-size:10px;color:#9B7E6E;font-weight:normal}
+.settle-actions .sa-tomorrow{background:linear-gradient(135deg,#A8D8FF,#6B9DF7);color:#FFF;border:2px solid #6B9DF7;box-shadow:0 4px 12px rgba(107,159,247,.3)}
+.settle-actions .sa-tomorrow .sa-emoji{font-size:22px}
+.settle-actions .sa-tomorrow .sa-sub{font-size:10px;color:rgba(255,255,255,.85);font-weight:normal}
+
+/* V6.8 选项卡 / 倒计时 / 反馈气泡 / 时段chip */
+.countdown-ring{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.countdown-num{position:absolute;font-size:14px;font-weight:bold;color:#FF7B7B;line-height:1}
+.time-chip{background:#fff;border-radius:10px;padding:3px 8px;font-size:10px;display:flex;align-items:center;gap:3px}
+.time-chip .tc-label{color:var(--text-soft);font-weight:bold}
+.opts-list{display:flex;flex-direction:column;gap:8px;margin:8px 0 6px;max-height:340px;overflow-y:auto;padding:0 2px}
+.opt-card{background:#fff;border-radius:14px;padding:11px 12px;box-shadow:0 2px 0 var(--line);border:2px solid #fff;transition:all .15s;position:relative;overflow:hidden;min-height:64px}
+.opt-card:active{transform:scale(.98)}
+.opt-card.opt-disabled{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+.opt-card.tier-epic{border-color:#FF6B6B;background:linear-gradient(135deg,#FFE5E5,#FFD5D5)}
+.opt-card.tier-great{border-color:#FFB088;background:linear-gradient(135deg,#FFE5D0,#FFF8F0)}
+.opt-card.tier-ok{border-color:#E0D0C0;background:#FFF8F0}
+.opt-card.tier-fumble{border-color:#C93030;background:#FFE5E5}
+.opt-head{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.opt-tier{font-size:10px;font-weight:bold;padding:2px 7px;border-radius:4px;background:#fff;color:var(--text-soft);flex-shrink:0}
+.tier-epic .opt-tier{background:#FF6B6B;color:#fff}
+.tier-great .opt-tier{background:#FFB088;color:#fff}
+.tier-ok .opt-tier{background:#9B7E6E;color:#fff}
+.tier-fumble .opt-tier{background:#C93030;color:#fff}
+.opt-label{font-size:13px;font-weight:bold;color:var(--text);flex:1;line-height:1.4}
+.opt-need{font-size:11px;color:var(--text-soft);display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
+.opt-cost{padding:2px 6px;border-radius:4px;background:#F0E0D0;color:var(--text-soft);font-size:10px}
+.opt-cost.enough{background:#E8F5E0;color:#5A9A4A;font-weight:bold}
+.opt-cost.short{background:#FFE5E5;color:#C93030;font-weight:bold}
+.opt-cost .oc-count{font-size:8px;opacity:.8;margin-left:1px}
+.opt-cost-free{padding:2px 6px;border-radius:4px;background:#F5F5F5;color:#999;font-size:10px;font-style:italic}
+.opt-effect{font-size:11px;color:var(--text);display:flex;flex-wrap:wrap;gap:4px;line-height:1.4}
+.opt-effect .pos{color:#5A9A4A;font-weight:bold}
+.opt-effect .neg{color:#C93030;font-weight:bold}
+.opt-energy{color:#FF9E5C;font-weight:bold;background:#FFF4E5;padding:2px 5px;border-radius:3px;font-size:10px}
+.feedback-bubble{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#FFD580,#FF7B7B);color:#fff;font-size:20px;font-weight:900;padding:12px 28px;border-radius:24px;box-shadow:0 8px 24px rgba(255,123,123,.5);z-index:200;animation:feedback-pop 1.8s ease-out forwards;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+@keyframes feedback-pop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.3);opacity:1}40%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-70%) scale(.9);opacity:0}}
+
+/* V6.8 事件完成小卡（出牌后弹出，2 秒淡出） */
+.event-complete-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,248,240,.94);display:flex;align-items:center;justify-content:center;z-index:160;animation:ec-fade-in .35s ease forwards}
+.event-complete-card{background:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 10px 28px rgba(255,123,123,.18);text-align:center;max-width:340px;width:88%;animation:ec-pop .4s cubic-bezier(.34,1.56,.64,1) forwards}
+.event-complete-emoji{font-size:48px;margin-bottom:6px;line-height:1}
+.event-complete-title{font-size:15px;font-weight:bold;color:var(--text);margin-bottom:4px}
+.event-complete-desc{font-size:12px;color:var(--text-soft);line-height:1.5;margin-bottom:8px;padding:0 4px}
+.event-complete-effects{font-size:12px;color:var(--text);display:flex;justify-content:center;flex-wrap:wrap;gap:6px;font-weight:bold}
+.event-complete-effects .ec-chip{padding:3px 8px;border-radius:10px;background:rgba(255,255,255,.8);border:1.5px solid #FFE0CC;display:inline-block;font-size:11px;animation:chip-pop .3s ease}
+.event-complete-effects .ec-chip.pos{color:#5A9A4A;background:linear-gradient(135deg,#E8F5E0,#D5F0CC);border-color:#A0D0A0}
+.event-complete-effects .ec-chip.neg{color:#C93030;background:linear-gradient(135deg,#FFE8E8,#FFD5D5);border-color:#E0A0A0}
+.event-complete-effects .ec-chip.energy-pos{color:#FF9E5C;background:linear-gradient(135deg,#FFF4E5,#FFE0CC);border-color:#FFB088}
+.event-complete-effects .ec-chip.energy-neg{color:#5A9A4A;background:linear-gradient(135deg,#E8F5E0,#D5F0CC);border-color:#A0D0A0}
+@keyframes chip-pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes ec-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes ec-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+.event-complete-overlay.closing{animation:ec-fade-out .35s ease forwards}
+@keyframes ec-fade-out{from{opacity:1}to{opacity:0}}
+
+/* V6.8 今日完成庆祝（10 事件全部完成，进结算前） */
+.day-end-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,248,240,.96);display:flex;align-items:center;justify-content:center;z-index:250;animation:de-fade-in .4s ease}
+.day-end-banner{background:linear-gradient(135deg,#FFD580,#FF7B7B);color:#fff;padding:22px 28px;border-radius:20px;text-align:center;box-shadow:0 8px 28px rgba(255,123,123,.4);animation:de-pop .6s cubic-bezier(.34,1.56,.64,1) forwards;max-width:340px;width:88%}
+.day-end-emoji{font-size:42px;margin-bottom:8px;line-height:1}
+.day-end-title{font-size:17px;font-weight:bold;margin-bottom:6px;letter-spacing:1px}
+.day-end-sub{font-size:11px;opacity:.95;line-height:1.5}
+@keyframes de-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes de-pop{0%{transform:scale(.5);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+const STATS=['智力','体魄','纪律','心理'];
+const STAT_INFO={'智力':{emoji:'🧠',color:'#7BB6F7',soft:'#E5F0FB'},'体魄':{emoji:'💪',color:'#FF9E7B',soft:'#FFE5D9'},'纪律':{emoji:'⏰',color:'#D5A85C',soft:'#FFF6D5'},'心理':{emoji:'💗',color:'#7BC06B',soft:'#E8F5E0'}};
+const STAT_INIT=50;const STAT_MAX=200;const DECK_SIZE=20;const HAND_SIZE=5;const MAX_PLAY=3;const MAX_RELIEF=1;const TOTAL_EVENTS=5;
+const TYPE_ICON={'思':'🧠','行':'✋','减压':'🧘'};
+function comboMult(n){return n>=2?(1+(n-1)*.5):1}
+// V6.9.3 半身像图（base64 嵌入）
+const PORTRAITS={
+  'p1':"data:image/jpeg;base64,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",
+  'p2':"data:image/jpeg;base64,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",
+  'p3':"data:image/jpeg;base64,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",
+  'p4':"data:image/jpeg;base64,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"
+};
+// 性格→半身像映射
+const PERSONALITY_PORTRAIT={
+  '学神':'p1','显眼包':'p2','段子手':'p1','文青':'p1','I人':'p1','卷王':'p1'
+};
+const PERSONALITIES=[
+  {id:'学神',emoji:'🎓',portrait:'🧑‍🎓',mainType:'思',desc:'学业天才，思维敏锐但不爱动。',introNpc:'妈妈',introLine:'你从小就聪明，但妈知道你心里也累。去吧，用你的脑子证明自己。'},
+  {id:'显眼包',emoji:'🌟',portrait:'🤩',mainType:'行',desc:'天生活跃气氛，人群焦点。',introNpc:'爸爸',introLine:'小子，别光顾着冲！算了，反正你也记不住。去吧，闯你的天地。'},
+  {id:'段子手',emoji:'😄',portrait:'😎',mainType:'行',desc:'幽默感爆表，人际润滑剂。',introNpc:'铁哥们',introLine:'兄弟，你那嘴皮子是真能处。但关键时刻别光耍嘴皮子啊！走起！'},
+  {id:'文青',emoji:'🎨',portrait:'🧑‍🎨',mainType:'思',desc:'内敛细腻，追求精神世界。',introNpc:'语文老师',introLine:'你是个有灵气的孩子，但生活不只是诗和远方。去吧，记得你还要高考。'},
+  {id:'I人',emoji:'🤐',portrait:'🧘',mainType:'思',desc:'社恐但专注，内心戏多。',introNpc:'另一个自己',introLine:'......其实你心里话挺多的，只是说不出口。没关系，慢慢来。'},
+  {id:'卷王',emoji:'📚',portrait:'🧑‍💼',mainType:'行',desc:'行动派，自律到可怕。',introNpc:'宿敌',introLine:'就你？行吧。来吧，看看谁才是真正的卷王。'}
+];
+const CARD_POOL_SI={
+  '冷静思考':{智力:4,心理:1},'刷题5道':{智力:5,体魄:-1},'笔记梳理':{智力:3,心理:1},'错题复盘':{智力:4,心理:1},
+  '举一反三':{智力:5,心理:1},'深入研究':{智力:6,心理:-1},'精读课本':{智力:4,纪律:1},'概念辨析':{智力:4,心理:1},
+  '公式推导':{智力:5,心理:-1},'归纳总结':{智力:4,纪律:1},'押题':{智力:4,心理:2},'难题挑战':{智力:6,心理:-2},
+  '默写全文':{智力:4,纪律:1},'死磕难题':{智力:5,心理:-1},'整理错题':{智力:3,心理:1},'知识串联':{智力:4,心理:1},
+  '写随笔':{智力:2,心理:3},'读首诗':{智力:1,心理:4},'写日记':{智力:1,心理:4},'摘抄金句':{智力:2,心理:2},
+  '冥想5分钟':{智力:1,心理:4},'深度思考':{智力:3,心理:2},'默默观察':{智力:2,心理:1,纪律:1},'默默整理':{智力:2,心理:2,纪律:1},
+  '独自研究':{智力:5,心理:1},'分析利弊':{智力:3,心理:2},'列计划清单':{智力:2,心理:2,纪律:1},'优先级排序':{智力:3,心理:1,纪律:1},
+  '灵感爆发':{智力:5,心理:2},'难题分析':{智力:4,心理:1}
+};
+const CARD_POOL_XING={
+  '慢跑一圈':{体魄:3,心理:1},'课间休息':{体魄:1,心理:1},'伸个懒腰':{体魄:1,心理:1},'课间操跑步':{体魄:2,心理:1},
+  '跳绳100个':{体魄:3,心理:1},'打篮球':{体魄:2,心理:2},'早起晨读':{体魄:1,智力:3,纪律:1},'站着背书':{体魄:1,智力:3,纪律:1},
+  '课间刷题':{智力:3,纪律:1},'整理错题本':{智力:3,心理:1,纪律:1},'搬新书':{体魄:2,心理:1},'值日':{体魄:1,心理:1,纪律:1},
+  '课间散步':{体魄:1,心理:2},'独自骑行':{体魄:3,心理:2},'校园散步':{体魄:1,心理:3},'戴耳机':{心理:4},
+  '默默吃饭':{体魄:1,心理:2},'课间买水':{体魄:1,心理:1},'抢麦发言':{体魄:1,心理:1,纪律:-1},'跑腿帮忙':{体魄:1,心理:1},
+  '主动搭话':{心理:1,纪律:1},'大声自我介绍':{心理:1,纪律:1},'自来熟':{心理:2,纪律:1},'段子暖场':{心理:2,纪律:1},
+  '朋友互损':{心理:2,纪律:1},'表情包斗图':{心理:2,纪律:1},'主动邀请':{心理:1,纪律:1},'整理书包':{纪律:2,心理:1},
+  '整理桌面':{纪律:2,心理:1},'排队':{纪律:2,心理:1}
+};
+const RELIEF_CARDS={
+  '深呼吸':{effects:{心理:2},energy:-6,cost:'无'},
+  '听首歌':{effects:{心理:1},energy:-8,cost:'专注-1'},
+  '早点睡':{effects:{体魄:1,心理:2},energy:-10,cost:'明日难+1'},
+  '找朋友聊聊':{effects:{心理:3},energy:-8,cost:'人缘-1'},
+  '闭目养神':{effects:{心理:2},energy:-5,cost:'无'},
+  '吃点零食':{effects:{体魄:1,心理:1},energy:-4,cost:'无'}
+};
+const DECK_PRESETS={
+  '学神':{si:['冷静思考','刷题5道','笔记梳理','错题复盘','举一反三','深入研究','精读课本','概念辨析','公式推导','归纳总结','押题','难题挑战','默写全文','死磕难题','整理错题','知识串联','写随笔','难题分析','分析利弊'],
+    xing:['课间休息','伸个懒腰','课间散步','戴耳机','默默吃饭','课间买水','课前热身','整理书包','整理桌面'],
+    relief:['深呼吸','听首歌']},
+  '显眼包':{si:['列计划清单','分析利弊','灵感爆发','归纳总结','概念辨析','优先级排序','写随笔','默默观察','默默整理'],
+    xing:['课间买水','抢麦发言','跳绳100个','打篮球','课间散步','课前热身','戴耳机','整理书包','整理桌面','主动搭话','大声自我介绍','自来熟','段子暖场','朋友互损','表情包斗图','主动邀请','跑腿帮忙','排队','值日'],
+    relief:['深呼吸','找朋友聊聊']},
+  '段子手':{si:['写随笔','冥想5分钟','深度思考','灵感爆发','默默观察','归纳总结','押题','概念辨析','分析利弊'],
+    xing:['课间休息','伸个懒腰','课间散步','默默吃饭','课间买水','课前热身','戴耳机','整理书包','整理桌面','段子暖场','朋友互损','表情包斗图','主动搭话','跑腿帮忙','排队','课间操跑步','跳绳100个','主动邀请'],
+    relief:['找朋友聊聊','深呼吸']},
+  '文青':{si:['写随笔','读首诗','写日记','摘抄金句','冥想5分钟','深度思考','灵感爆发','归纳总结','分析利弊','押题','列计划清单','概念辨析','默默观察','整理错题','知识串联'],
+    xing:['课间散步','独自骑行','校园散步','戴耳机','默默吃饭','课间买水','课前热身','整理书包','整理桌面','排队'],
+    relief:['听首歌','找朋友聊聊']},
+  'I人':{si:['默默观察','默默整理','独自研究','深度思考','冥想5分钟','读首诗','写日记','写随笔','摘抄金句','分析利弊','归纳总结','押题','概念辨析','列计划清单','整理错题','难题分析','知识串联'],
+    xing:['戴耳机','课间散步','默默吃饭','校园散步','课间买水','课前热身','排队','整理书包','整理桌面'],
+    relief:['听首歌','深呼吸']},
+  '卷王':{si:['刷题5道','整理错题','归纳总结','错题复盘','公式推导','死磕难题','默写全文','举一反三','深入研究','概念辨析','难题挑战','知识串联','难题分析'],
+    xing:['早起晨读','站着背书','课间刷题','整理错题本','课间操跑步','跳绳100个','课前热身','课间散步','整理书包','整理桌面','排队','戴耳机','默默吃饭','课间买水','伸个懒腰'],
+    relief:['深呼吸','听首歌']}
+};
+const EVENTS=[
+  // ===== 5 个时段事件，时间与 STREAMS 里的 isEvent 对齐 =====
+  {
+    id:'ev_run',time:'7:30',icon:'🏃',accent:'#FF7B7B',bgColor:'linear-gradient(135deg,#FFE5E5,#FFF5F0)',
+    title:'早操突然开始',
+    npcName:'体育委员',npcLine:'快点快点！班长点名了！',
+    desc:'早操时间提前了 5 分钟，你刚到操场，体育委员急匆匆跑过来通知：今天要测 800 米。',
+    type:'行',difficulty:2,isObserver:false,complexity:2,
+    options:['跟着节奏跑完全程','咬牙冲刺前三','躲在队伍后面偷懒','说身体不舒服申请休息'],
+    eventColor:'#FF7B7B',
+    storyBranch:{
+      '0':'跑完 800 米后你喘着气坐在操场边，腿有点酸但心情不错。',
+      '1':'你冲到前三名，几个同学对你竖起大拇指，但累得直不起腰。',
+      '2':'你躲在队伍后面磨洋工，被体育老师抓个正着，罚跑了 1 圈。',
+      '3':'你申请休息，体育老师看了看你脸色，同意让你在旁边观察。'
+    }
+  },
+  {
+    id:'ev_math',time:'10:00',icon:'📐',accent:'#7B9AFF',bgColor:'linear-gradient(135deg,#E5F0FF,#F0F8FF)',
+    title:'数学课压轴题',
+    npcName:'数学老师',npcLine:'这道题谁能做出来？',
+    desc:'数学老师在黑板上写了一道压轴题，难度明显高于课堂内容，全班陷入沉默。',
+    type:'思',difficulty:2,isObserver:false,complexity:2,
+    options:['冷静分析一步步写出来','先把会的部分写下来','装作没看见低头看书','举手说想和同学讨论'],
+    eventColor:'#7B9AFF',
+    storyBranch:{
+      '0':'你一步步推导出答案，数学老师点点头说"不错"。',
+      '1':'你写出了部分步骤，虽然不完整但展现了解题思路。',
+      '2':'你低头看书，老师点名让旁边同学回答了，逃过一劫。',
+      '3':'你说想讨论，老师说"那就和同桌讨论 3 分钟"，你松了口气。'
+    }
+  },
+  {
+    id:'ev_lunch',time:'12:30',icon:'🍱',accent:'#FFB088',bgColor:'linear-gradient(135deg,#FFE5D0,#FFF8F0)',
+    title:'食堂拼桌风波',
+    npcName:'隔壁班同学',npcLine:'同学，能拼个桌吗？',
+    desc:'你端着餐盘找位置，几个隔壁班同学过来想拼桌，但明显没带餐卡。',
+    type:'行',difficulty:1,isObserver:false,complexity:1,
+    options:['大方同意并帮他们刷一下','委婉说位置有限','装作没听见继续吃饭','开玩笑让他们下次请客'],
+    eventColor:'#FFB088',
+    storyBranch:{
+      '0':'你帮他们刷了卡，他们感激地说下次一定还，你心里暖暖的。',
+      '1':'你委婉拒绝了，他们耸耸肩去找别的位置，场面有点尴尬。',
+      '2':'你装作没听见，默默吃完了饭，心里有点不安。',
+      '3':'你开了个玩笑，他们笑了，说下次请你喝奶茶，气氛很轻松。'
+    }
+  },
+  {
+    id:'ev_pe',time:'16:00',icon:'⚽',accent:'#7BB66A',bgColor:'linear-gradient(135deg,#D5F0CC,#E8F8E0)',
+    title:'体育课篮球赛',
+    npcName:'体育老师',npcLine:'今天三对三，剩下的人当裁判。',
+    desc:'体育课自由活动打三对三篮球，你被分到弱队，队长让你盯防对方主力。',
+    type:'行',difficulty:1,isObserver:false,complexity:2,
+    options:['认真盯防积极抢断','跑位接应队友传球','在篮下等篮板球','主动申请当裁判'],
+    eventColor:'#7BB66A',
+    storyBranch:{
+      '0':'你认真盯防成功断了 2 次球，队友都夸你防守厉害。',
+      '1':'你跑位接应，助攻队友进了 2 个球，团队配合很棒。',
+      '2':'你在篮下等篮板，抢到了 1 个，虽然没得分但有贡献。',
+      '3':'你申请当裁判，老师同意，你在场边看了整场激烈的比赛。'
+    }
+  },
+  {
+    id:'ev_night',time:'20:30',icon:'📖',accent:'#9F7AEA',bgColor:'linear-gradient(135deg,#E8E0FF,#F5F0FF)',
+    title:'晚自习突发',
+    npcName:'班主任',npcLine:'都坐好，我有话说。',
+    desc:'晚自习课间，班主任突然进来说：明天要突击检查作业，没做完的同学要请家长。',
+    type:'思',difficulty:2,isObserver:false,complexity:2,
+    options:['立刻翻书包检查作业','迅速补完最关键的几项','问同桌借作业抄','心里盘算着怎么跟家长说'],
+    eventColor:'#9F7AEA',
+    storyBranch:{
+      '0':'你翻书包发现作业都做完了，长舒一口气，自信地等明天检查。',
+      '1':'你埋头补了 30 分钟，把最重要的几项赶完，累但踏实。',
+      '2':'你借了同桌作业快速抄完，心里有点虚但也没别的办法。',
+      '3':'你盘算着怎么跟家长说，结果越想越烦，决定先睡一觉再说。'
+    }
+  }
+];
+const STREAMS=[
+  {time:'7:00',text:'闹钟响了 3 遍你才起床，匆匆忙忙塞了两口面包。'},
+  {time:'7:20',text:'早自习的铃声响了，你抱着课本跑进教室。'},
+  {time:'7:30',text:'早操集合哨响了，操场上一片脚步声。',isEvent:'ev_run'},
+  {time:'8:00',text:'早读是英语，你跟着录音跟读了一会儿。'},
+  {time:'8:30',text:'上课前 5 分钟，教室里叽叽喳喳聊得热闹。'},
+  {time:'9:00',text:'第一节数学课开始，你翻开课本打起精神。'},
+  {time:'9:40',text:'课间去厕所喝了口水，顺便在走廊放空一下。'},
+  {time:'10:00',text:'第二节数学课，数学老师要讲重点例题了。',isEvent:'ev_math'},
+  {time:'10:40',text:'课间和同桌讨论刚才那道题，有点转不过弯来。'},
+  {time:'11:00',text:'语文课开始，老师让大家齐读课文。'},
+  {time:'11:30',text:'上午最后一节课，肚子开始咕噜叫了。'},
+  {time:'12:00',text:'午休铃响了，食堂人山人海。'},
+  {time:'12:30',text:'食堂里碰到同学，决定一起拼桌吃饭。',isEvent:'ev_lunch'},
+  {time:'13:00',text:'午休时间，你趴在桌上眯了一会儿，做了个奇怪的梦。'},
+  {time:'13:30',text:'午休结束，教室里有人偷偷看小说被老师抓到。'},
+  {time:'14:00',text:'下午第一节是英语课，老师让大家做阅读理解。'},
+  {time:'14:40',text:'课间和同桌讨论周末计划，聊得停不下来。'},
+  {time:'15:00',text:'下午的课拖堂了 5 分钟，你盯着窗外走神了。'},
+  {time:'15:30',text:'课间操时间到了，操场上乱糟糟的。'},
+  {time:'16:00',text:'体育课开始，体育老师宣布今天的内容。',isEvent:'ev_pe'},
+  {time:'16:40',text:'体育课结束，你满头大汗回到教室。'},
+  {time:'17:00',text:'自习课开始，教室里安静下来。'},
+  {time:'17:30',text:'夕阳透过窗户照进来，把课本染成橘红色。'},
+  {time:'18:00',text:'傍晚的晚霞很漂亮，你拍了一张发朋友圈。'},
+  {time:'18:30',text:'晚自习开始，教室里只有翻书声。'},
+  {time:'19:00',text:'晚上食堂的红烧肉意外地好吃，心情不错。'},
+  {time:'19:40',text:'课间在走廊里碰到班主任，被问今天表现怎么样。'},
+  {time:'20:00',text:'晚自习继续，作业堆得像小山。'},
+  {time:'20:30',text:'夜自习课间，教室里突然喧闹起来。',isEvent:'ev_night'},
+  {time:'21:00',text:'晚自习结束，你收拾书包准备回宿舍。'},
+  {time:'21:30',text:'走廊里有人小声讨论明天的考试。'},
+  {time:'22:00',text:'宿舍楼下有猫叫，你偷偷喂了点火腿肠。'},
+  {time:'22:30',text:'洗漱完毕躺在床上，回想今天发生的事。'},
+  {time:'23:00',text:'宿管查完寝，宿舍安静下来，渐入梦乡。'}
+];
+const STREAMS_END='今天的最后一缕光熄灭，枕头边传来室友的呼噜声...';
+const TIME_LABELS=[];
+const MISCAST={soft:{title:'🤔 软不匹配',desc:'场面有点尴尬，你硬着头皮应付过去了。',effects:{智力:1,心理:-1},energy:2},mid:{title:'😐 中不匹配',desc:'老师/同学眉头微皱，场面有点僵。',effects:{智力:1,心理:-2,纪律:-1},energy:5},hard:{title:'😣 硬不匹配',desc:'场面一度尴尬，你深吸一口气重新整理。',effects:{智力:0,心理:-3,纪律:-1},energy:8}};
+const MATCH_REWARD={energy:0};
+// V6.9 精力字段：100=满精力，0=没精力；4 档乘数（100×1.2/80×1.1/50×1/30×0.8）
+let State={phase:'init',stats:{智力:50,体魄:50,纪律:50,心理:50},energy:100,dayEnergy:100,energyLog:[],energyHistory:[{e:100,t:0}],deckLevel:0,eventChain:null,currentChainId:null,npcName:null,firstEventTip:false,energyEventCD:0,energyAdCD:0,dayAdCount:0,lowEnergyTipShown:false,coins:0,personality:null,deck:[],discardPile:[],eventsCompleted:0,currentEvent:null,combo:0,maxCombo:0,logs:[],difficultyBonus:0,streamHistory:[],streamIndex:0,eventsStarted:false,pendingNext:false,paused:false,initialStats:null,introShown:false,streamStarted:false,nextEventThreshold:5,adUsed:false,adGained:0,currentTimeIdx:0,countdown:60,countdownTimer:null,feedbackQueue:[],dayEnding:false};
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){const r=arr.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+function uid(){return Math.random().toString(36).slice(2,10)}
+function effectsToText(e){return Object.entries(e).filter(([k,v])=>v!==0).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' ')}
+// V6.9 4 档精力：充沛(100+)/良好(80+)/一般(50+)/疲惫(<50)
+function getEnergyZone(e){
+  if(e>=100)return{name:'充沛',color:'#5A9A4A',cls:'full',mult:1.2};
+  if(e>=80)return{name:'良好',color:'#7BB66A',cls:'good',mult:1.1};
+  if(e>=50)return{name:'一般',color:'#D5A85C',cls:'normal',mult:1.0};
+  return{name:'疲惫',color:'#C93030',cls:'tired',mult:0.8};
+}
+// V6.9 精力乘数（按当前精力档位）
+function getEnergyMult(e){
+  const pz=getEnergyZone(e);
+  return pz.mult;
+}
+// V6.9 应用属性效果（按精力档位乘数）+ 记录实际效果
+function applyEWithEnergy(e){
+  const mult=getEnergyMult(State.energy);
+  const actualE={};
+  for(const s in e){
+    const v=Math.round(e[s]*mult);
+    actualE[s]=v;
+    State.stats[s]=clamp(State.stats[s]+v,0,STAT_MAX);
+  }
+  return actualE;
+}
+// V6.9 精力消耗
+function applyEnergyCost(cost){
+  const before=State.energy;
+  State.energy=clamp(State.energy-cost,0,150);
+  const delta=State.energy-before;
+  State.energyLog.push({type:'cost',val:delta,at:Date.now()});
+  State.energyHistory.push({e:State.energy,t:Date.now()});
+}
+// V6.9 精力恢复（减压卡 / 看广告）
+function applyEnergyGain(gain){
+  const before=State.energy;
+  State.energy=clamp(State.energy+gain,0,150);
+  const delta=State.energy-before;
+  State.energyLog.push({type:'gain',val:delta,at:Date.now()});
+  State.energyHistory.push({e:State.energy,t:Date.now()});
+}
+// V6.9 每晚恢复 30% 精力（结算页开启下一天时调用）
+function recoverEnergyOvernight(){
+  const before=State.energy;
+  // 恢复到 当前值 + 最大精力的 30%，最多 100
+  const maxEnergy=100;
+  const target=Math.min(maxEnergy,State.energy+Math.round(maxEnergy*0.3));
+  State.energy=target;
+  const delta=State.energy-before;
+  State.energyLog.push({type:'overnight',val:delta,at:Date.now()});
+  return delta;
+}
+function getDeckInfo(){const byType={'思':0,'行':0,'减压':0};State.deck.forEach(c=>{byType[c.type]=(byType[c.type]||0)+1});return{total:State.deck.length,byType}}
+function buildDeck(p){
+  const deck=[];
+  // 思·智力 ×3 — 学术反思
+  for(let i=0;i<3;i++)deck.push({name:'专注·理',type:'思',attr:'智力',effects:{智力:5,心理:1,纪律:1},uid:uid(),tier:'common',desc:'你把问题掰开揉碎分析了一遍。'});
+  // 思·心理 ×3 — 内心独白
+  for(let i=0;i<3;i++)deck.push({name:'自省·心',type:'思',attr:'心理',effects:{智力:2,心理:4,纪律:1},uid:uid(),tier:'common',desc:'你冷静地观察了一下自己的状态。'});
+  // 思·纪律 ×3 — 计划规划
+  for(let i=0;i<3;i++)deck.push({name:'规划·纪',type:'思',attr:'纪律',effects:{智力:3,纪律:3,心理:1},uid:uid(),tier:'common',desc:'你列了下要做的步骤，心里有底了。'});
+  // 行·体魄 ×3 — 体力行动
+  for(let i=0;i<3;i++)deck.push({name:'冲刺·体',type:'行',attr:'体魄',effects:{体魄:5,心理:1,纪律:1},uid:uid(),tier:'common',desc:'你咬紧牙关豁出去了。'});
+  // 行·纪律 ×3 — 立刻执行
+  for(let i=0;i<3;i++)deck.push({name:'执行·纪',type:'行',attr:'纪律',effects:{纪律:4,体魄:1,心理:1},uid:uid(),tier:'common',desc:'你说干就干，没犹豫。'});
+  // 行·智力 ×3 — 主动求教
+  for(let i=0;i<3;i++)deck.push({name:'求教·理',type:'行',attr:'智力',effects:{智力:4,纪律:2,心理:1},uid:uid(),tier:'common',desc:'你主动开口问了。'});
+  // 减压·心理 ×1
+  deck.push({name:'深呼吸·心',type:'减压',attr:'心理',effects:{心理:3},energy:-6,uid:uid(),tier:'relief',desc:'你闭上眼睛，长长呼了一口气。'});
+  // 减压·体魄 ×1
+  deck.push({name:'小憩·体',type:'减压',attr:'体魄',effects:{体魄:1,心理:2},energy:-5,uid:uid(),tier:'relief',desc:'你让自己休息了一下。'});
+  return deck;
+}
+function getTimePool(idx){if(idx<=1)return STREAMS['早上'];if(idx===2)return STREAMS['上午'];if(idx<=4)return STREAMS['中午'];if(idx<=6)return STREAMS['下午'];if(idx===7)return STREAMS['傍晚'];if(idx<=9)return STREAMS['晚上'];return STREAMS['深夜']}
+function generateStream(){
+  const idx=State.streamIndex;
+  // V6.9.3 从新 STREAMS 数组按索引取
+  if(idx < STREAMS.length){
+    const s=STREAMS[idx];
+    return {text:s.text,time:s.time,isEvent:s.isEvent||null,isEventIdx:idx};
+  }
+  // 越界：返回"今天就这样过去了"
+  return {text:'今天就这样过去了...',time:'深夜',isEvent:null};
+}
+function pushStream(){
+  if(State.paused)return;
+  if(State.currentEvent)return;
+  if(State.phase!=='play')return;
+  if(!State.streamStarted)return;
+  const{text,label}=generateStream();
+  // V6.9 流水账 ±精力：35% 概率触发小幅度精力变化
+  let eDelta=0;
+  if(Math.random()<0.35){
+    eDelta=Math.random()<0.5?-(1+Math.floor(Math.random()*3)):1+Math.floor(Math.random()*3);
+  }
+  // 应用到 State.energy
+  if(eDelta!==0){
+    State.energy=clamp(State.energy+eDelta,0,150);
+    State.energyLog.push({type:eDelta>0?'stream_gain':'stream_cost',val:eDelta,at:Date.now()});
+    State.energyHistory.push({e:State.energy,t:Date.now()});
+  }
+  State.streamHistory.push({text,label,time:Date.now(),eDelta});
+  if(State.streamHistory.length>12)State.streamHistory.shift();
+  State.streamIndex++;
+  if(State.phase==='play'&&State.streamStarted&&!State.eventsStarted&&!State.currentEvent&&State.streamHistory.length>=State.nextEventThreshold){
+    State.eventsStarted=true;
+    State.currentEvent=getNextEvent();
+    State.countdown=60;
+    startCountdown();
+    render();
+  }else{
+    render();
+  }
+}
+function initStreams(){for(let i=0;i<3;i++){const{text,label}=generateStream();State.streamHistory.push({text,label});State.streamIndex++}}
+// V6.9 选项模板（4 个位置，轮 3 改成 3+1）
+// 设计：消耗与属性成正比（消耗多→属性多，消耗少→属性少，不消耗→属性零或负）
+// energyCost = 精力消耗（正数），executePlay 中 State.energy -= energyCost
+// V6.9.3 改造：取消"放弃"选项，3 主选项 + 1 看广告（卡组空时启用）
+const OPTION_TEMPLATES=[
+  {  // [0] 破局 - 思×2 + 行×1（消耗多，属性多）
+    need:[{type:'思',count:2},{type:'行',count:1}],
+    effects:{智力:6,体魄:3,纪律:3,心理:2},
+    energyCost:15,
+    feedback:'机智！',
+    title:'🎯 完美破局！',
+    color:'#FF6B6B',
+    bgColor:'linear-gradient(135deg,#FFE5E5,#FFD5D5)',
+    tier:'epic'
+  },
+  {  // [1] 稳进 - 思×1（消耗少，属性少）
+    need:[{type:'思',count:1}],
+    effects:{智力:3,体魄:1,纪律:2,心理:1},
+    energyCost:8,
+    feedback:'稳！',
+    title:'⚡ 稳进应对',
+    color:'#FFB088',
+    bgColor:'linear-gradient(135deg,#FFE5D0,#FFF8F0)',
+    tier:'great'
+  },
+  {  // [2] 保守 - 不消耗卡牌、不消耗精力，随机加减小幅属性
+    need:[],
+    effects:null,  // 运行时随机生成
+    energyCost:0,
+    feedback:'',
+    title:'🤷 保守应对',
+    color:'#9B7E6E',
+    bgColor:'#FFF8F0',
+    tier:'ok'
+  }
+];
+
+// 检查选项的卡牌消耗条件
+function checkOptionRequire(idx){
+  const tpl=OPTION_TEMPLATES[idx];
+  if(!tpl)return{ok:false,consume:[]};
+  if(tpl.need.length===0)return{ok:true,consume:[]};
+  const consume=[];
+  for(const req of tpl.need){
+    const matches=State.deck.filter(c=>{
+      if(c.type!==req.type)return false;
+      if(req.attr && c.attr!==req.attr)return false;
+      return true;
+    });
+    if(matches.length<req.count)return{ok:false,consume:[]};
+    consume.push(...matches.slice(0,req.count).map(c=>c.uid));
+  }
+  return{ok:true,consume};
+}
+
+// 反馈气泡队列
+function enqueueFeedback(text){
+  if(!text)return;
+  State.feedbackQueue.push({text,time:Date.now()});
+}
+function consumeNextFeedback(){
+  return State.feedbackQueue.shift();
+}
+
+// V6.8 倒计时
+function startCountdown(){
+  State.countdown=60;
+  if(State.countdownTimer)clearInterval(State.countdownTimer);
+  State.countdownTimer=setInterval(()=>{
+    if(State.paused){return;}
+    if(!State.currentEvent){clearInterval(State.countdownTimer);State.countdownTimer=null;return;}
+    State.countdown--;
+    if(State.countdown<=0){
+      clearInterval(State.countdownTimer);
+      State.countdownTimer=null;
+      autoSelect();
+    }else{
+      // 只更新倒计时数字
+      const el=document.getElementById('countdown-num');
+      if(el)el.textContent=State.countdown;
+      const ring=document.getElementById('countdown-ring-fill');
+      if(ring)ring.style.strokeDashoffset=113*(1-State.countdown/60);
+    }
+  },1000);
+}
+function stopCountdown(){
+  if(State.countdownTimer){clearInterval(State.countdownTimer);State.countdownTimer=null;}
+}
+
+// 超时自动选（V6.9.3：取消放弃，按 0>1>2 优先级）
+function autoSelect(){
+  for(let i=0;i<3;i++){
+    const ck=checkOptionRequire(i);
+    if(ck.ok){executePlay(i);return;}
+  }
+  // 都不满足就选保守（保底）
+  executePlay(2);
+}
+
+function executePlay(optionIdx){
+  if(State.pendingNext)return;
+  const ev=State.currentEvent;
+  if(!ev||!ev.options||!ev.options[optionIdx])return;
+  const opt=ev.options[optionIdx];
+  const requireCheck=checkOptionRequire(optionIdx);
+  if(!requireCheck.ok)return;
+  // ===== V6.9.2 isEnergyEvent 加精力事件独立处理 =====
+  if(ev.isEnergyEvent){
+    // 3 个选项：恢复精力 + 少量属性
+    const energyEffects=[
+      {energy:25,stats:{心理:2},title:'☕ 开心收下',emoji:'☕'},
+      {energy:10,stats:{纪律:1},title:'🙂 假装没事',emoji:'🙂'},
+      {energy:15,stats:{心理:1,纪律:1},title:'🤝 婉拒分享',emoji:'🤝'}
+    ];
+    const eff=energyEffects[optionIdx]||energyEffects[0];
+    // 应用精力恢复
+    State.energy=clamp(State.energy+eff.energy,0,150);
+    State.energyLog.push({type:'event_gain',val:eff.energy,at:Date.now()});
+    State.energyHistory.push({e:State.energy,t:Date.now()});
+    // 应用属性
+    for(const s in eff.stats){
+      State.stats[s]=clamp(State.stats[s]+eff.stats[s],0,STAT_MAX);
+    }
+    // 记 log
+    State.logs.push({
+      eventTitle:ev.title,
+      eventType:'rec',
+      eventDifficulty:0,
+      optionIdx,
+      optionLabel:opt,
+      cardConsumed:0,
+      combo:0,
+      type:'energy_event',
+      title:eff.title,
+      desc:opt,
+      effects:eff.stats,
+      energyDelta:eff.energy,
+      stats:{...State.stats},
+      energy:State.energy
+    });
+    // 飘字
+    triggerExp({effects:eff.stats,energyDelta:eff.energy,combo:0,type:'normal'});
+    // 事件完成小卡
+    showEventComplete({
+      emoji:eff.emoji,
+      title:eff.title,
+      desc:opt,
+      effects:eff.stats,
+      energyDelta:eff.energy
+    });
+    stopCountdown();
+    State.eventsCompleted++;
+    if(State.energyEventCD>0)State.energyEventCD--;
+    if(State.energyAdCD>0)State.energyAdCD--;
+    if(State.eventsCompleted>=TOTAL_EVENTS){
+      if(!State.dayEnding){
+        State.dayEnding=true;
+        setTimeout(()=>{
+          if(State.phase!=='play')return;
+          for(let i=0;i<3;i++){
+            if(State.streamIndex < STREAMS.length) pushStream();
+          }
+          setTimeout(()=>{
+            State.streamHistory.push({text:STREAMS_END,time:'🌙 深夜',isEnding:true});
+            render();
+            setTimeout(()=>{
+              if(State.phase!=='play')return;
+              const ov=document.createElement('div');
+              ov.className='blackout-overlay';
+              ov.innerHTML='<div class="blackout-emoji">🌙</div><div class="blackout-text">夜深了...</div>';
+              document.querySelector('.phone-frame')?.appendChild(ov);
+              setTimeout(()=>{
+                if(State.phase!=='play')return;
+                State.phase='settlement';
+                render();
+              },1800);
+            },1200);
+          },800);
+        },600);
+      }
+      return;
+    }
+    State.pendingNext=true;
+    setTimeout(()=>{
+      if(State.phase!=='play'||!State.pendingNext)return;
+      State.pendingNext=false;
+      State.currentEvent=null;
+      State.eventsStarted=false;
+      const ec=document.querySelector('.event-complete-overlay');
+      if(ec){ec.classList.add('closing');setTimeout(()=>{if(ec.parentNode)ec.remove()},380)}
+      State.streamStarted=true;
+      State.nextEventThreshold=4+Math.floor(Math.random()*4);
+      render();
+    },2200);
+    render();
+    return;
+  }
+  const tpl=OPTION_TEMPLATES[optionIdx];
+  // 消耗卡牌（弃牌堆不回）
+  requireCheck.consume.forEach(uid=>{
+    const c=State.deck.find(c=>c.uid===uid);
+    if(c){
+      State.discardPile.push(c);
+      State.deck=State.deck.filter(d=>d.uid!==uid);
+    }
+  });
+  // ===== V6.9.2 改造 =====
+  // 1. 保守（optionIdx===2）：生成随机小幅属性
+  // 2. 30% 精力以下：消耗精力的选项有 50% 概率反转（+变-）
+  // 3. 50% 精力以下：显示提示
+  let baseEffects={...tpl.effects};
+  if(baseEffects===null||optionIdx===2){
+    // 随机生成保守属性：从 STATS 中随机选 1-2 个，每个 -1~+1
+    baseEffects={};
+    const statKeys=STATS.slice();
+    // 打乱
+    for(let i=statKeys.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[statKeys[i],statKeys[j]]=[statKeys[j],statKeys[i]]}
+    const num=1+Math.floor(Math.random()*2);
+    for(let i=0;i<num;i++){
+      const s=statKeys[i];
+      // 60% 概率 -1，40% 概率 +1
+      baseEffects[s]=Math.random()<0.6?-1:1;
+    }
+  }
+  // 30% 精力反转：消耗精力的选项（破局/稳进/放弃），50% 概率反转
+  let deviated=false;
+  if(State.energy<30 && tpl.energyCost>0 && optionIdx!==2){
+    if(Math.random()<0.5){
+      // 反转：所有效果符号反向
+      for(const s in baseEffects)baseEffects[s]=-baseEffects[s];
+      deviated=true;
+    }
+  }
+  // V6.9 应用属性效果（按精力档位乘数）+ 精力消耗
+  const allE=applyEWithEnergy(baseEffects);
+  let eCost=tpl.energyCost||0;
+  if(eCost>0)applyEnergyCost(eCost);
+  const eDelta=-eCost;  // log/飘字用，负数表示消耗
+  if(optionIdx===0){
+    State.combo++;
+    if(State.combo>State.maxCombo)State.maxCombo=State.combo;
+  }else if(optionIdx===1){
+    if(State.combo>0&&State.combo<3)State.combo++;else State.combo=1;
+  }else{
+    State.combo=0;
+  }
+  // 反馈气泡
+  if(tpl.feedback)enqueueFeedback(tpl.feedback);
+  // 30% 精力偏差：弹小提示
+  if(deviated){
+    setTimeout(()=>{enqueueFeedback('⚠️ 精力过低，执行有偏差！')},100);
+  }
+  // 50% 精力提示（只提示一次）
+  if(State.energy<50 && !State.lowEnergyTipShown){
+    State.lowEnergyTipShown=true;
+    setTimeout(()=>{enqueueFeedback('💡 精力不足，获得的属性会减少')},200);
+  }
+  // 记 log
+  const type=optionIdx===0?'epic':optionIdx===1?'great':'ok';
+  State.logs.push({
+    eventTitle:ev.title,
+    eventType:ev.type,
+    eventDifficulty:ev.difficulty,
+    optionIdx,
+    optionLabel:opt,
+    cardConsumed:requireCheck.consume.length,
+    combo:State.combo,
+    type,
+    title:deviated?'⚠️ '+tpl.title:tpl.title,
+    desc:opt,
+    effects:allE,
+    energyDelta:eDelta,
+    stats:{...State.stats},
+    energy:State.energy,
+    deviated
+  });
+  // 飘字
+  triggerExp({effects:allE,energyDelta:eDelta,combo:State.combo,type});
+  // V6.8 事件完成小卡（2 秒展示，飘字更慢看得清）
+  showEventComplete({
+    emoji:deviated?'⚠️':(optionIdx===0?'🎯':optionIdx===1?'⚡':'🤷'),
+    title:deviated?'⚠️ '+tpl.title:tpl.title,
+    desc:deviated?'精力过低，执行有偏差！':opt,
+    effects:allE,
+    energyDelta:eDelta
+  });
+  // 进度
+  stopCountdown();
+  State.eventsCompleted++;
+  // V6.9.2 加精力事件 CD 减 1
+  if(State.energyEventCD>0)State.energyEventCD--;
+  // V6.9.2 看广告 CD 减 1
+  if(State.energyAdCD>0)State.energyAdCD--;
+  if(State.eventsCompleted>=TOTAL_EVENTS){
+    // V6.9.3 改造：5 个事件后继续播 2 条结束流水 → 出结束语 → 黑屏 → 结算
+    if(!State.dayEnding){
+      State.dayEnding=true;
+      setTimeout(()=>{
+        if(State.phase!=='play')return;
+        // 推 2-3 条结束流水
+        for(let i=0;i<3;i++){
+          if(State.streamIndex < STREAMS.length) pushStream();
+        }
+        // 出结束语
+        setTimeout(()=>{
+          State.streamHistory.push({text:STREAMS_END,time:'🌙 深夜',isEnding:true});
+          render();
+          // 黑屏转场
+          setTimeout(()=>{
+            if(State.phase!=='play')return;
+            const ov=document.createElement('div');
+            ov.className='blackout-overlay';
+            ov.innerHTML='<div class="blackout-emoji">🌙</div><div class="blackout-text">夜深了...</div>';
+            document.querySelector('.phone-frame')?.appendChild(ov);
+            setTimeout(()=>{
+              if(State.phase!=='play')return;
+              State.phase='settlement';
+              render();
+            },1800);
+          },1200);
+        },800);
+      },600);
+    }
+    return;
+  }
+  State.pendingNext=true;
+  setTimeout(()=>{
+    if(State.phase!=='play'||!State.pendingNext)return;
+    State.pendingNext=false;
+    State.currentEvent=null;
+    State.eventsStarted=false;
+    // 移除事件完成小卡
+    const ec=document.querySelector('.event-complete-overlay');
+    if(ec){ec.classList.add('closing');setTimeout(()=>{if(ec.parentNode)ec.remove()},380)}
+    State.streamStarted=true;
+    State.nextEventThreshold=4+Math.floor(Math.random()*4);
+    render();
+  },2200);
+  render();
+}
+
+// V6.8 事件完成小卡
+function showEventComplete(data){
+  const c=document.querySelector('.phone-frame');
+  if(!c)return;
+  // 移除已有的
+  const old=document.querySelector('.event-complete-overlay');
+  if(old)old.remove();
+  const o=document.createElement('div');
+  o.className='event-complete-overlay';
+  // V6.9.2 属性拆 chip（每项一个 chip，更清楚）
+  const effectsHtml=Object.entries(data.effects||{}).filter(([k,v])=>v!==0).map(([k,v])=>{
+    const info=STAT_INFO[k]||{emoji:'📊'};
+    return `<span class="ec-chip ${v>0?'pos':'neg'}">${info.emoji}${k}${v>0?'+':''}${v}</span>`;
+  }).join(' ');
+  const pHtml=data.energyDelta?`<span class="ec-chip ${data.energyDelta>0?'energy-pos':'energy-neg'}">⚡精力${data.energyDelta>0?'+':''}${data.energyDelta}</span>`:'';
+  o.innerHTML=`<div class="event-complete-card">
+    <div class="event-complete-emoji">${data.emoji}</div>
+    <div class="event-complete-title">${data.title}</div>
+    <div class="event-complete-desc">${data.desc}</div>
+    <div class="event-complete-effects">${effectsHtml}${pHtml?` ${pHtml}`:''}</div>
+  </div>`;
+  c.appendChild(o);
+}
+
+// V6.8 今日完成庆祝（10 事件全部完成）
+function showDayEndBanner(){
+  const c=document.querySelector('.phone-frame');
+  if(!c)return;
+  const old=document.querySelector('.day-end-overlay');
+  if(old)old.remove();
+  const o=document.createElement('div');
+  o.className='day-end-overlay';
+  o.innerHTML=`<div class="day-end-banner">
+    <div class="day-end-emoji">🎉</div>
+    <div class="day-end-title">今天就到此为止吧</div>
+    <div class="day-end-sub">10 个事件全部完成<br>正在整理今日总结...</div>
+  </div>`;
+  c.appendChild(o);
+}
+function applyE(e){for(const s in e)State.stats[s]=clamp(State.stats[s]+e[s],0,STAT_MAX)}
+
+// V6.8 看广告补 3 张「灵感」卡（万能卡，可替代任意属性）
+function useAdRefresh(){
+  if(State.adUsed)return;
+  if(State.dayAdCount>=1){enqueueFeedback('今天的广告次数用完了');return}
+  if(State.energyAdCD>0){enqueueFeedback(`广告 CD：${State.energyAdCD} 局后可用`);return}
+  State.adUsed=true;
+  State.dayAdCount++;
+  State.energyAdCD=2;
+  const overlay=document.createElement('div');
+  overlay.className='ad-overlay';
+  // 50% 概率：恢复精力 30 / 50% 概率：补 3 张灵感
+  const isEnergy=Math.random()<0.5;
+  if(isEnergy){
+    overlay.innerHTML=`<div class="ad-content"><div class="ad-title">📺 广告播放中...</div><div class="ad-desc">5 秒后恢复 <b>精力 +30</b></div><div class="ad-timer" id="ad-timer">5</div><button class="ad-skip" id="ad-skip">跳过</button></div>`;
+  }else{
+    overlay.innerHTML=`<div class="ad-content"><div class="ad-title">📺 广告播放中...</div><div class="ad-desc">5 秒后获得 <b>3 张「灵感」万能卡</b></div><div class="ad-timer" id="ad-timer">5</div><button class="ad-skip" id="ad-skip">跳过</button></div>`;
+  }
+  document.querySelector('.phone-frame').appendChild(overlay);
+  let cd=5;
+  const t=document.getElementById('ad-timer');
+  const s=document.getElementById('ad-skip');
+  const iv=setInterval(()=>{cd--;if(t)t.textContent=cd;if(cd<=0){clearInterval(iv);finishAd(overlay,isEnergy)}},1000);
+  if(s)s.onclick=()=>{clearInterval(iv);finishAd(overlay,isEnergy)};
+}
+function finishAd(o,isEnergy){
+  if(o&&o.parentNode)o.parentNode.removeChild(o);
+  if(isEnergy){
+    // 恢复精力 30
+    State.energy=clamp(State.energy+30,0,150);
+    State.energyLog.push({type:'ad_gain',val:30,at:Date.now()});
+    State.energyHistory.push({e:State.energy,t:Date.now()});
+    State.adGained=0;
+    enqueueFeedback('⚡精力+30！');
+  }else{
+    // 加 3 张万能灵感卡
+    for(let i=0;i<3;i++){
+      State.deck.push({name:'灵感×'+i,type:'思',attr:'智力',effects:{智力:3,心理:2},uid:uid(),tier:'common',desc:'你灵感一闪，想到了个绝妙点子。'});
+    }
+    State.adGained=3;
+    enqueueFeedback('+3 灵感卡！');
+  }
+  render();
+}
+function triggerExp(r,cards,ev,isMis,relief){const c=document.querySelector('.phone-frame');if(!c)return;const r2=c.getBoundingClientRect();const cx=r2.left+r2.width/2;const cy=r2.top+r2.height*.5;const isFumble=r.type==='fumble'||isMis;if(isFumble){Object.entries(r.effects||{}).forEach(([s,v],i)=>{if(v<0)setTimeout(()=>{const f=document.createElement('div');f.className='fly-number-down';f.textContent=`${s}${v}`;f.style.left=(cx-40+i*30)+'px';f.style.top=(cy-30)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),2500)},i*100)});c.classList.add('screen-shake-light');setTimeout(()=>c.classList.remove('screen-shake-light'),200)}else{Object.entries(r.effects||{}).forEach(([s,v],i)=>{if(v!==0)setTimeout(()=>{const f=document.createElement('div');f.className='fly-number positive';f.textContent=`${s}${v>0?'+':''}${v}`;f.style.left=(cx-40+i*25)+'px';f.style.top=(cy-50)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),2500)},i*100)});if(r.combo>=2){const f=document.createElement('div');f.className='fly-number combo';f.textContent=`🔥 x${r.combo}连击!`;f.style.left=(cx-80)+'px';f.style.top=(cy-110)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),2500)}if(r.combo>=3)showBurst();if(r.combo>=2){c.classList.add('screen-shake-light');setTimeout(()=>c.classList.remove('screen-shake-light'),200)}}if(r.energyDelta){const f=document.createElement('div');f.className=r.energyDelta<0?'fly-number-down':'fly-number positive';f.textContent=`精力${r.energyDelta>0?'+':''}${r.energyDelta}`;f.style.left=(cx+60)+'px';f.style.top=(cy-50)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),2500)}}
+function showBurst(){const b=document.createElement('div');b.className='perfect-burst';const colors=['#FFD580','#FF6B6B','#FFB5B5','#6B9DF7','#7BC06B','#FFFFFF'];for(let i=0;i<30;i++){const p=document.createElement('div');p.className='perfect-particle';p.style.left='50%';p.style.top='50%';p.style.background=colors[Math.floor(Math.random()*colors.length)];const a=(Math.PI*2*i)/30;const d=180+Math.random()*180;p.style.setProperty('--dx',Math.cos(a)*d+'px');p.style.setProperty('--dy',Math.sin(a)*d+'px');b.appendChild(p)}document.body.appendChild(b);setTimeout(()=>b.remove(),1300)}
+function goNextEvent(){State.eventsCompleted++;if(State.eventsCompleted>=TOTAL_EVENTS){State.phase='settlement';render()}else{State.currentEvent=getNextEvent();if(State.difficultyBonus>0){State.currentEvent.difficulty=clamp(State.currentEvent.difficulty+State.difficultyBonus,0,3);State.difficultyBonus=0}drawHand();render()}}
+function closeModal(){State.pendingModal=null;goNextEvent()}
+// V6.9.3 根据当前流水时间找对应事件 + 加精力事件判断
+function getNextEvent(){
+  // 加精力事件：精力 ≤ 50 且 CD=0 时强制触发（事件期间穿插）
+  if(State.energy<=50 && State.energyEventCD===0 && !State.currentEvent.isEnergyEvent){
+    State.energyEventCD=2;
+    return {
+      id:'ev_energy_'+State.eventsCompleted,
+      time:'现在',icon:'🎁',accent:'#5A9A4A',bgColor:'linear-gradient(135deg,#D5F0CC,#E8F8E0)',
+      title:'🎁 收到一份小惊喜',
+      npcName:'好心人',npcLine:'嘿，送你一份小礼物！',
+      desc:'你遇到一份小礼物——一杯热可可、一块蛋糕、或一句关心的问候。',
+      type:'rec',difficulty:0,isObserver:false,complexity:1,
+      isEnergyEvent:true,
+      options:['开心地收下','假装没事继续忙','婉拒并分享给别人'],
+      eventColor:'#5A9A4A'
+    };
+  }
+  // V6.9.3 根据 streamIndex 找 STREAMS 里的 isEvent 事件
+  const idx=Math.min(State.streamIndex,STREAMS.length-1);
+  const curStream=STREAMS[idx];
+  if(curStream && curStream.isEvent){
+    const ev=EVENTS.find(e=>e.id===curStream.isEvent);
+    if(ev)return ev;
+  }
+  // 兜底：随机选一个未发生过的
+  const recent=State.logs.slice(-5).map(l=>l.eventTitle);
+  let ev;let a=0;
+  do{ev=pick(EVENTS);a++}while(recent.includes(ev.title)&&a<10);
+  return ev;
+}
+let feedbackDismissTimer=null;
+function render(){const app=document.getElementById('app');if(State.phase==='intro')app.innerHTML=renderIntro();else if(State.phase==='init')app.innerHTML=renderInit();else if(State.phase==='play')app.innerHTML=renderPlay();else if(State.phase==='settlement')app.innerHTML=renderSettle();bindEvents();fitFrame();const s=document.querySelector('.screen');if(s){s.classList.remove('danger-pulse','collapse-pulse');if(State.energy>100)s.classList.add('collapse-pulse');else if(State.energy>80)s.classList.add('danger-pulse')};
+  // 反馈气泡 1.5 秒后自动消失
+  if(State.feedbackQueue.length>0){
+    if(feedbackDismissTimer)clearTimeout(feedbackDismissTimer);
+    feedbackDismissTimer=setTimeout(()=>{State.feedbackQueue.shift();render()},1500);
+  }else if(feedbackDismissTimer){
+    clearTimeout(feedbackDismissTimer);
+    feedbackDismissTimer=null;
+  }
+}
+function renderIntro(){
+  return `<div class="phone-frame"><div class="screen"><div class="intro-screen">
+    <div class="is-emoji">🌅</div>
+    <div class="is-title">美好的一天开启了</div>
+    <div class="is-sub">${State.personality?'你将以「'+State.personality+'」的身份':'新的一天即将开始'}...</div>
+    <button class="is-start" id="intro-start">☀️ 开启今天</button>
+  </div></div></div>`;
+}
+function renderInit(){
+  return `<div class="phone-frame"><div class="screen init-screen">
+    <div class="game-title">重启我的高中人生</div>
+    <div class="game-subtitle">选择你的初始性格</div>
+    <div class="init-tip">V6.9 精力系统：<br>· <b>精力值</b>0-100（满=100），选项消耗精力<br>· <b>4 档乘数</b>：充沛 100+×1.2 / 良好 80+×1.1 / 一般 50+×1.0 / 疲惫 <50×0.8<br>· <b>每晚恢复</b>最大精力的 30%<br>· <b>卡组 20 张</b>（9 思 + 9 行 + 2 减压），每张带<b>倾向属性</b><br>· 每事件 <b>3 个选项</b>：①破局消耗多→属性多 / ②稳进消耗 1 思→属性少 / ③保守不消耗卡<br>· 没用完的卡 <b>不会回收</b>，要看广告才能补 3 张「灵感」<br>· 事件有 <b>1 分钟倒计时</b>，超时自动选<br>· 出牌后弹 <b>2 秒事件完成卡</b>，可看清属性变化<div class="legend"><span class="legend-item si">🧠 思=智力向</span><span class="legend-item xing">✋ 行=行动向</span><span class="legend-item relief">🧘 减压=舒缓</span></div></div>
+    <div class="personality-grid">${PERSONALITIES.map(p=>{return`<div class="personality-card" data-pid="${p.id}"><div class="p-emoji">${p.emoji}</div><div class="p-info"><div class="p-name">${p.id}</div><div class="p-tag">${p.mainType}主导 · 20 张卡组（思9/行9/减压2）</div><div class="p-desc">${p.desc}</div><div class="p-deck-preview"><span class="si">🧠思·智3 心3 纪3</span> · <span class="xing">✋行·体3 纪3 智3</span> · <span class="relief">🧘减压2</span></div><div class="p-npc-dialogue"><div class="nd-name">${p.introNpc}：</div><div class="nd-text">${p.introLine}</div></div></div></div>`}).join('')}</div>
+    <div class="footer-tip">V6.9.3 · 3 选项（无放弃）· 5 事件/局 · 流水20-40分钟·事件按钮·结算半身像 · 精力4档乘数 · 弃牌不回</div>
+  </div></div>`;
+}function renderPlay(){
+  const ev=State.currentEvent;
+  const pz=getEnergyZone(State.energy);
+  const di=getDeckInfo();
+  const left=Math.max(0,State.nextEventThreshold-State.streamHistory.length);
+  const waitHint=!ev?`<div class="wait-hint">📝 流水持续中...${left>0?`再过 ${left} 条会突然出现事件`:'即将出现事件...'}</div>`:'';
+  // 时段背景色
+  const curTimeStr=(STREAMS[Math.min(State.streamIndex,STREAMS.length-1)]||{}).time||'7:00';
+  const curHour=parseInt(curTimeStr.split(':')[0])||7;
+  let tName='早上';
+  if(curHour>=6&&curHour<9)tName='早上';
+  else if(curHour>=9&&curHour<12)tName='上午';
+  else if(curHour>=12&&curHour<14)tName='中午';
+  else if(curHour>=14&&curHour<18)tName='下午';
+  else if(curHour>=18&&curHour<20)tName='傍晚';
+  else if(curHour>=20&&curHour<22)tName='晚上';
+  else tName='深夜';
+  const tBgMap={'早上':'linear-gradient(180deg,#FFE5D0 0%,#FFFAF0 100%)','上午':'linear-gradient(180deg,#FFFAF0 0%,#E5F4FF 100%)','中午':'linear-gradient(180deg,#FFFAF0 0%,#FFF8F0 100%)','下午':'linear-gradient(180deg,#E5F4FF 0%,#FFE8D5 100%)','傍晚':'linear-gradient(180deg,#FFE8D5 0%,#9F7AEA 100%)','晚上':'linear-gradient(180deg,#9F7AEA 0%,#4A3A6A 100%)','深夜':'linear-gradient(180deg,#4A3A6A 0%,#2A2A4A 100%)'};
+  const tBg=tBgMap[tName]||'#FFF8F0';
+  // 内心独白
+  let monologue=null;
+  if(State.streamHistory.length>0&&State.streamHistory.length%6===0&&!ev&&!State.paused){
+    const monos=['🤔 今天要怎么过呢...','😮‍💨 希望能顺利熬过去...','💪 加油吧，少年！','🫠 千万别再出什么幺蛾子了...','😶 沉默是今晚的康桥。','😏 一切都按计划进行。'];
+    monologue=`<div class="inner-monologue">${monos[(State.streamHistory.length/6-1)%monos.length]}</div>`;
+  }
+  // 反馈气泡
+  let fbHtml='';
+  if(State.feedbackQueue.length>0){
+    const fb=State.feedbackQueue[0];
+    fbHtml=`<div class="feedback-bubble" id="feedback-bubble">${fb.text}</div>`;
+  }
+  return `<div class="phone-frame"><div class="screen" style="background:${tBg}">
+    <button class="pause-btn ${State.paused?'paused':''}" id="pause-btn">${State.paused?'▶':'⏸'}</button>
+    <div class="hud">${STATS.map(s=>{const i=STAT_INFO[s];return`<div class="stat-chip" style="--c: ${i.color}"><div class="stat-emoji">${i.emoji}</div><div class="stat-name">${s}</div><div class="stat-value">${State.stats[s]}</div></div>`}).join('')}</div>
+    <div class="energy-hud-bar">
+      <div class="ehb-left">
+        <span class="ehb-emoji">${pz.cls==='full'?'💪':pz.cls==='good'?'😊':pz.cls==='normal'?'😐':'😩'}</span>
+        <span class="ehb-label">⚡精力</span>
+        <span class="ehb-zone" style="color:${pz.color}">${pz.name}</span>
+      </div>
+      <div class="ehb-bar"><div class="ehb-fill" style="width:${Math.min(100,State.energy)}%;background:${pz.color}"></div></div>
+      <div class="ehb-right">
+        <span class="ehb-value" style="color:${pz.color}">${State.energy}</span>
+        <span class="ehb-mult">×${pz.mult}</span>
+      </div>
+    </div>
+    <div class="hud-extras">
+      <div class="deck-chip"><span>🎴</span><span class="dc-label">卡组</span><span class="dc-value">${di.total}</span></div>
+      <div class="time-chip"><span>🕐</span><span class="tc-label">${STREAMS[Math.min(State.streamIndex,STREAMS.length-1)].time}</span></div>
+      ${State.combo>1?`<div class="combo-chip ${State.combo>=3?'epic':'active'}">🔥 x${State.combo}</div>`:''}
+    </div>
+    <div class="stream-area"><div class="stream-list">${State.streamHistory.map((s,i)=>{
+      const eH=s.eDelta?`<span class="stream-energy ${s.eDelta>0?'positive':'negative'}">${s.eDelta>0?'+':''}${s.eDelta}</span>`:'';
+      const isLast=i===State.streamHistory.length-1;
+      const typing=isLast?' typing':'';
+      // V6.9.3 事件触发点显示"进入事件"按钮（流水中显示）
+      const isEvPoint=s.isEventIdx!==undefined && !ev && !State.currentEvent;
+      const evBtn=isEvPoint?`<button class="stream-event-btn" data-evidx="${s.isEventIdx}">⚡ 进入事件</button>`:'';
+      return `<div class="stream-item show${typing}${isEvPoint?' has-event':''}"><span class="stream-time">${s.time||s.label}</span>${s.text}${eH}${evBtn}</div>`;
+    }).join('')}${monologue||''}</div></div>
+    ${waitHint}
+    ${fbHtml}
+    <div class="progress"><div class="progress-text">第 ${State.eventsCompleted} / ${TOTAL_EVENTS} 事件</div><div class="progress-track"><div class="progress-fill" style="width: ${Math.min(100,(State.eventsCompleted/TOTAL_EVENTS)*100)}%"></div></div></div>
+    <div class="footer-tip">性格: ${State.personality} · V6.9.3 · 3选项 · 5事件/局 · 流水时间轴</div>
+    ${State.paused?`<div class="pause-overlay"><div class="po-emoji">⏸️</div><div class="po-title">已暂停</div><div class="po-sub">深呼吸，然后继续</div><button class="po-resume" id="pause-resume">▶ 继续</button></div>`:''}
+  </div>${ev?renderEventModal(ev):''}</div>`;
+}/* V6.8 事件 modal - 4 选项 + 1分钟倒计时 */
+function renderEventModal(ev){
+  if(!ev.options)return'';
+  // 倒计时圆环（60/60 → 113/0 px）
+  const ringDashoffset=113*(1-State.countdown/60);
+  // 50%/30% 精力提示
+  let energyWarn='';
+  if(State.energy<30){
+    energyWarn=`<div class="energy-warn danger">⚠️ 精力 30% 以下：消耗精力的选项可能执行有偏差（+变-）</div>`;
+  }else if(State.energy<50){
+    energyWarn=`<div class="energy-warn caution">💡 精力 50% 以下：获得的属性会减少</div>`;
+  }
+  // ===== V6.9.2 isEnergyEvent 加精力事件渲染 =====
+  if(ev.isEnergyEvent){
+    const energyOpts=[
+      {title:'☕ 开心收下',desc:'+25 精力 +2 心理',cls:'tier-epic'},
+      {title:'🙂 假装没事',desc:'+10 精力 +1 纪律',cls:'tier-great'},
+      {title:'🤝 婉拒分享',desc:'+15 精力 +1 心理 +1 纪律',cls:'tier-ok'}
+    ];
+    const optsHtml=ev.options.map((opt,i)=>{
+      const eo=energyOpts[i]||energyOpts[0];
+      return `<div class="opt-card ${eo.cls}" data-oidx="${i}">
+        <div class="opt-head"><span class="opt-tier">${eo.title}</span><span class="opt-label">${opt}</span></div>
+        <div class="opt-effect"><span class="opt-energy" style="background:linear-gradient(135deg,#5A9A4A,#7BB66A);color:#fff">${eo.desc}</span></div>
+      </div>`;
+    }).join('');
+    return `<div class="event-modal-overlay">
+      <div class="event-modal energy-event">
+        <div class="event-modal-header">
+          <div class="emh-left">🎁 收到一份小惊喜</div>
+          <div class="countdown-ring">
+            <svg width="40" height="40" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="18" stroke="#D5F0CC" stroke-width="3" fill="none"/>
+              <circle id="countdown-ring-fill" cx="20" cy="20" r="18" stroke="#5A9A4A" stroke-width="3" fill="none" stroke-dasharray="113" stroke-dashoffset="${ringDashoffset}" stroke-linecap="round" transform="rotate(-90 20 20)"/>
+            </svg>
+            <span id="countdown-num" class="countdown-num">${State.countdown}</span>
+          </div>
+        </div>
+        <div class="event-card" style="background:linear-gradient(135deg,#D5F0CC,#E8F8E0);border-color:#5A9A4A">
+          <span class="event-type-tag" style="background:#5A9A4A;color:#fff">🎁 加精力事件</span>
+          <div class="event-title">${ev.title}</div>
+          <div class="event-desc">${ev.desc}</div>
+        </div>
+        <div class="npc-dialogue"><span class="nd-name">${ev.npcLine||'好心人'}：</span><span class="nd-text">加油！你看起来有点累了。</span></div>
+        ${energyWarn}
+        <div class="opts-list">${optsHtml}</div>
+        <div class="energy-event-tip">✨ 本事件每个选项都加精力（CD 2 局）</div>
+      </div>
+    </div>`;
+  }
+  // V6.9.3 3 个选项（取消放弃）
+  const optsHtml=ev.options.slice(0,3).map((opt,i)=>{
+    const tpl=OPTION_TEMPLATES[i];
+    if(!tpl)return'';
+    const ck=checkOptionRequire(i);
+    const ok=ck.ok;
+    const needHtml=tpl.need.length===0?'<span class="opt-cost-free">无消耗</span>':tpl.need.map(n=>{
+      const c=State.deck.filter(x=>x.type===n.type&&(!n.attr||x.attr===n.attr)).length;
+      const enough=c>=n.count;
+      return `<span class="opt-cost ${enough?'enough':'short'}">${n.type}${n.attr?'·'+n.attr:''} ×${n.count}<span class="oc-count">(${c})</span></span>`;
+    }).join(' ');
+    let eT;
+    if(tpl.effects===null){
+      eT=`<span class="opt-random">🎲 随机属性</span>`;
+    }else{
+      eT=Object.entries(tpl.effects||{}).filter(([k,v])=>v!==0).map(([k,v])=>`<span class="${v>0?'pos':'neg'}">${k}${v>0?'+':''}${v}</span>`).join(' ').trim();
+    }
+    const pT=tpl.energyCost?`<span class="opt-energy">⚡精力-${tpl.energyCost}</span>`:'';
+    const tierLabel=['破局','稳进','保守'][i];
+    const tierClass=['tier-epic','tier-great','tier-ok'][i];
+    return `<div class="opt-card ${tierClass} ${ok?'':'opt-disabled'}" data-oidx="${i}">
+      <div class="opt-head">
+        <span class="opt-tier">${tierLabel}</span>
+        <span class="opt-label">${opt}</span>
+      </div>
+      <div class="opt-need">${needHtml}</div>
+      <div class="opt-effect">${eT||''} ${pT?`<span class="opt-energy">${pT}</span>`:''}</div>
+    </div>`;
+  }).join('');
+  // 看广告按钮文案（CD 状态）
+  const adCanUse=State.adUsed||State.dayAdCount>=1||State.energyAdCD>0;
+  const adText=State.adUsed?'已用':State.dayAdCount>=1?'明天再用':State.energyAdCD>0?`CD: ${State.energyAdCD}局`:`📺看广告（50%回精力/50%补卡）`;
+  return `<div class="event-modal-overlay">
+    <div class="event-modal" style="--ev-accent:${ev.eventColor||'#FFB088'};--ev-bg:${ev.bgColor||'linear-gradient(135deg,#FFE5D0,#FFF8F0)'}">
+      <div class="event-modal-header">
+        <div class="emh-left">⚡ 突发事件</div>
+        <div class="countdown-ring">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="18" stroke="#FFE0CC" stroke-width="3" fill="none"/>
+            <circle id="countdown-ring-fill" cx="20" cy="20" r="18" stroke="#FF7B7B" stroke-width="3" fill="none" stroke-dasharray="113" stroke-dashoffset="${ringDashoffset}" stroke-linecap="round" transform="rotate(-90 20 20)"/>
+          </svg>
+          <span id="countdown-num" class="countdown-num">${State.countdown}</span>
+        </div>
+      </div>
+      <div class="event-card" style="background:${ev.bgColor||'#FFF8F0'};border-color:${ev.eventColor||'#FFB088'}">
+        <span class="event-type-tag ${ev.type==='思'?'si':ev.type==='行'?'xing':'si'}" style="background:${ev.eventColor||'#FFB088'};color:#fff">${ev.type||'事件'}事件 · 难度 ${'★'.repeat(ev.difficulty+1)}${'☆'.repeat(2-ev.difficulty)} · ${ev.time||''}</span>
+        ${ev.isObserver?'<span class="event-meta"><span class="event-observer">👀 旁观者视角</span></span>':'<span class="event-meta"><span style="color:var(--text-soft);">👤 本人视角</span></span>'}
+        <div class="event-title" style="color:${ev.eventColor||'#6B5840'}">${ev.title}</div>
+        <div class="event-desc">${ev.desc}</div>
+      </div>
+      <div class="npc-dialogue"><span class="nd-name">${ev.npcName||'内心'}：</span><span class="nd-text">${ev.npcLine||ev.desc.split('。')[0]+'。'}</span></div>
+      ${energyWarn}
+      <div class="opts-list">${optsHtml}</div>
+      <div class="action-row">
+        <button class="btn-ad" id="btn-ad" ${adCanUse?'disabled':''}>${adText}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderCard(c){let cls='hand-card';if(c.type==='思')cls+=' si';else if(c.type==='行')cls+=' xing';else if(c.type==='减压')cls+=' relief';if(State.selectedCards.includes(c.uid)||State.selectedRelief===c.uid)cls+=' selected';if(c.type!=='减压'&&!State.selectedCards.includes(c.uid)&&State.selectedCards.length>=MAX_PLAY)cls+=' disabled';if(c.type==='减压'&&State.selectedRelief!==c.uid&&State.selectedRelief!==null)cls+=' disabled';const eT=Object.entries(c.effects||{}).filter(([k,v])=>v!==0).map(([k,v])=>`<span class="${v>0?'positive':'negative'}">${k}${v>0?'+':''}${v}</span>`).join(' ');return`<div class="${cls}" data-uid="${c.uid}"><div class="hc-type-icon ${c.type==='思'?'si':c.type==='行'?'xing':'relief'}">${TYPE_ICON[c.type]}</div><div class="hc-content"><div class="hc-name">${c.name}</div><div class="hc-effects">${eT||'无效果'}</div>${c.type==='减压'&&c.cost&&c.cost!=='无'?`<div class="hc-cost">⚠️ 代价：${c.cost}</div>`:''}</div><button class="hc-discard-btn" data-discard="${c.uid}">弃</button></div>`}
+function renderModal(r){let cls='info';if(r.type==='normal')cls='success';else if(r.type==='miscast_soft')cls='soft-mis';else if(r.type==='miscast_mid')cls='mid-mis';else if(r.type==='miscast_hard')cls='hard-mis';else if(r.type==='relief')cls='relief';const eT=effectsToText(r.effects||{});const pT=(r.energyDelta>0?'+':'')+r.energyDelta;const cT=r.combo>=2?`<div class="ms-row"><span class="ms-label">连击</span><span class="ms-value positive">🔥 ${r.combo}张</span></div>`:'';return`<div class="modal" id="modal-overlay"><div class="modal-content"><div class="modal-title ${cls}">${r.title}</div><div class="modal-desc">${r.desc||''}</div><div class="modal-stats">${eT?`<div class="ms-row"><span class="ms-label">属性</span><span class="ms-value positive">${eT}</span></div>`:''}<div class="ms-row"><span class="ms-label">精力</span><span class="ms-value ${r.energyDelta>0?'negative':'positive'}">${pT}</span></div>${cT}${r.cards?`<div class="ms-row"><span class="ms-label">出牌</span><span class="ms-value" style="font-size:10px;">${r.cards}</span></div>`:''}</div><button class="modal-close-btn" id="modal-close">继续</button></div></div>`}
+// V6.9.3 结算页：获取当前性格的半身像
+function _getCurrentPortrait(){
+  const pid=PERSONALITY_PORTRAIT[State.personality]||'p1';
+  return PORTRAITS[pid]||PORTRAITS.p1;
+}
+// V6.9.3 结算页：今天最高光的角色（用对应 event id 的人）
+function _getHighLightPortrait(){
+  if(!best)return PORTRAITS.p1;
+  // 根据事件 id 选半身像
+  if(best.l && best.l.eventId){
+    const id=best.l.eventId;
+    if(id==='ev_lunch')return PORTRAITS.p2;  // 同桌
+    if(id==='ev_run'||id==='ev_pe')return PORTRAITS.p2;  // 体育委员/同学
+    if(id==='ev_math')return PORTRAITS.p3;  // 数学老师
+    if(id==='ev_night')return PORTRAITS.p3;  // 班主任
+  }
+  return PORTRAITS.p1;
+}
+function renderSettle(){
+
+  const logs=State.logs;
+  const p=PERSONALITIES.find(x=>x.id===State.personality)||PERSONALITIES[0];
+  const init=State.initialStats||{智力:50,体魄:50,纪律:50,心理:50};
+  const finalE=State.energy;
+  const pz=getEnergyZone(finalE);
+  // ===== V6.9.2 紧凑版结算页 =====
+  // 评语（合并所有判断）
+  const totalGain=STATS.reduce((a,s)=>a+Math.max(0,State.stats[s]-init[s]),0);
+  const totalLoss=STATS.reduce((a,s)=>a+Math.max(0,init[s]-State.stats[s]),0);
+  let rating,rComment,rEmoji;
+  if(finalE>=80&&totalGain>=15){
+    rating='惊心动魄的一天';rEmoji='🌟';
+    rComment='你干得漂亮！所有事都处理得恰到好处。';
+  }else if(finalE>=50&&totalGain>=8){
+    rating='充实的一天';rEmoji='✨';
+    rComment='事情不少，但你稳住了，进步看得到。';
+  }else if(finalE<30){
+    rating='精疲力竭的一天';rEmoji='😩';
+    rComment='今天透支太多了。明天又是新的一天。';
+  }else if(totalLoss>=10){
+    rating='有点失意的一天';rEmoji='😔';
+    rComment='有些事没处理好，但别灰心，路还长。';
+  }else{
+    rating='平常的一天';rEmoji='🌅';
+    rComment='不紧不慢，按部就班。今天就这么过去了。';
+  }
+  // 段 3 精彩瞬间 - 只取 1 个最高分
+  const scored=logs.map((l)=>{
+    let score=0,level='ok',emoji='✨',label='平稳应对',gainText='',praise='';
+    const eSum=Object.values(l.effects||{}).reduce((a,b)=>a+b,0);
+    if(l.type==='epic'){
+      score=5+l.combo*2+eSum*0.5;level='epic';emoji='🎯';label='完美破局';
+      praise='这一手堪称教科书级别！';
+      const gParts=[];
+      for(const s in l.effects||{}){if(l.effects[s]>0)gParts.push(`${s}+${l.effects[s]}`);}
+      gainText=gParts.length?`+${gParts.join(' ')}`:'';
+    }else if(l.type==='great'){
+      score=3+l.combo*1+eSum*0.5;level='great';emoji='⚡';label=l.combo>=2?'稳进连击':'稳进应对';
+      praise='稳中求进，不错不错。';
+      const gParts=[];
+      for(const s in l.effects||{}){if(l.effects[s]>0)gParts.push(`${s}+${l.effects[s]}`);}
+      gainText=gParts.length?`+${gParts.join(' ')}`:'';
+    }else if(l.type==='ok'){
+      score=1;level='ok';emoji='🤷';label='保守应对';
+      praise='没有冒进，先求稳也是种智慧。';
+      gainText=l.cardConsumed?`消耗 ${l.cardConsumed} 张卡`:'无消耗';
+    }else if(l.type==='fumble'){
+      score=2;level='fumble';emoji='😣';label='选择放弃';
+      praise='有时候放弃也是一种选择。';
+    }
+    return {score,level,emoji,label,l,gainText,praise};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  const best=scored[0];
+  // 精力曲线图（V6.9.2 缩短版）
+  const hist=State.energyHistory||[];
+  let energyChart='';
+  if(hist.length>=2){
+    const chartW=280,chartH=50,pad=4;
+    const maxE=Math.max(100,...hist.map(h=>h.e));
+    const minE=Math.min(0,...hist.map(h=>h.e));
+    const range=Math.max(1,maxE-minE);
+    const stepX=hist.length>1?(chartW-pad*2)/(hist.length-1):0;
+    const points=hist.map((h,i)=>{
+      const x=pad+i*stepX;
+      const y=pad+(1-(h.e-minE)/range)*(chartH-pad*2);
+      return [x,y];
+    });
+    const chartPath=points.map((p,i)=>`${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const chartDots=points.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.8" fill="${pz.color}"/>`).join('');
+    energyChart=`<svg class="settle-chart" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none">
+        <path d="${chartPath}" stroke="${pz.color}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        ${chartDots}
+      </svg>`;
+  }
+  // 属性缩略行
+  const statChips=STATS.map(s=>{
+    const delta=State.stats[s]-init[s];
+    const info=STAT_INFO[s];
+    const dText=delta>0?`+${delta}`:delta<0?`${delta}`:'±0';
+    return `<div class="ss-stat ${delta>0?'pos':delta<0?'neg':'zero'}"><div class="sss-emoji">${info.emoji}</div><div class="sss-num">${dText}</div></div>`;
+  }).join('');
+  const monologues={
+    '踏实稳进型':'今天我稳扎稳打，没出什么大差错。',
+    '机智灵活型':'今天脑子转得挺快，几个巧招解决了不少事。',
+    '行动派型':'今天我冲在前面，虽然累但感觉很充实。',
+    '内省探索型':'今天我观察了很多，也思考了很多。'
+  };
+  const mono=monologues[State.personality]||'今天又过完了一天。';
+  const highlightHtml=!best?`<div class="highlight-card ok"><div class="hc-emoji">📝</div><div class="hc-body"><div class="hc-title">今天平淡无奇</div><div class="hc-detail">没有发生什么特别的事。</div><div class="hc-praise">😌 平平淡淡才是真。</div></div></div>`:`<div class="highlight-card ${best.level}"><div class="hc-emoji"><img src="${_getHighLightPortrait()}" alt="hl" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div><div class="hc-body"><div class="hc-label">${best.label}</div><div class="hc-title">${best.l.eventTitle}</div><div class="hc-detail">${best.l.optionLabel?best.l.optionLabel:'未选'}</div>${best.gainText?`<div class="hc-gain">${best.gainText}</div>`:''}<div class="hc-praise">💬 ${best.praise}</div></div></div>`;
+  return `<div class="phone-frame"><div class="screen settlement">
+    <!-- V6.9.3 玩家半身像（顶部） -->
+    <div class="settle-portrait-big">
+      <img src="${_getCurrentPortrait()}" alt="player"/>
+    </div>
+    <div class="settle-player-name">${State.personality||'你'}</div>
+    <!-- V6.9.2 段 1+2 合并：评语 + 属性 + 精力（一屏） -->
+    <div class="settle-rating">
+      <div class="sr-emoji">${rEmoji}</div>
+      <div class="sr-title">${rating}</div>
+      <div class="sr-comment">${rComment}</div>
+      <div class="sr-stats">${statChips}</div>
+      <div class="sr-energy">
+        <span class="sre-emoji">${pz.cls==='full'?'💪':pz.cls==='good'?'😊':pz.cls==='normal'?'😐':'😩'}</span>
+        <span class="sre-label">精力</span>
+        <span class="sre-value" style="color:${pz.color}">${finalE}</span>
+        <span class="sre-zone" style="color:${pz.color}">${pz.name}×${pz.mult}</span>
+        ${energyChart}
+      </div>
+    </div>
+    <!-- 段 3：精彩瞬间 -->
+    <div class="highlight-section">
+      <div class="highlight-section-title">⭐ 今日高光</div>
+      ${highlightHtml}
+    </div>
+    <!-- 段 4：角色 + 独白（紧凑一行） -->
+    <div class="settle-mini-dialog">
+      <div class="smd-portrait"><img src="${_getCurrentPortrait()}" alt="p" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+      <div class="smd-mono">💭 ${mono}</div>
+    </div>
+    <!-- 段 5：双按钮 -->
+    <div class="settle-actions">
+      <button class="sa-btn sa-home" id="btn-home"><div class="sa-emoji">🏠</div><div class="sa-label">回家</div><div class="sa-sub">结束今天</div></button>
+      <button class="sa-btn sa-tomorrow" id="btn-tomorrow"><div class="sa-emoji">☀️</div><div class="sa-label">开启明天</div><div class="sa-sub">+30%精力</div></button>
+    </div>
+    <div class="footer-tip">V6.9.3 · 3选项 · 5事件/局 · 流水时间轴 · 半身像结算</div>
+  </div></div>`;
+}
+function bindEvents(){
+  if(State.phase==='intro'){
+    const ib=document.getElementById('intro-start');
+    if(ib)ib.onclick=()=>{
+      State.phase='play';
+      State.currentEvent=null;
+      State.eventsStarted=false;
+      State.pendingNext=false;
+      // V6.9 第一条流水立即出现（不等）
+      State.streamStarted=true;
+      State.initialStats={...State.stats};
+      startStreamLoop();
+      // 立即推一条流水
+      pushStream();
+      render();
+    };
+  }else if(State.phase==='init'){
+    document.querySelectorAll('.personality-card').forEach(el=>{
+      el.onclick=()=>{
+        const pid=el.dataset.pid;
+        State.personality=pid;
+        State.deck=buildDeck(pid);
+        State.phase='intro';
+        render();
+      };
+    });
+  }else if(State.phase==='play'){
+    // V6.9.3 流水中"进入事件"按钮
+    document.querySelectorAll('.stream-event-btn').forEach(el=>{el.onclick=()=>{
+      if(State.paused||State.pendingNext)return;
+      const evIdx=parseInt(el.getAttribute('data-evidx'));
+      if(evIdx>=0 && !State.currentEvent){
+        const ev=getNextEvent();
+        if(ev){
+          State.currentEvent=ev;
+          State.eventsStarted=true;
+          startCountdown();
+          render();
+        }
+      }
+    }});
+    // V6.8 选项点击（V6.9.3 适配 3 选项）
+    document.querySelectorAll('.opt-card').forEach(el=>{
+      if(el.classList.contains('opt-disabled'))return;
+      el.onclick=()=>{
+        if(State.paused)return;
+        if(State.pendingNext)return;
+        const idx=parseInt(el.dataset.oidx);
+        executePlay(idx);
+      };
+    });
+    const ba=document.getElementById('btn-ad');
+    if(ba)ba.onclick=()=>{if(!State.paused)useAdRefresh()};
+    const pb=document.getElementById('pause-btn');
+    if(pb)pb.onclick=()=>{State.paused=!State.paused;render()};
+    const pr=document.getElementById('pause-resume');
+    if(pr)pr.onclick=()=>{State.paused=false;render()};
+  }else if(State.phase==='settlement'){
+    // 工具：完全重置（属性也清零）
+    const fullReset=()=>{
+      State={phase:'init',stats:{智力:50,体魄:50,纪律:50,心理:50},energy:100,dayEnergy:100,energyLog:[],energyHistory:[{e:100,t:0}],deckLevel:0,eventChain:null,currentChainId:null,npcName:null,firstEventTip:false,energyEventCD:0,energyAdCD:0,dayAdCount:0,lowEnergyTipShown:false,coins:0,personality:null,deck:[],discardPile:[],eventsCompleted:0,currentEvent:null,combo:0,maxCombo:0,logs:[],difficultyBonus:0,streamHistory:[],streamIndex:0,eventsStarted:false,pendingNext:false,paused:false,initialStats:null,introShown:false,streamStarted:false,nextEventThreshold:5,adUsed:false,adGained:0,currentTimeIdx:0,countdown:60,countdownTimer:null,feedbackQueue:[],dayEnding:false};
+    };
+    // 工具：开启下一天（保留 stats 持续累加）
+    const nextDay=()=>{
+      // V6.9 每晚恢复 30% 精力
+      const recovered=recoverEnergyOvernight();
+      // 保留 stats，重置其他
+      const keptStats={...State.stats};
+      const keptInitial={...State.stats}; // 下一轮的"初始属性"= 当前属性
+      State={
+        phase:'intro',stats:keptStats,energy:State.energy,dayEnergy:State.energy,
+        energyLog:[{type:'overnight',val:recovered,at:Date.now()}],
+        energyHistory:[{e:State.energy,t:Date.now()}],
+        deckLevel:State.deckLevel,eventChain:null,currentChainId:null,npcName:null,firstEventTip:false,energyEventCD:0,energyAdCD:0,dayAdCount:0,lowEnergyTipShown:false,
+        coins:State.coins,personality:State.personality,deck:buildDeck(State.personality),discardPile:[],
+        eventsCompleted:0,currentEvent:null,combo:0,maxCombo:State.maxCombo,logs:[],
+        difficultyBonus:0,streamHistory:[],streamIndex:0,eventsStarted:false,pendingNext:false,
+        paused:false,initialStats:keptInitial,introShown:false,streamStarted:false,nextEventThreshold:5,
+        adUsed:false,adGained:0,currentTimeIdx:0,countdown:60,countdownTimer:null,feedbackQueue:[],
+        dayEnding:false
+      };
+    };
+    const r=document.getElementById('restart');
+    if(r)r.onclick=()=>{fullReset();render();};
+    const home=document.getElementById('btn-home');
+    if(home)home.onclick=()=>{fullReset();render();};
+    const tom=document.getElementById('btn-tomorrow');
+    if(tom)tom.onclick=()=>{nextDay();render();};
+  }
+}let streamTimer=null;
+function startStreamLoop(){if(streamTimer)clearInterval(streamTimer);streamTimer=setInterval(()=>{if(State.phase!=='play')return;if(State.paused)return;if(State.currentEvent)return;pushStream()},4000)}
+function fitFrame(){const frame=document.querySelector('.phone-frame');if(!frame)return;const designW=414,designH=920;const sw=window.innerWidth,sh=window.innerHeight;const padding=10;const scale=Math.min((sw-padding*2)/designW,(sh-padding*2)/designH);frame.style.transform=`translate(-50%,-50%) scale(${scale})`}
+window.addEventListener('resize',fitFrame);
+window.addEventListener('orientationchange',fitFrame);
+window.addEventListener('DOMContentLoaded',()=>{window.State=State;render();startStreamLoop();fitFrame()});
+</script>
+</body>
+</html>

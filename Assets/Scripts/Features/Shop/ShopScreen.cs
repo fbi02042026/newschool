@@ -341,7 +341,7 @@ namespace GaokaoSimulator.Features.Shop
             buttonGo.AddComponent<UiAutoRounded>();
 
             var outline = buttonGo.AddComponent<Outline>();
-            outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            outline.effectColor = (Color32)UITheme.Border;
             outline.effectDistance = new Vector2(4f, -4f);
 
             var text = CreateText("Text", buttonGo.transform, font, 42, FontStyle.Bold, UITheme.Text);

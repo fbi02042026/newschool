@@ -44,6 +44,20 @@ namespace GaokaoSimulator.Core
         public int UniversityYearIndex { get; set; } = 0; // 大学当前学年 0=大一 1=大二 2=大三 3=大四
         public bool HasSaveData { get; set; } = false;
 
+        // ===== 主玩法 - 精力系统 =====
+        public int Energy { get; set; } = 100;           // 当前精力
+        public int DayEnergy { get; set; } = 100;         // 当日初始精力
+        public List<int> EnergyHistory { get; set; } = new List<int>(); // 精力历史曲线（用于结算页图表）
+        public int EnergyEventCD { get; set; } = 0;       // 加精力事件冷却
+        public int DayAdCount { get; set; } = 0;          // 当日广告次数
+        public int EnergyAdCD { get; set; } = 0;          // 广告冷却
+        public bool LowEnergyTipShown { get; set; } = false; // 低精力提示是否显示
+
+        // ===== 主玩法 - 天进度 =====
+        public int DayIndex { get; set; } = 0;            // 当前天数（每学期30天）
+        public int EventsCompleted { get; set; } = 0;     // 当日已完成事件数
+        public int TotalDaysPerSemester { get; set; } = 30; // 每学期天数
+
         private readonly HashSet<string> seenGuideKeys = new HashSet<string>();
 
         public bool HasSeenGuide(string key)
@@ -116,7 +130,16 @@ namespace GaokaoSimulator.Core
             UniversityYearIndex = 0;
             seenGuideKeys.Clear();
             OwnedItems.Clear();
-            // 保留 CurrentPlaythrough 和 HasSaveData
+            Energy = 100;
+            DayEnergy = 100;
+            EnergyHistory.Clear();
+            EnergyEventCD = 0;
+            DayAdCount = 0;
+            EnergyAdCD = 0;
+            LowEnergyTipShown = false;
+            DayIndex = 0;
+            EventsCompleted = 0;
+            TotalDaysPerSemester = 30;
             
             Debug.Log("[GameState] 状态已重置");
         }
@@ -142,6 +165,20 @@ namespace GaokaoSimulator.Core
                 ? string.Join(",", SemesterGrades)
                 : "";
             PlayerPrefs.SetString("SemesterGrades", gradesStr);
+
+            // 主玩法数据
+            PlayerPrefs.SetInt("DayIndex", DayIndex);
+            PlayerPrefs.SetInt("Energy", Energy);
+            PlayerPrefs.SetInt("EventsCompleted", EventsCompleted);
+            PlayerPrefs.SetInt("EnergyEventCD", EnergyEventCD);
+            PlayerPrefs.SetInt("DayAdCount", DayAdCount);
+            PlayerPrefs.SetInt("EnergyAdCD", EnergyAdCD);
+            PlayerPrefs.SetInt("LowEnergyTipShown", LowEnergyTipShown ? 1 : 0);
+
+            var energyHistoryStr = EnergyHistory != null && EnergyHistory.Count > 0
+                ? string.Join(",", EnergyHistory)
+                : "";
+            PlayerPrefs.SetString("EnergyHistory", energyHistoryStr);
 
             PlayerPrefs.Save();
             Debug.Log("[GameState] 存档已保存");
@@ -175,6 +212,27 @@ namespace GaokaoSimulator.Core
                 {
                     if (!string.IsNullOrEmpty(p))
                         SemesterGrades.Add(p);
+                }
+            }
+
+            // 主玩法数据
+            DayIndex = PlayerPrefs.GetInt("DayIndex", 0);
+            Energy = PlayerPrefs.GetInt("Energy", 100);
+            EventsCompleted = PlayerPrefs.GetInt("EventsCompleted", 0);
+            EnergyEventCD = PlayerPrefs.GetInt("EnergyEventCD", 0);
+            DayAdCount = PlayerPrefs.GetInt("DayAdCount", 0);
+            EnergyAdCD = PlayerPrefs.GetInt("EnergyAdCD", 0);
+            LowEnergyTipShown = PlayerPrefs.GetInt("LowEnergyTipShown", 0) == 1;
+
+            var energyHistoryStr = PlayerPrefs.GetString("EnergyHistory", "");
+            EnergyHistory.Clear();
+            if (!string.IsNullOrEmpty(energyHistoryStr))
+            {
+                var parts = energyHistoryStr.Split(',');
+                foreach (var p in parts)
+                {
+                    if (int.TryParse(p, out var val))
+                        EnergyHistory.Add(val);
                 }
             }
 

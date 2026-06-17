@@ -702,7 +702,7 @@ namespace GaokaoSimulator.Features.Family
                 rerollImage.color = Color.white;
             }
             var rerollOutline = rerollButton.gameObject.AddComponent<Outline>();
-            rerollOutline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            rerollOutline.effectColor = (Color32)UITheme.Border;
             rerollOutline.effectDistance = new Vector2(4f, -4f);
             rerollButton.gameObject.AddComponent<UiPressScale>();
             rerollButton.gameObject.SetActive(false);
@@ -815,7 +815,7 @@ namespace GaokaoSimulator.Features.Family
                 cancelImage.color = Color.white;
             }
             var cancelOutline = cancelReplaceButton.gameObject.AddComponent<Outline>();
-            cancelOutline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            cancelOutline.effectColor = (Color32)UITheme.Border;
             cancelOutline.effectDistance = new Vector2(4f, -4f);
             cancelReplaceButton.gameObject.AddComponent<UiPressScale>();
         }
@@ -1081,7 +1081,7 @@ namespace GaokaoSimulator.Features.Family
                 dot.gameObject.AddComponent<UiAutoRounded>();
 
                 var tint = i % 3 == 0 ? UITheme.CardSky : (i % 3 == 1 ? UITheme.CardPeach : UITheme.CardLavender);
-                image.color = new Color32(tint.r, tint.g, tint.b, 42);
+                image.color = new Color32((byte)(tint.r * 255), (byte)(tint.g * 255), (byte)(tint.b * 255), 42);
                 dot.gameObject.AddComponent<UiFloatBob>().Configure((float)(rand.NextDouble() * 10 + 6), (float)(rand.NextDouble() * 0.5 + 0.35), (float)rand.NextDouble());
             }
         }

@@ -778,8 +778,8 @@ namespace GaokaoSimulator.Features.Subject
             }
 
             outline.effectColor = selected
-                ? new Color32(UITheme.Confirm.r, UITheme.Confirm.g, UITheme.Confirm.b, 255)
-                : new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                ? (Color32)UITheme.Confirm
+                : (Color32)UITheme.Border;
             outline.effectDistance = selected ? new Vector2(5f, -5f) : new Vector2(4f, -4f);
 
             var text = button.GetComponentInChildren<Text>();
@@ -1025,7 +1025,7 @@ namespace GaokaoSimulator.Features.Subject
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
             var outline = go.AddComponent<Outline>();
-            outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            outline.effectColor = (Color32)UITheme.Border;
             outline.effectDistance = new Vector2(3f, -3f);
             var shadow = go.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.10f);

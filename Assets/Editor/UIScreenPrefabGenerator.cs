@@ -302,10 +302,10 @@ namespace GaokaoSimulator.EditorTools
             inputWrap.rectTransform.offsetMin = Vector2.zero;
             inputWrap.rectTransform.offsetMax = Vector2.zero;
             var inputOutline = inputWrap.gameObject.AddComponent<Outline>();
-            inputOutline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            inputOutline.effectColor = (Color32)UITheme.Border;
             inputOutline.effectDistance = new Vector2(4, -4);
 
-            var placeholder = CreateText("Placeholder", inputWrap.transform, font, 42, FontStyle.Italic, new Color32(UITheme.TextLight.r, UITheme.TextLight.g, UITheme.TextLight.b, 180));
+            var placeholder = CreateText("Placeholder", inputWrap.transform, font, 42, FontStyle.Italic, new Color32((byte)(UITheme.TextLight.r * 255), (byte)(UITheme.TextLight.g * 255), (byte)(UITheme.TextLight.b * 255), 180));
             placeholder.rectTransform.anchorMin = new Vector2(0.06f, 0f);
             placeholder.rectTransform.anchorMax = new Vector2(0.94f, 1f);
             placeholder.rectTransform.offsetMin = Vector2.zero;
@@ -907,7 +907,7 @@ namespace GaokaoSimulator.EditorTools
                 dot.rectTransform.anchoredPosition = new Vector2(px, py);
 
                 var tint = i % 3 == 0 ? UITheme.CardSky : (i % 3 == 1 ? UITheme.CardPeach : UITheme.CardLavender);
-                dot.color = new Color32(tint.r, tint.g, tint.b, 42);
+                dot.color = new Color32((byte)(tint.r * 255), (byte)(tint.g * 255), (byte)(tint.b * 255), 42);
 
                 dot.gameObject.AddComponent<UiFloatBob>().Configure((float)(rand.NextDouble() * 10 + 6), (float)(rand.NextDouble() * 0.5 + 0.35), (float)rand.NextDouble());
             }
@@ -952,7 +952,7 @@ namespace GaokaoSimulator.EditorTools
             else
             {
                 var outline = buttonGo.AddComponent<Outline>();
-                outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                outline.effectColor = (Color32)UITheme.Border;
                 outline.effectDistance = new Vector2(4, -4);
             }
 

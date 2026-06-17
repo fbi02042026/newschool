@@ -52,7 +52,7 @@ namespace GaokaoSimulator.Features.Home
                 if (state.CurrentPlaythrough == 1 && !state.HasSeenGuide("home_first"))
                 {
                     state.MarkGuideSeen("home_first");
-                    ShowToast("欢迎来到主界面！点击「继续主线」推进学期，学期完成后可查看成绩评级～");
+                    ShowToast("欢迎来到主界面！点击「校园日常」开始新的一天，完成事件推进学期进度～");
                 }
             }
 
@@ -134,6 +134,18 @@ namespace GaokaoSimulator.Features.Home
                 return;
             }
 
+            // 学期阶段 → 校园日常
+            if (state.CurrentProgress >= GameProgress.Semester)
+            {
+                continueButton.interactable = true;
+                var label = continueButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = "校园日常";
+                }
+                return;
+            }
+
             var next = GetMainlineNext(state);
             continueButton.interactable = next != ScreenType.Home;
 
@@ -156,6 +168,13 @@ namespace GaokaoSimulator.Features.Home
             if (state.CurrentProgress == GameProgress.Semester && state.SemesterIndex >= Mathf.Max(1, state.TotalSemesters))
             {
                 NavigateTo(ScreenType.Gaokao, true);
+                return;
+            }
+
+            // 学期阶段 → 校园日常（主玩法）
+            if (state.CurrentProgress >= GameProgress.Semester)
+            {
+                NavigateTo(ScreenType.DailyGame, true);
                 return;
             }
 
@@ -517,7 +536,7 @@ namespace GaokaoSimulator.Features.Home
                     NavigateTo(ScreenType.TalentTree, true);
                     return;
                 case HomeButtonType.Semester:
-                    NavigateTo(ScreenType.Semester, true);
+                    NavigateTo(ScreenType.DailyGame, true);
                     return;
                 case HomeButtonType.Gaokao:
                     NavigateTo(ScreenType.Gaokao, true);
@@ -821,7 +840,7 @@ namespace GaokaoSimulator.Features.Home
             entryShadow.effectColor = new Color(0f, 0f, 0f, 0.06f);
             entryShadow.effectDistance = new Vector2(0f, -10f);
 
-            continueButton = CreatePrimaryButton("继续主线", entryCard, font, UITheme.Confirm, UITheme.Text);
+            continueButton = CreatePrimaryButton("校园日常", entryCard, font, UITheme.Confirm, UITheme.Text);
             continueButton.gameObject.AddComponent<UiPressScale>();
             var continueRect = (RectTransform)continueButton.transform;
             continueRect.anchorMin = new Vector2(0.04f, 0.62f);
@@ -907,7 +926,7 @@ namespace GaokaoSimulator.Features.Home
 
             if (state.CurrentProgress < GameProgress.Semester)
             {
-                return ScreenType.Semester;
+                return ScreenType.DailyGame;
             }
 
             if (state.CurrentProgress == GameProgress.Semester)
@@ -915,7 +934,7 @@ namespace GaokaoSimulator.Features.Home
                 var total = Mathf.Max(1, state.TotalSemesters);
                 if (state.SemesterIndex < total)
                 {
-                    return ScreenType.Semester;
+                    return ScreenType.DailyGame;
                 }
 
                 return ScreenType.Gaokao;
@@ -962,7 +981,9 @@ namespace GaokaoSimulator.Features.Home
                 case ScreenType.Subject:
                     return "选科";
                 case ScreenType.Semester:
-                    return "推进学期";
+                    return "校园日常";
+                case ScreenType.DailyGame:
+                    return "校园日常";
                 case ScreenType.Gaokao:
                     return "进入高考";
                 case ScreenType.Volunteer:

@@ -1,250 +1,179 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using GaokaoSimulator.UI.Effects;
 
 namespace GaokaoSimulator.UI
 {
-    /// <summary>
-    /// 界面基类
-    /// 所有具体界面都需要继承此类
-    /// </summary>
-    [RequireComponent(typeof(CanvasGroup))]
     public abstract class ScreenBase : MonoBehaviour
     {
-        [Header("界面配置")]
-        [SerializeField] protected bool allowBackNavigation = true; // 是否允许返回
-        [SerializeField] protected bool pauseGameWhenOpen = false;   // 打开时是否暂停游戏
-        
-        [Header("动画配置")]
-        [SerializeField] protected float fadeInDuration = 0.3f;
-        [SerializeField] protected float fadeOutDuration = 0.2f;
-        [SerializeField] protected AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-        
-        // 当前界面ID（由ScreenRouter在创建时设置）
         public ScreenType ScreenId { get; set; }
-        
-        // CanvasGroup组件
-        protected CanvasGroup CanvasGroup { get; private set; }
-        
-        // 参数传递
-        protected Dictionary<string, object> parameters;
-        
-        // 是否已初始化
-        private bool isInitialized = false;
-        
-        #region Unity生命周期
-        
+
         protected virtual void Awake()
         {
-            CanvasGroup = GetComponent<CanvasGroup>();
-            if (CanvasGroup == null)
-            {
-                CanvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
-            
-            // 初始状态为隐藏
-            CanvasGroup.alpha = 0;
-            gameObject.SetActive(false);
+            Initialize();
         }
-        
-        protected virtual void OnEnable()
+
+        protected abstract void Initialize();
+
+        protected virtual void OnScreenOpen() { }
+        protected virtual void OnScreenClose() { }
+        public virtual void Refresh() { }
+        public virtual void OnScreenResize() { }
+
+        public virtual void SetParameters(Dictionary<string, object> parameters) { }
+
+        public virtual IEnumerator Show(float duration)
         {
-            if (!isInitialized)
+            var canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
             {
-                Initialize();
-                isInitialized = true;
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-            
+
+            canvasGroup.alpha = 0f;
+            var elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Clamp01(elapsed / duration);
+                yield return null;
+            }
+
+            canvasGroup.alpha = 1f;
             OnScreenOpen();
         }
-        
-        protected virtual void OnDisable()
+
+        public virtual IEnumerator Hide(float duration)
         {
             OnScreenClose();
-        }
-        
-        #endregion
-        
-        #region 抽象方法 - 子类必须实现
-        
-        /// <summary>
-        /// 初始化界面（只执行一次）
-        /// </summary>
-        protected abstract void Initialize();
-        
-        /// <summary>
-        /// 界面打开时的处理
-        /// </summary>
-        protected abstract void OnScreenOpen();
-        
-        /// <summary>
-        /// 界面关闭时的处理
-        /// </summary>
-        protected abstract void OnScreenClose();
-        
-        /// <summary>
-        /// 刷新界面显示（数据变化时调用）
-        /// </summary>
-        public abstract void Refresh();
 
-        public virtual void OnScreenResize()
-        {
-        }
-        
-        #endregion
-        
-        #region 参数传递
-        
-        /// <summary>
-        /// 设置界面参数
-        /// </summary>
-        public virtual void SetParameters(Dictionary<string, object> param)
-        {
-            parameters = param ?? new Dictionary<string, object>();
-            OnParametersSet();
-        }
-        
-        /// <summary>
-        /// 参数设置后的回调
-        /// </summary>
-        protected virtual void OnParametersSet()
-        {
-            // 子类可重写此方法处理参数
-        }
-        
-        /// <summary>
-        /// 获取参数值
-        /// </summary>
-        protected T GetParameter<T>(string key, T defaultValue = default)
-        {
-            if (parameters != null && parameters.TryGetValue(key, out var value))
+            var canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
             {
-                if (value is T typedValue)
-                {
-                    return typedValue;
-                }
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-            return defaultValue;
-        }
-        
-        #endregion
-        
-        #region 显示/隐藏动画
-        
-        /// <summary>
-        /// 显示动画（协程，由ScreenRouter调用）
-        /// </summary>
-        public IEnumerator Show(float duration)
-        {
-            gameObject.SetActive(true);
-            
-            float elapsed = 0;
+
+            canvasGroup.alpha = 1f;
+            var elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                float t = fadeCurve.Evaluate(Mathf.Clamp01(elapsed / duration));
-                CanvasGroup.alpha = t;
+                canvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / duration);
                 yield return null;
             }
-            
-            CanvasGroup.alpha = 1;
-            CanvasGroup.interactable = true;
-            CanvasGroup.blocksRaycasts = true;
+
+            canvasGroup.alpha = 0f;
         }
-        
-        /// <summary>
-        /// 隐藏动画（协程，由ScreenRouter调用）
-        /// </summary>
-        public IEnumerator Hide(float duration)
+
+        protected void NavigateTo(ScreenType screenType, bool pushToStack = false)
         {
-            CanvasGroup.interactable = false;
-            CanvasGroup.blocksRaycasts = false;
-            
-            float elapsed = 0;
-            while (elapsed < duration)
+            if (ScreenRouter.Instance != null)
             {
-                elapsed += Time.deltaTime;
-                float t = fadeCurve.Evaluate(1 - Mathf.Clamp01(elapsed / duration));
-                CanvasGroup.alpha = t;
-                yield return null;
+                ScreenRouter.Instance.NavigateTo(screenType, pushToStack);
             }
-            
-            CanvasGroup.alpha = 0;
-            gameObject.SetActive(false);
+            else
+            {
+                Debug.LogWarning($"[ScreenBase] ScreenRouter.Instance is null, cannot navigate to {screenType}");
+            }
         }
-        
-        /// <summary>
-        /// 立即显示（无动画）
-        /// </summary>
-        public void ShowImmediate()
-        {
-            gameObject.SetActive(true);
-            CanvasGroup.alpha = 1;
-            CanvasGroup.interactable = true;
-            CanvasGroup.blocksRaycasts = true;
-        }
-        
-        /// <summary>
-        /// 立即隐藏（无动画）
-        /// </summary>
-        public void HideImmediate()
-        {
-            CanvasGroup.alpha = 0;
-            CanvasGroup.interactable = false;
-            CanvasGroup.blocksRaycasts = false;
-            gameObject.SetActive(false);
-        }
-        
-        #endregion
-        
-        #region 便捷方法
-        
-        /// <summary>
-        /// 返回上一页
-        /// </summary>
+
         protected void GoBack()
         {
-            if (allowBackNavigation && ScreenRouter.Instance != null)
+            if (ScreenRouter.Instance != null)
             {
                 ScreenRouter.Instance.GoBack();
             }
         }
-        
-        /// <summary>
-        /// 跳转到指定界面
-        /// </summary>
-        protected void NavigateTo(ScreenType screenType, bool pushToStack = false)
+
+        protected void ShowToast(string message)
         {
-            ScreenRouter.Instance?.NavigateTo(screenType, pushToStack);
+            Debug.Log($"[{GetType().Name}] {message}");
         }
-        
-        /// <summary>
-        /// 打开弹窗
-        /// </summary>
-        protected void OpenPopup(string popupId, Dictionary<string, object> param = null)
+
+        protected static Font BuiltinFont()
         {
-            // 通过PopupController打开弹窗
-            // 这里简化处理，实际项目中应该有PopupController
-            Debug.Log($"[ScreenBase] 打开弹窗: {popupId}");
+            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
-        
-        /// <summary>
-        /// 关闭弹窗
-        /// </summary>
-        protected void ClosePopup(string popupId)
+
+        protected static RectTransform CreateUiObject(string name, Transform parent)
         {
-            Debug.Log($"[ScreenBase] 关闭弹窗: {popupId}");
+            var go = new GameObject(name, typeof(RectTransform));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.localScale = Vector3.one;
+            return rect;
         }
-        
-        /// <summary>
-        /// 显示Toast提示
-        /// </summary>
-        protected void ShowToast(string message, float duration = 2f)
+
+        protected static void Stretch(RectTransform rect)
         {
-            Debug.Log($"[Toast] {message}");
-            // 实际项目中应该有Toast系统
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
-        
-        #endregion
+
+        protected static Text CreateText(string name, Transform parent, Font font, int size, FontStyle style, Color color)
+        {
+            var rect = CreateUiObject(name, parent);
+            var text = rect.gameObject.AddComponent<Text>();
+            text.font = font;
+            text.fontSize = size;
+            text.fontStyle = style;
+            text.color = color;
+            text.supportRichText = false;
+            text.resizeTextForBestFit = false;
+            return text;
+        }
+
+        protected static Button CreateButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
+        {
+            var go = new GameObject(label, typeof(RectTransform));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.localScale = Vector3.one;
+            var image = go.AddComponent<Image>();
+            image.color = bgColor;
+            var button = go.AddComponent<Button>();
+            RuntimeArt.ApplyRounded(image);
+
+            var text = CreateText("Text", rect, font, 54, FontStyle.Bold, textColor);
+            Stretch(text.rectTransform);
+            text.alignment = TextAnchor.MiddleCenter;
+            text.text = label;
+
+            var layout = go.AddComponent<LayoutElement>();
+            layout.preferredHeight = 160f;
+
+            return button;
+        }
+
+        protected static Button CreateSmallButton(string label, Transform parent, Font font, Color bgColor, Color textColor)
+        {
+            var btn = CreateButton(label, parent, font, bgColor, textColor);
+            var text = btn.GetComponentInChildren<Text>();
+            if (text != null) text.fontSize = 40;
+            var layout = btn.GetComponent<LayoutElement>();
+            if (layout != null) layout.preferredHeight = 120f;
+            return btn;
+        }
+
+        protected static Button CreatePrimaryButton(string label, Transform parent, Font font, Color a, Color textColor)
+        {
+            var button = CreateButton(label, parent, font, Color.white, textColor);
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                image.color = Color.white;
+                var grad = button.gameObject.AddComponent<UiCornerGradient>();
+                grad.SetColors(a, UITheme.ConfirmHover, UITheme.ConfirmHover, a);
+                var shadow = button.gameObject.AddComponent<Shadow>();
+                shadow.effectColor = new Color(a.r / 255f, a.g / 255f, a.b / 255f, 0.35f);
+                shadow.effectDistance = new Vector2(0f, -12f);
+            }
+            return button;
+        }
     }
 }

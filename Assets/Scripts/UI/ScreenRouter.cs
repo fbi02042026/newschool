@@ -27,7 +27,9 @@ namespace GaokaoSimulator.UI
         Career,         // 毕业到30岁
         Summary,        // 人生总结
         PlayerInfo,     // 人物信息
-        Shop            // 商店
+        Shop,           // 商店
+        DailyGame,      // 主玩法（流水账+事件）
+        DailySettlement // 每日结算
     }
     
     /// <summary>
@@ -320,6 +322,14 @@ namespace GaokaoSimulator.UI
             else if (screenType == ScreenType.Summary)
             {
                 instance = screenGo.AddComponent<GaokaoSimulator.Features.Summary.SummaryScreen>();
+            }
+            else if (screenType == ScreenType.DailyGame)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.DailyGame.DailyGameScreen>();
+            }
+            else if (screenType == ScreenType.DailySettlement)
+            {
+                instance = screenGo.AddComponent<GaokaoSimulator.Features.DailyGame.DailySettlementScreen>();
             }
             else
             {

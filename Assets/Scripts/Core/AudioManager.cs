@@ -119,18 +119,20 @@ namespace GaokaoSimulator.Core
         {
             return screenType switch
             {
-                UI.ScreenType.Launch      => "bgm_home",
-                UI.ScreenType.Profile     => "bgm_daily",
-                UI.ScreenType.Family      => "bgm_daily",
-                UI.ScreenType.Province    => "bgm_daily",
-                UI.ScreenType.Subject     => "bgm_highschool_01",
-                UI.ScreenType.Home         => "bgm_home",
-                UI.ScreenType.Semester     => "bgm_highschool_02",
-                UI.ScreenType.Gaokao       => "bgm_exam",
-                UI.ScreenType.Volunteer    => "bgm_zhiyuan",
-                UI.ScreenType.University   => "bgm_college_01",
-                UI.ScreenType.Career       => "bgm_life_01",
-                UI.ScreenType.Summary      => "bgm_result_happy",
+                UI.ScreenType.Launch          => "bgm_home",
+                UI.ScreenType.Profile         => "bgm_daily",
+                UI.ScreenType.Family          => "bgm_daily",
+                UI.ScreenType.Province        => "bgm_daily",
+                UI.ScreenType.Subject         => "bgm_highschool_01",
+                UI.ScreenType.Home             => "bgm_home",
+                UI.ScreenType.Semester         => "bgm_highschool_02",
+                UI.ScreenType.DailyGame        => "bgm_highschool_02",
+                UI.ScreenType.DailySettlement  => "bgm_daily",
+                UI.ScreenType.Gaokao           => "bgm_exam",
+                UI.ScreenType.Volunteer        => "bgm_zhiyuan",
+                UI.ScreenType.University       => "bgm_college_01",
+                UI.ScreenType.Career           => "bgm_life_01",
+                UI.ScreenType.Summary          => "bgm_result_happy",
                 _ => "bgm_daily"
             };
         }

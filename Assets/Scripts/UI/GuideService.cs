@@ -49,7 +49,7 @@ namespace GaokaoSimulator.UI
                 image.color = new Color32(255, 255, 255, 240);
                 go.AddComponent<UI.Effects.UiAutoRounded>();
                 var outline = go.AddComponent<Outline>();
-                outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                outline.effectColor = (Color32)UITheme.Border;
                 outline.effectDistance = new Vector2(3f, -3f);
                 go.AddComponent<UI.Effects.UiPressScale>();
 
@@ -114,7 +114,7 @@ namespace GaokaoSimulator.UI
                 image.color = new Color32(255, 255, 255, 240);
                 go.AddComponent<UI.Effects.UiAutoRounded>();
                 var outline = go.AddComponent<Outline>();
-                outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                outline.effectColor = (Color32)UITheme.Border;
                 outline.effectDistance = new Vector2(3f, -3f);
                 go.AddComponent<UI.Effects.UiPressScale>();
 

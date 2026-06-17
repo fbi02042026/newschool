@@ -197,7 +197,7 @@ namespace GaokaoSimulator.Features.Province
             card.AddComponent<UiAutoRounded>();
 
             var outline = card.AddComponent<Outline>();
-            outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+            outline.effectColor = (Color32)UITheme.Border;
             outline.effectDistance = new Vector2(4f, -4f);
 
             var shadow = card.AddComponent<Shadow>();
@@ -278,8 +278,8 @@ namespace GaokaoSimulator.Features.Province
             if (view.Outline != null)
             {
                 view.Outline.effectColor = isSelected
-                    ? new Color32(UITheme.Confirm.r, UITheme.Confirm.g, UITheme.Confirm.b, 255)
-                    : new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                    ? (Color32)UITheme.Confirm
+                    : (Color32)UITheme.Border;
                 view.Outline.effectDistance = isSelected ? new Vector2(5f, -5f) : new Vector2(4f, -4f);
             }
 
@@ -930,9 +930,9 @@ namespace GaokaoSimulator.Features.Province
                 dot.sizeDelta = Vector2.one * (float)(random.NextDouble() * 44 + 16);
                 dot.anchoredPosition = new Vector2((float)(random.NextDouble() * 940 - 470), (float)(random.NextDouble() * 2240 - 1120));
                 var image = dot.gameObject.AddComponent<Image>();
-                image.color = i % 3 == 0 ? new Color32(UITheme.CardSky.r, UITheme.CardSky.g, UITheme.CardSky.b, 42)
-                    : i % 3 == 1 ? new Color32(UITheme.CardPeach.r, UITheme.CardPeach.g, UITheme.CardPeach.b, 42)
-                    : new Color32(UITheme.CardLavender.r, UITheme.CardLavender.g, UITheme.CardLavender.b, 42);
+                image.color = i % 3 == 0 ? new Color32((byte)(UITheme.CardSky.r * 255), (byte)(UITheme.CardSky.g * 255), (byte)(UITheme.CardSky.b * 255), 42)
+                    : i % 3 == 1 ? new Color32((byte)(UITheme.CardPeach.r * 255), (byte)(UITheme.CardPeach.g * 255), (byte)(UITheme.CardPeach.b * 255), 42)
+                    : new Color32((byte)(UITheme.CardLavender.r * 255), (byte)(UITheme.CardLavender.g * 255), (byte)(UITheme.CardLavender.b * 255), 42);
                 dot.gameObject.AddComponent<UiAutoRounded>();
                 dot.gameObject.AddComponent<UiFloatBob>().Configure((float)(random.NextDouble() * 10 + 6), (float)(random.NextDouble() * 0.45 + 0.35), (float)random.NextDouble());
             }
@@ -990,7 +990,7 @@ namespace GaokaoSimulator.Features.Province
             else
             {
                 var outline = buttonGo.AddComponent<Outline>();
-                outline.effectColor = new Color32(UITheme.Border.r, UITheme.Border.g, UITheme.Border.b, 255);
+                outline.effectColor = (Color32)UITheme.Border;
                 outline.effectDistance = new Vector2(4f, -4f);
             }
 
