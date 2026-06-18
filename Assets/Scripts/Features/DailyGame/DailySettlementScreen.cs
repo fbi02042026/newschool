@@ -42,6 +42,9 @@ namespace GaokaoSimulator.Features.DailyGame
                 content = transform.Find("Content");
             }
 
+            if (homeBtn == null) homeBtn = content.Find("HomeBtn")?.GetComponent<Button>();
+            if (continueBtn == null) continueBtn = content.Find("ContinueBtn")?.GetComponent<Button>();
+
             InitAll();
         }
 

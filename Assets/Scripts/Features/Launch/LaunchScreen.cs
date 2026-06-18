@@ -9,114 +9,191 @@ namespace GaokaoSimulator.Features.Launch
 {
     /// <summary>
     /// 启动画面
-    /// 游戏入口界面，提供新游戏、继续游戏等选项
+    /// 统一"开启人生"按钮，有存档则继续，无存档则新游戏
     /// </summary>
     public class LaunchScreen : UI.ScreenBase
     {
-        private const float UiTextScale = 1.25f;
+        [Header("主按钮")]
+        [SerializeField] private Button startButton;
 
-        [Header("UI引用")]
+        [Header("旧版按钮（兼容）")]
         [SerializeField] private Button newGameButton;
         [SerializeField] private Button continueGameButton;
+
+        [Header("辅助按钮")]
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button aboutButton;
         [SerializeField] private Button logoutButton;
-        
+
+        [Header("用户协议")]
+        [SerializeField] private Toggle agreeToggle;
+
         [Header("标题动画")]
         [SerializeField] private RectTransform titleTransform;
         [SerializeField] private float titleAnimationDuration = 1f;
         [SerializeField] private AnimationCurve titleAnimationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-        
+
         [Header("版本信息")]
         [SerializeField] private Text versionText;
-        
-        // 动画协程引用
+
         private Coroutine titleAnimationCoroutine;
-        
+        private Coroutine backgroundAnimationCoroutine;
+        private Coroutine buttonFadeCoroutine;
+        private Coroutine introSequenceCoroutine;
+
         #region ScreenBase实现
-        
+
         protected override void Initialize()
         {
             EnsureRuntimeLayout();
             ScreenFlowHint.Clear(transform.Find("SafePanel") ?? transform);
 
-            // 绑定按钮事件
-            if (newGameButton != null)
+            // 自动接线：从预制体的 kuang/duigou 创建 Toggle
+            if (agreeToggle == null)
             {
-                newGameButton.onClick.AddListener(OnNewGameClicked);
+                agreeToggle = AutoWireAgreeToggle();
             }
-            
-            if (continueGameButton != null)
+
+            // 自动接线：BtnNewGame 作为统一 startButton
+            if (startButton == null && newGameButton != null)
             {
-                continueGameButton.onClick.AddListener(OnContinueGameClicked);
+                startButton = newGameButton;
             }
-            
+
+            // 自动接线：左边创建注销按钮
+            if (logoutButton == null)
+            {
+                logoutButton = CreateLogoutButtonRuntime();
+            }
+
+            // 统一按钮模式：隐藏 BtnContinue
+            if (startButton != null && continueGameButton != null)
+            {
+                continueGameButton.gameObject.SetActive(false);
+            }
+
+            if (startButton != null)
+            {
+                startButton.onClick.AddListener(OnStartClicked);
+            }
+            else
+            {
+                if (newGameButton != null)
+                    newGameButton.onClick.AddListener(OnNewGameClicked);
+                if (continueGameButton != null)
+                    continueGameButton.onClick.AddListener(OnContinueGameClicked);
+            }
+
             if (settingsButton != null)
-            {
                 settingsButton.onClick.AddListener(OnSettingsClicked);
-            }
-            
+
             if (aboutButton != null)
-            {
                 aboutButton.onClick.AddListener(OnAboutClicked);
-            }
-            
+
             if (logoutButton != null)
-            {
                 logoutButton.onClick.AddListener(OnLogoutClicked);
-            }
-            
-            // 设置版本号
+
             if (versionText != null)
-            {
                 versionText.text = $"v{Application.version}";
+
+            // 提前设置背景初始缩放，避免第一帧跳变
+            var bg = transform.Find("Background");
+            if (bg != null)
+            {
+                bg.localScale = Vector3.one * 1.2f;
             }
-            
-            Debug.Log("[LaunchScreen] 初始化完成");
-        }
-        
-        protected override void OnScreenOpen()
-        {
-            // 播放标题动画
+
+            // 创建白色遮罩，覆盖整个界面
+            CreateWhiteMask();
+
+            // 提前隐藏内容，避免在白色遮罩出现前闪现
             if (titleTransform != null)
             {
-                titleAnimationCoroutine = StartCoroutine(AnimateTitle());
+                var titleCg = titleTransform.GetComponent<CanvasGroup>();
+                if (titleCg == null) titleCg = titleTransform.gameObject.AddComponent<CanvasGroup>();
+                titleCg.alpha = 0f;
             }
-            
-            // 检查是否有存档，控制继续游戏按钮状态
-            UpdateContinueButtonState();
 
+            if (startButton != null)
+            {
+                var btnCg = startButton.GetComponent<CanvasGroup>();
+                if (btnCg == null) btnCg = startButton.gameObject.AddComponent<CanvasGroup>();
+                btnCg.alpha = 0f;
+            }
+
+            Debug.Log("[LaunchScreen] 初始化完成");
         }
-        
+
+        /// <summary>
+        /// 重写 Show：跳过默认渐显动画，直接显示。
+        /// 白色遮罩在 Initialize() 已创建并覆盖全部内容，IntroSequence 负责渐消。
+        /// </summary>
+        public override System.Collections.IEnumerator Show(float duration)
+        {
+            var canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+            // 直接显示，不渐显。白遮罩会覆盖一切
+            canvasGroup.alpha = 1f;
+
+            // 等一帧确保布局完成
+            yield return null;
+
+            OnScreenOpen();
+        }
+
+        protected override void OnScreenOpen()
+        {
+            // 所有动画由开场序列统一控制
+            introSequenceCoroutine = StartCoroutine(IntroSequence());
+
+            UpdateButtonState();
+        }
+
         protected override void OnScreenClose()
         {
-            // 停止动画
+            if (introSequenceCoroutine != null)
+            {
+                StopCoroutine(introSequenceCoroutine);
+                introSequenceCoroutine = null;
+            }
+
             if (titleAnimationCoroutine != null)
             {
                 StopCoroutine(titleAnimationCoroutine);
                 titleAnimationCoroutine = null;
             }
+
+            if (backgroundAnimationCoroutine != null)
+            {
+                StopCoroutine(backgroundAnimationCoroutine);
+                backgroundAnimationCoroutine = null;
+            }
+
+            if (buttonFadeCoroutine != null)
+            {
+                StopCoroutine(buttonFadeCoroutine);
+                buttonFadeCoroutine = null;
+            }
         }
-        
+
         public override void Refresh()
         {
-            // 刷新界面显示
-            UpdateContinueButtonState();
+            UpdateButtonState();
         }
-        
-        public override void OnScreenResize()
-        {
-            // 屏幕尺寸变化时的处理
-            // 可以在这里重新布局
-        }
-        
+
+        public override void OnScreenResize() { }
+
         #endregion
 
         #region 运行时布局
 
         private void EnsureRuntimeLayout()
         {
-            if (newGameButton != null && continueGameButton != null && titleTransform != null && versionText != null && logoutButton != null)
+            bool hasMainButton = startButton != null || (newGameButton != null && continueGameButton != null);
+            if (hasMainButton && titleTransform != null && versionText != null)
             {
                 return;
             }
@@ -248,59 +325,61 @@ namespace GaokaoSimulator.Features.Launch
             heroHint.rectTransform.offsetMax = Vector2.zero;
             heroHint.text = "一屏一屏试玩，先把人生主流程跑通";
 
-            newGameButton = CreateButton("重启我的高中人生", safePanel, font, Color.white, Color.white);
-            var newGameRect = (RectTransform)newGameButton.transform;
-            newGameRect.anchorMin = new Vector2(0.12f, 0.16f);
-            newGameRect.anchorMax = new Vector2(0.88f, 0.26f);
-            newGameRect.offsetMin = Vector2.zero;
-            newGameRect.offsetMax = Vector2.zero;
-            StylePrimaryButton(newGameButton, new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
-            newGameButton.gameObject.AddComponent<UiPressScale>();
+            startButton = CreateButton("开启人生", safePanel, font, Color.white, Color.white);
+            var startRect = (RectTransform)startButton.transform;
+            startRect.anchorMin = new Vector2(0.12f, 0.16f);
+            startRect.anchorMax = new Vector2(0.88f, 0.26f);
+            startRect.offsetMin = Vector2.zero;
+            startRect.offsetMax = Vector2.zero;
+            StylePrimaryButton(startButton, new Color32(141, 206, 255, 255), new Color32(92, 162, 255, 255));
+            startButton.gameObject.AddComponent<UiPressScale>();
 
-            continueGameButton = CreateButton("返回校园", safePanel, font, Color.white, new Color32(255, 104, 126, 255));
-            var continueRect = (RectTransform)continueGameButton.transform;
-            continueRect.anchorMin = new Vector2(0.12f, 0.16f);
-            continueRect.anchorMax = new Vector2(0.88f, 0.26f);
-            continueRect.offsetMin = Vector2.zero;
-            continueRect.offsetMax = Vector2.zero;
-            StylePrimaryButton(continueGameButton, new Color32(255, 140, 160, 255), new Color32(255, 104, 126, 255));
-            continueGameButton.gameObject.AddComponent<UiPressScale>();
-
-            aboutButton = CreateIconButton("?", safePanel, font);
-            var aboutRect = (RectTransform)aboutButton.transform;
-            aboutRect.anchorMin = new Vector2(0.02f, 0.08f);
-            aboutRect.anchorMax = new Vector2(0.10f, 0.14f);
-            aboutRect.offsetMin = Vector2.zero;
-            aboutRect.offsetMax = Vector2.zero;
-            aboutButton.gameObject.AddComponent<UiPressScale>();
-
-            settingsButton = CreateIconButton("⚙", safePanel, font);
-            var settingsRect = (RectTransform)settingsButton.transform;
-            settingsRect.anchorMin = new Vector2(0.90f, 0.08f);
-            settingsRect.anchorMax = new Vector2(0.98f, 0.14f);
-            settingsRect.offsetMin = Vector2.zero;
-            settingsRect.offsetMax = Vector2.zero;
-            settingsButton.gameObject.AddComponent<UiPressScale>();
-
-            logoutButton = CreateIconButton("↺", safePanel, font);
+            logoutButton = CreateSmallButton("注销", safePanel, font,
+                new Color32(255, 255, 255, 200), new Color32(180, 180, 180, 255));
             var logoutRect = (RectTransform)logoutButton.transform;
-            logoutRect.anchorMin = new Vector2(0.12f, 0.08f);
-            logoutRect.anchorMax = new Vector2(0.20f, 0.14f);
+            logoutRect.anchorMin = new Vector2(0.02f, 0.02f);
+            logoutRect.anchorMax = new Vector2(0.12f, 0.08f);
             logoutRect.offsetMin = Vector2.zero;
             logoutRect.offsetMax = Vector2.zero;
             logoutButton.gameObject.AddComponent<UiPressScale>();
 
-            var tipRect = CreateUiObject("TipText", safePanel);
-            tipRect.anchorMin = new Vector2(0.08f, 0.30f);
-            tipRect.anchorMax = new Vector2(0.92f, 0.35f);
-            tipRect.offsetMin = Vector2.zero;
-            tipRect.offsetMax = Vector2.zero;
-            var tipText = tipRect.gameObject.AddComponent<Text>();
-            tipText.font = font;
-            tipText.fontSize = 34;
-            tipText.alignment = TextAnchor.MiddleCenter;
-            tipText.color = new Color32(133, 111, 139, 255);
-            tipText.text = "第一次来没关系，我们会陪你一步一步熟悉规则";
+            var agreeGroup = CreateUiObject("AgreeGroup", safePanel);
+            agreeGroup.anchorMin = new Vector2(0.12f, 0.06f);
+            agreeGroup.anchorMax = new Vector2(0.88f, 0.12f);
+            agreeGroup.offsetMin = Vector2.zero;
+            agreeGroup.offsetMax = Vector2.zero;
+            var agreeLayout = agreeGroup.gameObject.AddComponent<HorizontalLayoutGroup>();
+            agreeLayout.spacing = 8f;
+            agreeLayout.childAlignment = TextAnchor.MiddleLeft;
+
+            var toggleGo = new GameObject("AgreeToggle", typeof(RectTransform));
+            toggleGo.transform.SetParent(agreeGroup, false);
+            var toggleRect = toggleGo.GetComponent<RectTransform>();
+            toggleRect.sizeDelta = new Vector2(40f, 40f);
+            agreeToggle = toggleGo.AddComponent<Toggle>();
+            agreeToggle.isOn = false;
+
+            var toggleBg = toggleGo.AddComponent<Image>();
+            toggleBg.color = Color.white;
+            RuntimeArt.ApplyRounded(toggleBg);
+            var toggleOutline = toggleGo.AddComponent<Outline>();
+            toggleOutline.effectColor = new Color32(206, 233, 255, 255);
+            toggleOutline.effectDistance = new Vector2(2f, -2f);
+            agreeToggle.targetGraphic = toggleBg;
+
+            var toggleCheck = CreateUiObject("Checkmark", toggleGo.transform);
+            toggleCheck.anchorMin = new Vector2(0.15f, 0.15f);
+            toggleCheck.anchorMax = new Vector2(0.85f, 0.85f);
+            toggleCheck.offsetMin = Vector2.zero;
+            toggleCheck.offsetMax = Vector2.zero;
+            var toggleCheckImg = toggleCheck.gameObject.AddComponent<Image>();
+            toggleCheckImg.color = new Color32(33, 150, 243, 255);
+            RuntimeArt.ApplyRounded(toggleCheckImg);
+            agreeToggle.graphic = toggleCheckImg;
+
+            var agreeText = CreateText("AgreeText", agreeGroup, font, 28, FontStyle.Normal, new Color32(133, 111, 139, 255));
+            agreeText.alignment = TextAnchor.MiddleLeft;
+            agreeText.text = "我已阅读并同意《用户协议》";
 
             var versionRect = CreateUiObject("Version", safePanel);
             versionRect.anchorMin = new Vector2(0.25f, 0.0f);
@@ -332,52 +411,6 @@ namespace GaokaoSimulator.Features.Launch
                 label.color = Color.white;
                 label.fontStyle = FontStyle.Bold;
             }
-        }
-
-        private static void StyleOutlineButton(Button button, Color outlineColor)
-        {
-            if (button == null) return;
-            var image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                RuntimeArt.ApplyRounded(image);
-                image.color = new Color32(255, 255, 255, 242);
-                var outline = image.gameObject.AddComponent<Outline>();
-                outline.effectColor = outlineColor;
-                outline.effectDistance = new Vector2(4f, -4f);
-            }
-
-            var label = button.GetComponentInChildren<Text>();
-            if (label != null)
-            {
-                label.color = outlineColor;
-                label.fontStyle = FontStyle.Bold;
-            }
-        }
-
-        private static Button CreateIconButton(string label, Transform parent, Font font)
-        {
-            var button = CreateButton(label, parent, font, Color.white, new Color32(120, 120, 120, 255));
-            var rect = (RectTransform)button.transform;
-            rect.sizeDelta = Vector2.zero;
-            var image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                RuntimeArt.ApplyRounded(image);
-                image.color = new Color32(255, 255, 255, 240);
-                var outline = image.gameObject.AddComponent<Outline>();
-                outline.effectColor = new Color32(206, 233, 255, 255);
-                outline.effectDistance = new Vector2(3f, -3f);
-            }
-
-            var text = button.GetComponentInChildren<Text>();
-            if (text != null)
-            {
-                text.resizeTextForBestFit = false;
-                text.fontSize = 40;
-            }
-
-            return button;
         }
 
         private static void CreateFeatureChip(Transform parent, Font font, string label, Vector2 min, Vector2 max, Color bgColor, Color textColor)
@@ -538,59 +571,69 @@ namespace GaokaoSimulator.Features.Launch
         #endregion
 
         #region 按钮事件处理
-        
+
         /// <summary>
-        /// 新游戏按钮点击
+        /// 统一"开启人生"按钮 —— 有存档就继续，没存档就新游戏
         /// </summary>
+        private void OnStartClicked()
+        {
+            Debug.Log("[LaunchScreen] 点击开启人生");
+
+            if (agreeToggle != null && !agreeToggle.isOn)
+            {
+                ShowToastPopup("请先勾选用户协议");
+                return;
+            }
+
+            bool hasSave = Core.GameState.Instance != null && Core.GameState.Instance.HasSaveData;
+            if (hasSave)
+            {
+                ContinueGame();
+            }
+            else
+            {
+                StartNewGame();
+            }
+        }
+
         private void OnNewGameClicked()
         {
             Debug.Log("[LaunchScreen] 点击新游戏");
-            
-            // 显示确认对话框（如果有存档）
+
+            if (agreeToggle != null && !agreeToggle.isOn)
+            {
+                ShowToastPopup("请先勾选用户协议");
+                return;
+            }
+
             if (Core.GameState.Instance != null && Core.GameState.Instance.HasSaveData)
             {
-                // 有存档，提示会覆盖
                 ShowNewGameConfirmDialog();
             }
             else
             {
-                // 直接开始新游戏
                 StartNewGame();
             }
         }
-        
-        /// <summary>
-        /// 继续游戏按钮点击
-        /// </summary>
+
         private void OnContinueGameClicked()
         {
             Debug.Log("[LaunchScreen] 点击继续游戏");
             ContinueGame();
         }
-        
-        /// <summary>
-        /// 设置按钮点击
-        /// </summary>
+
         private void OnSettingsClicked()
         {
             Debug.Log("[LaunchScreen] 点击设置");
-            // 设置界面暂未实现，先给玩家明确反馈，避免跳转到空界面
-            ShowToast("偏好设置还在整理中，之后会开放给你");
+            ShowToastPopup("偏好设置还在整理中，之后会开放给你");
         }
-        
-        /// <summary>
-        /// 关于按钮点击
-        /// </summary>
+
         private void OnAboutClicked()
         {
             Debug.Log("[LaunchScreen] 点击关于");
-            // 显示关于信息弹窗
             ShowAboutDialog();
         }
 
-        /// <summary>
-        /// 注销按钮点击
-        /// </summary>
         private void OnLogoutClicked()
         {
             Debug.Log("[LaunchScreen] 点击注销");
@@ -603,36 +646,25 @@ namespace GaokaoSimulator.Features.Launch
 
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
-            UpdateContinueButtonState();
-            ShowToast("已清除存档，可以重新开始");
+            ShowToastPopup("已清除存档，可以重新开始");
         }
-        
+
         #endregion
-        
+
         #region 游戏流程控制
-        
-        /// <summary>
-        /// 开始新游戏
-        /// </summary>
+
         private void StartNewGame()
         {
-            // 重置游戏状态
             Core.GameState.Instance?.ResetState();
-            
-            // 进入创建人物界面
             NavigateTo(UI.ScreenType.Profile, true);
         }
-        
-        /// <summary>
-        /// 继续游戏
-        /// </summary>
+
         private void ContinueGame()
         {
             if (Core.GameState.Instance == null) return;
-            
-            // 根据当前进度进入对应界面
+
             var progress = Core.GameState.Instance.CurrentProgress;
-            
+
             switch (progress)
             {
                 case Core.GameProgress.Profile:
@@ -648,94 +680,337 @@ namespace GaokaoSimulator.Features.Launch
                     NavigateTo(UI.ScreenType.Subject, false);
                     break;
                 default:
-                    // 已完成新手流程，进入主界面
                     NavigateTo(UI.ScreenType.Home, false);
                     break;
             }
         }
-        
+
         #endregion
-        
+
         #region UI更新
-        
-        /// <summary>
-        /// 更新继续游戏按钮状态
-        /// </summary>
-        private void UpdateContinueButtonState()
+
+        private void UpdateButtonState()
         {
-            if (newGameButton == null || continueGameButton == null) return;
-            
+            // 统一按钮模式下不需要切换显隐
+            if (startButton != null)
+                return;
+
+            if (newGameButton == null || continueGameButton == null)
+                return;
+
             bool hasSave = Core.GameState.Instance != null && Core.GameState.Instance.HasSaveData;
             newGameButton.gameObject.SetActive(!hasSave);
             continueGameButton.gameObject.SetActive(hasSave);
         }
-        
+
         /// <summary>
-        /// 标题动画
+        /// 创建全屏白色遮罩
         /// </summary>
+        private void CreateWhiteMask()
+        {
+            var maskGo = new GameObject("WhiteMask", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
+            var maskRect = maskGo.GetComponent<RectTransform>();
+            maskRect.SetParent(transform, false);
+            Stretch(maskRect);
+            maskRect.SetAsLastSibling();
+
+            var maskImg = maskGo.GetComponent<Image>();
+            maskImg.color = Color.white;
+            maskImg.raycastTarget = true; // 遮罩期间拦截点击
+
+            var maskCg = maskGo.GetComponent<CanvasGroup>();
+            maskCg.alpha = 1f;
+            maskCg.blocksRaycasts = true;
+        }
+
+        /// <summary>
+        /// 开场序列：白色遮罩渐消 → 标题动画 + 背景缩放 + 按钮渐显
+        /// </summary>
+        private IEnumerator IntroSequence()
+        {
+            Debug.Log("[LaunchScreen] IntroSequence 开始");
+
+            // 初始状态：标题和按钮先隐藏
+            if (titleTransform != null)
+            {
+                var titleCg = titleTransform.GetComponent<CanvasGroup>();
+                if (titleCg == null) titleCg = titleTransform.gameObject.AddComponent<CanvasGroup>();
+                titleCg.alpha = 0f;
+            }
+
+            if (startButton != null)
+            {
+                var btnCg = startButton.GetComponent<CanvasGroup>();
+                if (btnCg == null) btnCg = startButton.gameObject.AddComponent<CanvasGroup>();
+                btnCg.alpha = 0f;
+            }
+
+            // 背景缩放动画立即启动（不等待遮罩，遮罩覆盖在上面所以看不到）
+            backgroundAnimationCoroutine = StartCoroutine(AnimateBackground());
+            Debug.Log("[LaunchScreen] 背景缩放动画已启动");
+
+            // 阶段1：白色遮罩停留0.5秒，然后2秒渐消
+            var mask = transform.Find("WhiteMask");
+            Debug.Log($"[LaunchScreen] WhiteMask: {(mask != null ? "找到" : "未找到")}");
+            if (mask != null)
+            {
+                yield return new WaitForSeconds(0.5f);
+
+                var maskCg = mask.GetComponent<CanvasGroup>();
+                float maskFadeDuration = 2f;
+                float maskElapsed = 0f;
+                while (maskElapsed < maskFadeDuration)
+                {
+                    maskElapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(maskElapsed / maskFadeDuration);
+                    t = 1f - (1f - t) * (1f - t); // ease out
+                    maskCg.alpha = 1f - t;
+                    yield return null;
+                }
+                maskCg.alpha = 0f;
+                maskCg.blocksRaycasts = false;
+                Debug.Log("[LaunchScreen] 白色遮罩渐消完成");
+            }
+
+            // 阶段2：遮罩消失后，启动标题和按钮动画
+            if (titleTransform != null)
+            {
+                titleAnimationCoroutine = StartCoroutine(AnimateTitle());
+            }
+
+            if (startButton != null)
+            {
+                buttonFadeCoroutine = StartCoroutine(FadeInButton(startButton));
+            }
+
+            Debug.Log("[LaunchScreen] IntroSequence 完成");
+        }
+
         private IEnumerator AnimateTitle()
         {
             if (titleTransform == null) yield break;
-            
-            // 初始状态：稍微缩小且透明
+
             Vector3 originalScale = titleTransform.localScale;
             titleTransform.localScale = originalScale * 0.8f;
-            
+
             CanvasGroup titleCanvasGroup = titleTransform.GetComponent<CanvasGroup>();
             if (titleCanvasGroup == null)
             {
                 titleCanvasGroup = titleTransform.gameObject.AddComponent<CanvasGroup>();
             }
             titleCanvasGroup.alpha = 0;
-            
+
             float elapsed = 0;
             while (elapsed < titleAnimationDuration)
             {
                 elapsed += Time.deltaTime;
                 float t = titleAnimationCurve.Evaluate(Mathf.Clamp01(elapsed / titleAnimationDuration));
-                
-                // 缩放动画：0.8 -> 1.0
+
                 float scale = Mathf.Lerp(0.8f, 1f, t);
                 titleTransform.localScale = originalScale * scale;
-                
-                // 透明度动画：0 -> 1
+
                 titleCanvasGroup.alpha = t;
-                
+
                 yield return null;
             }
-            
-            // 确保最终状态正确
+
             titleTransform.localScale = originalScale;
             titleCanvasGroup.alpha = 1;
         }
-        
+
+        private IEnumerator AnimateBackground()
+        {
+            var bg = transform.Find("Background");
+            if (bg == null)
+            {
+                Debug.LogWarning("[LaunchScreen] AnimateBackground: Background 未找到！");
+                yield break;
+            }
+
+            Debug.Log($"[LaunchScreen] AnimateBackground 开始, 初始scale={bg.localScale}");
+
+            float duration = 10f; // 10秒
+            Vector3 targetScale = Vector3.one;
+            Vector3 startScale = targetScale * 1.2f;
+
+            bg.localScale = startScale;
+
+            float elapsed = 0;
+            float lastLogTime = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                // 线性过渡，匀速变化，让用户能感知到
+                bg.localScale = Vector3.Lerp(startScale, targetScale, t);
+
+                // 每秒打印一次日志，确认动画在跑
+                if (elapsed - lastLogTime >= 1f)
+                {
+                    lastLogTime = elapsed;
+                    Debug.Log($"[LaunchScreen] 背景缩放: t={t:F4}, scale={bg.localScale.x:F4}, elapsed={elapsed:F1}s");
+                }
+
+                yield return null;
+            }
+
+            bg.localScale = targetScale;
+            Debug.Log("[LaunchScreen] AnimateBackground 完成");
+        }
+
+        private IEnumerator FadeInButton(Button button)
+        {
+            var canvasGroup = button.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = button.gameObject.AddComponent<CanvasGroup>();
+            }
+            canvasGroup.alpha = 0;
+
+            float fadeDuration = 1.5f;
+            float elapsed = 0;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                // ease out
+                t = 1f - (1f - t) * (1f - t);
+                canvasGroup.alpha = t;
+                yield return null;
+            }
+
+            canvasGroup.alpha = 1;
+        }
+
         #endregion
-        
+
         #region 弹窗对话框
-        
-        /// <summary>
-        /// 显示新游戏确认对话框
-        /// </summary>
+
         private void ShowNewGameConfirmDialog()
         {
-            // 这里简化处理，实际应该有专门的弹窗系统
             Debug.Log("[LaunchScreen] 显示新游戏确认对话框");
-            
-            // 模拟用户确认后直接开始新游戏
-            // 实际应该等待用户点击确认按钮
             StartNewGame();
         }
-        
-        /// <summary>
-        /// 显示关于对话框
-        /// </summary>
+
         private void ShowAboutDialog()
         {
             Debug.Log("[LaunchScreen] 显示关于对话框");
-            // 显示游戏信息、版本号、版权信息等
-            ShowToast($"我的高考志愿模拟器\n版本：{Application.version}\n这是一段从高考到人生选择的模拟旅程");
+            ShowToastPopup($"我的高考志愿模拟器\n版本：{Application.version}\n这是一段从高考到人生选择的模拟旅程");
         }
-        
+
+        /// <summary>
+        /// 在屏幕中央显示一个临时提示弹窗，1.5秒后自动消失
+        /// </summary>
+        private void ShowToastPopup(string message)
+        {
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            // 半透明遮罩
+            var overlay = CreateUiObject("ToastOverlay", transform);
+            Stretch(overlay);
+            overlay.SetAsLastSibling();
+            var overlayBg = overlay.gameObject.AddComponent<Image>();
+            overlayBg.color = new Color(0, 0, 0, 0.3f);
+            overlayBg.raycastTarget = false;
+
+            // 提示框
+            var card = CreateUiObject("ToastCard", overlay);
+            card.anchorMin = new Vector2(0.15f, 0.4f);
+            card.anchorMax = new Vector2(0.85f, 0.6f);
+            card.offsetMin = Vector2.zero;
+            card.offsetMax = Vector2.zero;
+            var cardBg = card.gameObject.AddComponent<Image>();
+            cardBg.color = new Color32(40, 40, 40, 235);
+            RuntimeArt.ApplyRounded(cardBg);
+
+            var text = CreateText("ToastText", card, font, 36, FontStyle.Normal, Color.white);
+            text.alignment = TextAnchor.MiddleCenter;
+            text.rectTransform.anchorMin = new Vector2(0.08f, 0.1f);
+            text.rectTransform.anchorMax = new Vector2(0.92f, 0.9f);
+            text.rectTransform.offsetMin = Vector2.zero;
+            text.rectTransform.offsetMax = Vector2.zero;
+            text.text = message;
+
+            var canvasGroup = overlay.gameObject.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 1;
+            canvasGroup.blocksRaycasts = false;
+
+            StartCoroutine(FadeToast(canvasGroup));
+        }
+
+        private IEnumerator FadeToast(CanvasGroup canvasGroup)
+        {
+            yield return new WaitForSeconds(1.5f);
+
+            float elapsed = 0;
+            float fadeDuration = 0.3f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                canvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeDuration);
+                yield return null;
+            }
+
+            if (canvasGroup != null)
+                Destroy(canvasGroup.gameObject);
+        }
+
+        #endregion
+
+        #region 自动接线
+
+        /// <summary>
+        /// 从预制体的 kuang/duigou 子对象自动创建 Toggle 组件
+        /// </summary>
+        private Toggle AutoWireAgreeToggle()
+        {
+            var agreeParent = transform.Find("用户协议");
+            if (agreeParent == null) return null;
+
+            var kuang = agreeParent.Find("kuang");
+            var duigou = agreeParent.Find("duigou");
+
+            var toggle = agreeParent.gameObject.AddComponent<Toggle>();
+            toggle.isOn = false;
+
+            if (kuang != null)
+            {
+                var kuangImg = kuang.GetComponent<Image>();
+                if (kuangImg != null) toggle.targetGraphic = kuangImg;
+            }
+
+            if (duigou != null)
+            {
+                var duigouImg = duigou.GetComponent<Image>();
+                if (duigouImg != null) toggle.graphic = duigouImg;
+            }
+
+            Debug.Log("[LaunchScreen] 自动接线用户协议 Toggle");
+            return toggle;
+        }
+
+        /// <summary>
+        /// 运行时在左下角创建注销按钮
+        /// </summary>
+        private Button CreateLogoutButtonRuntime()
+        {
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var button = CreateSmallButton("注销", transform, font,
+                new Color32(255, 255, 255, 200), new Color32(180, 180, 180, 255));
+
+            var rect = (RectTransform)button.transform;
+            rect.anchorMin = new Vector2(0.02f, 0.02f);
+            rect.anchorMax = new Vector2(0.10f, 0.06f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            button.gameObject.AddComponent<UiPressScale>();
+
+            Debug.Log("[LaunchScreen] 自动创建注销按钮");
+            return button;
+        }
+
         #endregion
     }
 }

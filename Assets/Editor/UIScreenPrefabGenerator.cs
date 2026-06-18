@@ -3,6 +3,8 @@ using GaokaoSimulator.Features.Launch;
 using GaokaoSimulator.Features.Profile;
 using GaokaoSimulator.Features.Family;
 using GaokaoSimulator.Features.Province;
+using GaokaoSimulator.Features.Personality;
+using GaokaoSimulator.Features.DailyGame;
 using GaokaoSimulator.UI;
 using GaokaoSimulator.UI.Effects;
 using UnityEditor;
@@ -17,6 +19,9 @@ namespace GaokaoSimulator.EditorTools
         private const string ProfilePrefabPath = "Assets/Resources/UI/Screens/Screen_Profile.prefab";
         private const string FamilyPrefabPath = "Assets/Resources/UI/Screens/Screen_Family.prefab";
         private const string ProvincePrefabPath = "Assets/Resources/UI/Screens/Screen_Province.prefab";
+        private const string PersonalityPrefabPath = "Assets/Resources/UI/Screens/Screen_Personality.prefab";
+        private const string DailyGamePrefabPath = "Assets/Resources/UI/Screens/Screen_DailyGame.prefab";
+        private const string DailySettlementPrefabPath = "Assets/Resources/UI/Screens/Screen_DailySettlement.prefab";
 
         [MenuItem("Gaokao/UI/Generate Screen Prefabs (Safe)")]
         private static void GenerateSafe()
@@ -31,6 +36,9 @@ namespace GaokaoSimulator.EditorTools
             GenerateProfile(font, overwrite: false);
             GenerateFamily(font, overwrite: false);
             GenerateProvince(font, overwrite: false);
+            GeneratePersonality(font, overwrite: false);
+            GenerateDailyGame(font, overwrite: false);
+            GenerateDailySettlement(font, overwrite: false);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -47,6 +55,9 @@ namespace GaokaoSimulator.EditorTools
                             || AssetDatabase.LoadAssetAtPath<GameObject>(ProfilePrefabPath) != null;
             anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(FamilyPrefabPath) != null;
             anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(ProvincePrefabPath) != null;
+            anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(PersonalityPrefabPath) != null;
+            anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(DailyGamePrefabPath) != null;
+            anyExists = anyExists || AssetDatabase.LoadAssetAtPath<GameObject>(DailySettlementPrefabPath) != null;
 
             if (anyExists)
             {
@@ -69,6 +80,9 @@ namespace GaokaoSimulator.EditorTools
                 GenerateProfile(font, overwrite);
                 GenerateFamily(font, overwrite);
                 GenerateProvince(font, overwrite);
+                GeneratePersonality(font, overwrite);
+                GenerateDailyGame(font, overwrite);
+                GenerateDailySettlement(font, overwrite);
             }
             else
             {
@@ -77,6 +91,9 @@ namespace GaokaoSimulator.EditorTools
                 GenerateProfile(font, overwrite: true);
                 GenerateFamily(font, overwrite: true);
                 GenerateProvince(font, overwrite: true);
+                GeneratePersonality(font, overwrite: true);
+                GenerateDailyGame(font, overwrite: true);
+                GenerateDailySettlement(font, overwrite: true);
             }
 
             AssetDatabase.SaveAssets();
@@ -838,6 +855,45 @@ namespace GaokaoSimulator.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SavePrefab(root, ProvincePrefabPath);
+        }
+
+        private static void GeneratePersonality(Font font, bool overwrite)
+        {
+            if (!overwrite && AssetDatabase.LoadAssetAtPath<GameObject>(PersonalityPrefabPath) != null)
+            {
+                return;
+            }
+
+            var root = new GameObject("Screen_Personality", typeof(RectTransform));
+            root.AddComponent<PersonalityScreen>();
+            Stretch(root.GetComponent<RectTransform>());
+            SavePrefab(root, PersonalityPrefabPath);
+        }
+
+        private static void GenerateDailyGame(Font font, bool overwrite)
+        {
+            if (!overwrite && AssetDatabase.LoadAssetAtPath<GameObject>(DailyGamePrefabPath) != null)
+            {
+                return;
+            }
+
+            var root = new GameObject("Screen_DailyGame", typeof(RectTransform));
+            root.AddComponent<DailyGameScreen>();
+            Stretch(root.GetComponent<RectTransform>());
+            SavePrefab(root, DailyGamePrefabPath);
+        }
+
+        private static void GenerateDailySettlement(Font font, bool overwrite)
+        {
+            if (!overwrite && AssetDatabase.LoadAssetAtPath<GameObject>(DailySettlementPrefabPath) != null)
+            {
+                return;
+            }
+
+            var root = new GameObject("Screen_DailySettlement", typeof(RectTransform));
+            root.AddComponent<DailySettlementScreen>();
+            Stretch(root.GetComponent<RectTransform>());
+            SavePrefab(root, DailySettlementPrefabPath);
         }
 
         private static void CreateStatItem(RectTransform parent, Font font, string label, string icon, Vector2 min, Vector2 max, out Image fillImage, out Text valueText)

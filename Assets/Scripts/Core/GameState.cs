@@ -21,6 +21,7 @@ namespace GaokaoSimulator.Core
         public string SelectedProvinceMode { get; set; } = "";
         public int Money { get; set; } = 0;
         public int GuideToneVariant { get; set; } = -1;
+        public bool HasPlayedTutorial { get; set; } = false;
         public string FamilyExamEventTitle { get; set; } = "";
         public string FamilyExamEventDesc { get; set; } = "";
         public string FamilyVolunteerEventTitle { get; set; } = "";
@@ -139,6 +140,7 @@ namespace GaokaoSimulator.Core
             DayAdCount = 0;
             EnergyAdCD = 0;
             LowEnergyTipShown = false;
+            HasPlayedTutorial = false;
             DayIndex = 0;
             EventsCompleted = 0;
             TotalDaysPerSemester = 30;
@@ -177,6 +179,7 @@ namespace GaokaoSimulator.Core
             PlayerPrefs.SetInt("DayAdCount", DayAdCount);
             PlayerPrefs.SetInt("EnergyAdCD", EnergyAdCD);
             PlayerPrefs.SetInt("LowEnergyTipShown", LowEnergyTipShown ? 1 : 0);
+            PlayerPrefs.SetInt("HasPlayedTutorial", HasPlayedTutorial ? 1 : 0);
 
             var energyHistoryStr = EnergyHistory != null && EnergyHistory.Count > 0
                 ? string.Join(",", EnergyHistory)
@@ -227,6 +230,7 @@ namespace GaokaoSimulator.Core
             DayAdCount = PlayerPrefs.GetInt("DayAdCount", 0);
             EnergyAdCD = PlayerPrefs.GetInt("EnergyAdCD", 0);
             LowEnergyTipShown = PlayerPrefs.GetInt("LowEnergyTipShown", 0) == 1;
+            HasPlayedTutorial = PlayerPrefs.GetInt("HasPlayedTutorial", 0) == 1;
 
             var energyHistoryStr = PlayerPrefs.GetString("EnergyHistory", "");
             EnergyHistory.Clear();

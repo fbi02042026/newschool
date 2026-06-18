@@ -6,6 +6,17 @@ namespace GaokaoSimulator.UI
 {
     public static class GuideService
     {
+        private struct HelpButtonConfig
+        {
+            public string text;
+            public int fontSize;
+            public Vector2 anchorMin;
+            public Vector2 anchorMax;
+            public Vector2 pivot;
+            public Vector2 sizeDelta;
+            public Vector2 anchoredPosition;
+        }
+
         public static void EnsureHelpButtonUnderTitle(Transform screenRoot, string titlePath, string buttonName, System.Action onClick)
         {
             if (screenRoot == null)
@@ -30,57 +41,18 @@ namespace GaokaoSimulator.UI
                 return;
             }
 
-            var existing = titleRect.Find(buttonName) as RectTransform;
-            Button button;
-
-            if (existing == null)
+            var config = new HelpButtonConfig
             {
-                var go = new GameObject(buttonName, typeof(RectTransform), typeof(Image), typeof(Button));
-                existing = go.GetComponent<RectTransform>();
-                existing.SetParent(titleRect, false);
-                existing.localScale = Vector3.one;
-                existing.anchorMin = new Vector2(0.5f, 0f);
-                existing.anchorMax = new Vector2(0.5f, 0f);
-                existing.pivot = new Vector2(0.5f, 1f);
-                existing.sizeDelta = new Vector2(66f, 66f);
-                existing.anchoredPosition = new Vector2(0f, -16f);
+                text = "!",
+                fontSize = 34,
+                anchorMin = new Vector2(0.5f, 0f),
+                anchorMax = new Vector2(0.5f, 0f),
+                pivot = new Vector2(0.5f, 1f),
+                sizeDelta = new Vector2(66f, 66f),
+                anchoredPosition = new Vector2(0f, -16f)
+            };
 
-                var image = go.GetComponent<Image>();
-                image.color = new Color32(255, 255, 255, 240);
-                go.AddComponent<UI.Effects.UiAutoRounded>();
-                var outline = go.AddComponent<Outline>();
-                outline.effectColor = (Color32)UITheme.Border;
-                outline.effectDistance = new Vector2(3f, -3f);
-                go.AddComponent<UI.Effects.UiPressScale>();
-
-                var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                var labelGo = new GameObject("Text", typeof(RectTransform), typeof(Text));
-                var labelRect = labelGo.GetComponent<RectTransform>();
-                labelRect.SetParent(go.transform, false);
-                labelRect.anchorMin = Vector2.zero;
-                labelRect.anchorMax = Vector2.one;
-                labelRect.offsetMin = Vector2.zero;
-                labelRect.offsetMax = Vector2.zero;
-                var text = labelGo.GetComponent<Text>();
-                text.font = font;
-                text.fontSize = 34;
-                text.fontStyle = FontStyle.Bold;
-                text.color = UITheme.Text;
-                text.alignment = TextAnchor.MiddleCenter;
-                text.supportRichText = false;
-                text.text = "!";
-
-                button = go.GetComponent<Button>();
-            }
-            else
-            {
-                button = existing.GetComponent<Button>();
-                if (button == null)
-                {
-                    button = existing.gameObject.AddComponent<Button>();
-                }
-            }
-
+            var button = CreateHelpButtonCore(titleRect, buttonName, config, out _);
             if (button == null)
             {
                 return;
@@ -100,6 +72,40 @@ namespace GaokaoSimulator.UI
                 return;
             }
 
+            var config = new HelpButtonConfig
+            {
+                text = "?",
+                fontSize = 42,
+                anchorMin = new Vector2(0.88f, 0.72f),
+                anchorMax = new Vector2(0.98f, 0.96f),
+                pivot = Vector2.one * 0.5f,
+                sizeDelta = Vector2.zero,
+                anchoredPosition = Vector2.zero
+            };
+
+            var button = CreateHelpButtonCore(parent, buttonName, config, out var existing);
+            if (button == null)
+            {
+                return;
+            }
+
+            var scopeRoot = parent.GetComponentInParent<ScreenBase>() != null
+                ? parent.GetComponentInParent<ScreenBase>().transform
+                : parent.root;
+            RemoveDuplicateButtons(scopeRoot, buttonName, existing);
+
+            existing.offsetMin = Vector2.zero;
+            existing.offsetMax = Vector2.zero;
+
+            button.onClick.RemoveAllListeners();
+            if (onClick != null)
+            {
+                button.onClick.AddListener(() => onClick());
+            }
+        }
+
+        private static Button CreateHelpButtonCore(Transform parent, string buttonName, HelpButtonConfig config, out RectTransform rectTransform)
+        {
             var existing = parent.Find(buttonName) as RectTransform;
             Button button;
 
@@ -109,6 +115,11 @@ namespace GaokaoSimulator.UI
                 existing = go.GetComponent<RectTransform>();
                 existing.SetParent(parent, false);
                 existing.localScale = Vector3.one;
+                existing.anchorMin = config.anchorMin;
+                existing.anchorMax = config.anchorMax;
+                existing.pivot = config.pivot;
+                existing.sizeDelta = config.sizeDelta;
+                existing.anchoredPosition = config.anchoredPosition;
 
                 var image = go.GetComponent<Image>();
                 image.color = new Color32(255, 255, 255, 240);
@@ -128,12 +139,12 @@ namespace GaokaoSimulator.UI
                 labelRect.offsetMax = Vector2.zero;
                 var text = labelGo.GetComponent<Text>();
                 text.font = font;
-                text.fontSize = 42;
+                text.fontSize = config.fontSize;
                 text.fontStyle = FontStyle.Bold;
                 text.color = UITheme.Text;
                 text.alignment = TextAnchor.MiddleCenter;
                 text.supportRichText = false;
-                text.text = "?";
+                text.text = config.text;
 
                 button = go.GetComponent<Button>();
             }
@@ -144,35 +155,23 @@ namespace GaokaoSimulator.UI
                 {
                     button = existing.gameObject.AddComponent<Button>();
                 }
+
+                existing.anchorMin = config.anchorMin;
+                existing.anchorMax = config.anchorMax;
+                existing.pivot = config.pivot;
+                existing.sizeDelta = config.sizeDelta;
+                existing.anchoredPosition = config.anchoredPosition;
+
+                var label = existing.Find("Text")?.GetComponent<Text>();
+                if (label != null)
+                {
+                    label.fontSize = config.fontSize;
+                    label.text = config.text;
+                }
             }
 
-            var scopeRoot = parent.GetComponentInParent<ScreenBase>() != null
-                ? parent.GetComponentInParent<ScreenBase>().transform
-                : parent.root;
-            RemoveDuplicateButtons(scopeRoot, buttonName, existing);
-
-            existing.anchorMin = new Vector2(0.88f, 0.72f);
-            existing.anchorMax = new Vector2(0.98f, 0.96f);
-            existing.offsetMin = Vector2.zero;
-            existing.offsetMax = Vector2.zero;
-
-            var label = existing.Find("Text")?.GetComponent<Text>();
-            if (label != null)
-            {
-                label.fontSize = 42;
-                label.text = "?";
-            }
-
-            if (button == null)
-            {
-                return;
-            }
-
-            button.onClick.RemoveAllListeners();
-            if (onClick != null)
-            {
-                button.onClick.AddListener(() => onClick());
-            }
+            rectTransform = existing;
+            return button;
         }
 
         private static void RemoveDuplicateButtons(Transform root, string buttonName, RectTransform keep)

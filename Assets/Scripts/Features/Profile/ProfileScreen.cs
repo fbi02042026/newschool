@@ -175,7 +175,8 @@ namespace GaokaoSimulator.Features.Profile
             RuntimeArt.ApplyRounded(maleCardImage);
             AddSoftShadow(maleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
             maleAvatarImage = AttachAvatar(maleButton.transform, font, "男");
-            var maleSprite = Resources.Load<Sprite>("UI/男");
+            var maleSprite = Resources.Load<Sprite>("UI/boy/普通");
+            if (maleSprite == null) maleSprite = Resources.Load<Sprite>("UI/boy/日常");
             if (maleSprite != null) maleAvatarImage.sprite = maleSprite;
             maleAvatarImage.gameObject.AddComponent<UiFloatBob>().Configure(6f, 0.5f, 0.1f);
             maleButton.gameObject.AddComponent<UiPressScale>();
@@ -190,7 +191,8 @@ namespace GaokaoSimulator.Features.Profile
             RuntimeArt.ApplyRounded(femaleCardImage);
             AddSoftShadow(femaleButton.gameObject, new Color(0.25f, 0.25f, 0.3f, 0.12f), new Vector2(0f, -10f));
             femaleAvatarImage = AttachAvatar(femaleButton.transform, font, "女");
-            var femaleSprite = Resources.Load<Sprite>("UI/女");
+            var femaleSprite = Resources.Load<Sprite>("UI/girl/普通");
+            if (femaleSprite == null) femaleSprite = Resources.Load<Sprite>("UI/girl/日常");
             if (femaleSprite != null) femaleAvatarImage.sprite = femaleSprite;
             femaleAvatarImage.gameObject.AddComponent<UiFloatBob>().Configure(6f, 0.53f, 0.4f);
             femaleButton.gameObject.AddComponent<UiPressScale>();

@@ -37,9 +37,12 @@ namespace GaokaoSimulator.Features.DailyGame
 
         // Event popup
         private GameObject eventModal;
-        private Text eventPortrait;
         private Text eventNarrator;
+        private Text eventPortrait;
         private Text eventDialog;
+        private Text eventTypeTag;
+        private Text eventDialogLine;
+        private Text eventTurn;
         private Transform optionContainer;
         private Button adButton;
         private Text adButtonText;
@@ -300,19 +303,12 @@ namespace GaokaoSimulator.Features.DailyGame
             isEventActive = true;
             eventModal.SetActive(true);
 
-            // 设置事件标题/类型/描述
             eventNarrator.text = "⚡ 突发事件";
-            var typeTagText = eventModal.transform.Find("EventCard/EventDescCard/TypeTag").GetComponent<Text>();
-            typeTagText.text = $"{gameEvent.Category} · 难度 {'★' * Mathf.Min(5, gameEvent.Difficulty)} · {gameEvent.Time}";
+            eventTypeTag.text = $"{gameEvent.Category} · 难度 {'★' * Mathf.Min(5, gameEvent.Difficulty)} · {gameEvent.Time}";
             eventPortrait.text = gameEvent.Narrator;
             eventDialog.text = gameEvent.Dialog;
-
-            var dialogLine = eventModal.transform.Find("EventCard/EventDescCard/DialogLine").GetComponent<Text>();
-            dialogLine.text = $"{gameEvent.Narrator}：{gameEvent.Dialog}";
-
-            // 右侧回合徽章
-            var turn = eventModal.transform.Find("EventCard/TitleBar/Turn").GetComponent<Text>();
-            turn.text = $"{currentEventIndex + 1}";
+            eventDialogLine.text = $"{gameEvent.Narrator}：{gameEvent.Dialog}";
+            eventTurn.text = $"{currentEventIndex + 1}";
 
             foreach (Transform child in optionContainer)
                 Destroy(child.gameObject);
@@ -787,11 +783,11 @@ namespace GaokaoSimulator.Features.DailyGame
             eventNarrator.rectTransform.anchorMax = new Vector2(0.7f, 1f);
             eventNarrator.text = "⚡ 突发事件";
 
-            var turnBadge = CreateText("Turn", titleBar, font, 36, FontStyle.Bold, new Color32(255, 107, 107, 255));
-            turnBadge.alignment = TextAnchor.MiddleCenter;
-            turnBadge.rectTransform.anchorMin = new Vector2(0.85f, 0.05f);
-            turnBadge.rectTransform.anchorMax = new Vector2(0.98f, 0.95f);
-            turnBadge.text = "59";
+            eventTurn = CreateText("Turn", titleBar, font, 36, FontStyle.Bold, new Color32(255, 107, 107, 255));
+            eventTurn.alignment = TextAnchor.MiddleCenter;
+            eventTurn.rectTransform.anchorMin = new Vector2(0.85f, 0.05f);
+            eventTurn.rectTransform.anchorMax = new Vector2(0.98f, 0.95f);
+            eventTurn.text = "59";
 
             // 事件描述卡（浅蓝渐变 + 类型标签 + 标题 + 描述 + 对话）
             var eventDescCard = CreateUiObject("EventDescCard", eventCard);
@@ -802,11 +798,11 @@ namespace GaokaoSimulator.Features.DailyGame
             RuntimeArt.ApplyRounded(edcImg);
 
             // 类型标签
-            var typeTag = CreateText("TypeTag", eventDescCard, font, 24, FontStyle.Bold, new Color32(107, 157, 247, 255));
-            typeTag.alignment = TextAnchor.MiddleLeft;
-            typeTag.rectTransform.anchorMin = new Vector2(0.03f, 0.80f);
-            typeTag.rectTransform.anchorMax = new Vector2(0.97f, 0.96f);
-            typeTag.text = "思事件 · 难度 ★★★ · 10:00";
+            eventTypeTag = CreateText("TypeTag", eventDescCard, font, 24, FontStyle.Bold, new Color32(107, 157, 247, 255));
+            eventTypeTag.alignment = TextAnchor.MiddleLeft;
+            eventTypeTag.rectTransform.anchorMin = new Vector2(0.03f, 0.80f);
+            eventTypeTag.rectTransform.anchorMax = new Vector2(0.97f, 0.96f);
+            eventTypeTag.text = "思事件 · 难度 ★★★ · 10:00";
 
             // 事件名称
             eventPortrait = CreateText("Title", eventDescCard, font, 30, FontStyle.Bold, new Color32(74, 58, 46, 255));
@@ -824,11 +820,11 @@ namespace GaokaoSimulator.Features.DailyGame
             eventDialog.text = "数学老师在黑板上写了一道压轴题...";
 
             // 说话人/对话
-            var dialogLine = CreateText("DialogLine", eventDescCard, font, 24, FontStyle.Bold, new Color32(255, 107, 107, 255));
-            dialogLine.alignment = TextAnchor.MiddleLeft;
-            dialogLine.rectTransform.anchorMin = new Vector2(0.03f, 0.02f);
-            dialogLine.rectTransform.anchorMax = new Vector2(0.97f, 0.22f);
-            dialogLine.text = "数学老师：这道题谁能做出来？";
+            eventDialogLine = CreateText("DialogLine", eventDescCard, font, 24, FontStyle.Bold, new Color32(255, 107, 107, 255));
+            eventDialogLine.alignment = TextAnchor.MiddleLeft;
+            eventDialogLine.rectTransform.anchorMin = new Vector2(0.03f, 0.02f);
+            eventDialogLine.rectTransform.anchorMax = new Vector2(0.97f, 0.22f);
+            eventDialogLine.text = "数学老师：这道题谁能做出来？";
 
             // 3 个选项（垂直）
             var optionsRect = CreateUiObject("Options", eventCard);

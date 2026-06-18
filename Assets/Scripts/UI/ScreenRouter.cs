@@ -111,9 +111,31 @@ namespace GaokaoSimulator.UI
                 rectTransform.offsetMin = Vector2.zero;
                 rectTransform.offsetMax = Vector2.zero;
 
+                // 确保 UI 图层存在
+                int uiLayer = LayerMask.NameToLayer("UI");
+                if (uiLayer == -1) uiLayer = 0;
+
+                canvasGo.layer = uiLayer;
+
                 var canvas = canvasGo.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.pixelPerfect = false;
+
+                var uiCameraGo = new GameObject("UICamera");
+                DontDestroyOnLoad(uiCameraGo);
+                var uiCamera = uiCameraGo.AddComponent<Camera>();
+                uiCamera.clearFlags = CameraClearFlags.Depth;
+                uiCamera.cullingMask = 1 << uiLayer;
+                uiCamera.orthographic = true;
+                uiCamera.orthographicSize = 13.8f;
+                uiCamera.nearClipPlane = 0.1f;
+                uiCamera.farClipPlane = 200;
+                uiCamera.depth = 10;
+                canvas.worldCamera = uiCamera;
+                canvas.planeDistance = 100;
+
+                // 相机放在 Canvas 后方，确保 Canvas 平面在视野中心
+                uiCameraGo.transform.position = new Vector3(0, 0, -100);
 
                 canvasGo.AddComponent<CanvasScaler>();
                 canvasGo.AddComponent<GraphicRaycaster>();
@@ -216,38 +238,151 @@ namespace GaokaoSimulator.UI
         /// </summary>
         private ScreenBase GetOrCreateScreen(ScreenType screenType)
         {
-            // 检查缓存
+            var resourcesPrefab = Resources.Load<ScreenBase>($"UI/Screens/Screen_{screenType}");
+            var resourcesGo = Resources.Load<GameObject>($"UI/Screens/Screen_{screenType}");
+
+            bool hasResourcesPrefab = resourcesPrefab != null || resourcesGo != null;
+
             if (screenInstances.TryGetValue(screenType, out var cachedScreen))
             {
-                return cachedScreen;
-            }
-            
-            // 查找配置
-            var config = screenConfigs.Find(c => c.screenType == screenType);
-            if (config == null || config.prefab == null)
-            {
-                var resourcesPrefab = Resources.Load<ScreenBase>($"UI/Screens/Screen_{screenType}");
-                if (resourcesPrefab != null)
+                if (hasResourcesPrefab)
                 {
-                    var instanceFromResources = Instantiate(resourcesPrefab, screenRoot);
-                    instanceFromResources.name = $"Screen_{screenType}";
-                    instanceFromResources.ScreenId = screenType;
-                    screenInstances[screenType] = instanceFromResources;
-                    return instanceFromResources;
+                    Destroy(cachedScreen.gameObject);
+                    screenInstances.Remove(screenType);
+                }
+                else
+                {
+                    return cachedScreen;
+                }
+            }
+
+            var config = screenConfigs.Find(c => c.screenType == screenType);
+
+            if (resourcesPrefab != null)
+            {
+                var instanceFromResources = Instantiate(resourcesPrefab, screenRoot);
+                instanceFromResources.name = $"Screen_{screenType}";
+                instanceFromResources.ScreenId = screenType;
+                screenInstances[screenType] = instanceFromResources;
+                return instanceFromResources;
+            }
+
+            if (resourcesGo != null)
+            {
+                var instanceGo = Instantiate(resourcesGo, screenRoot);
+                instanceGo.name = $"Screen_{screenType}";
+
+                var screenBase = instanceGo.GetComponent<ScreenBase>();
+                if (screenBase == null)
+                {
+                    screenBase = AddScreenComponent(instanceGo, screenType);
                 }
 
-                return CreateRuntimeScreen(screenType);
+                if (screenBase != null)
+                {
+                    screenBase.ScreenId = screenType;
+                    screenInstances[screenType] = screenBase;
+                    return screenBase;
+                }
             }
-            
-            // 创建实例
-            var instance = Instantiate(config.prefab, screenRoot);
-            instance.name = $"Screen_{screenType}";
-            instance.ScreenId = screenType;
-            
-            // 如果配置为常驻内存，加入缓存
-            if (config.cacheInMemory)
+
+            if (config != null && config.prefab != null)
             {
-                screenInstances[screenType] = instance;
+                var instance = Instantiate(config.prefab, screenRoot);
+                instance.name = $"Screen_{screenType}";
+                instance.ScreenId = screenType;
+
+                if (config.cacheInMemory)
+                {
+                    screenInstances[screenType] = instance;
+                }
+
+                return instance;
+            }
+
+            return CreateRuntimeScreen(screenType);
+        }
+
+        private ScreenBase AddScreenComponent(GameObject gameObject, ScreenType screenType)
+        {
+            ScreenBase instance;
+            if (screenType == ScreenType.Launch)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Launch.LaunchScreen>();
+            }
+            else if (screenType == ScreenType.Profile)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Profile.ProfileScreen>();
+            }
+            else if (screenType == ScreenType.Personality)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Personality.PersonalityScreen>();
+            }
+            else if (screenType == ScreenType.Family)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Family.FamilyScreen>();
+            }
+            else if (screenType == ScreenType.Province)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Province.ProvinceScreen>();
+            }
+            else if (screenType == ScreenType.Subject)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Subject.SubjectScreen>();
+            }
+            else if (screenType == ScreenType.Home)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Home.HomeScreen>();
+            }
+            else if (screenType == ScreenType.Semester)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Semester.SemesterScreen>();
+            }
+            else if (screenType == ScreenType.SemesterResult)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Semester.SemesterResultScreen>();
+            }
+            else if (screenType == ScreenType.PlayerInfo)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.PlayerInfo.PlayerInfoScreen>();
+            }
+            else if (screenType == ScreenType.Shop)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Shop.ShopScreen>();
+            }
+            else if (screenType == ScreenType.Gaokao)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Gaokao.GaokaoScreen>();
+            }
+            else if (screenType == ScreenType.Volunteer)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Volunteer.VolunteerScreen>();
+            }
+            else if (screenType == ScreenType.University)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.University.UniversityScreen>();
+            }
+            else if (screenType == ScreenType.Career)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Career.CareerScreen>();
+            }
+            else if (screenType == ScreenType.Summary)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.Summary.SummaryScreen>();
+            }
+            else if (screenType == ScreenType.DailyGame)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.DailyGame.DailyGameScreen>();
+            }
+            else if (screenType == ScreenType.DailySettlement)
+            {
+                instance = gameObject.AddComponent<GaokaoSimulator.Features.DailyGame.DailySettlementScreen>();
+            }
+            else
+            {
+                var placeholder = gameObject.AddComponent<RuntimePlaceholderScreen>();
+                placeholder.Configure(screenType);
+                instance = placeholder;
             }
             
             return instance;

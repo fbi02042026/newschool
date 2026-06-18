@@ -667,7 +667,7 @@ namespace GaokaoSimulator.Features.Home
 
         private void EnsureRuntimeLayout()
         {
-            if (continueButton != null && titleText != null && subtitleText != null && summaryText != null && buttonGroupRoot != null && semesterIndicator != null && semesterReviewRoot != null)
+            if (continueButton != null && titleText != null && subtitleText != null && summaryText != null && buttonGroupRoot != null && semesterIndicator != null && semesterReviewRoot != null && semesterScrollContent != null)
             {
                 return;
             }
@@ -912,11 +912,6 @@ namespace GaokaoSimulator.Features.Home
             if (state.CurrentProgress == GameProgress.Province)
             {
                 return ScreenType.Subject;
-            }
-
-            if (state.CurrentProgress == GameProgress.Subject)
-            {
-                return ScreenType.Home;
             }
 
             if (state.CurrentProgress < GameProgress.Semester)
