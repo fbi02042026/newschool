@@ -93,6 +93,63 @@ namespace GaokaoSimulator.UI
             Debug.Log($"[{GetType().Name}] {message}");
         }
 
+        protected virtual void ShowToastPopup(string message)
+        {
+            var font = Resources.Load<Font>("text/AlimamaFangYuanTiVF-Thin-2");
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var toastGo = new GameObject("ToastPopup", typeof(RectTransform));
+            var toastRect = toastGo.GetComponent<RectTransform>();
+            toastRect.SetParent(transform, false);
+            toastRect.anchorMin = new Vector2(0.1f, 0.42f);
+            toastRect.anchorMax = new Vector2(0.9f, 0.52f);
+            toastRect.offsetMin = Vector2.zero;
+            toastRect.offsetMax = Vector2.zero;
+            toastRect.SetAsLastSibling();
+
+            var toastText = toastGo.AddComponent<Text>();
+            toastText.font = font;
+            toastText.fontSize = 55;
+            toastText.fontStyle = FontStyle.Normal;
+            toastText.color = new Color32(255, 255, 150, 255);
+            toastText.alignment = TextAnchor.MiddleCenter;
+            toastText.raycastTarget = false;
+            toastText.text = message;
+
+            var shadow = toastGo.AddComponent<Shadow>();
+            shadow.effectColor = Color.black;
+            shadow.effectDistance = new Vector2(3, -2);
+
+            var outline = toastGo.AddComponent<Outline>();
+            outline.effectColor = Color.black;
+            outline.effectDistance = new Vector2(2, -1);
+
+            var canvasGroup = toastGo.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = false;
+
+            StartCoroutine(FadeToastPopup(toastRect, canvasGroup));
+        }
+
+        private IEnumerator FadeToastPopup(RectTransform card, CanvasGroup canvasGroup)
+        {
+            yield return new WaitForSeconds(2f);
+
+            float elapsed = 0;
+            float duration = 0.5f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                canvasGroup.alpha = 1f - t;
+                card.anchoredPosition += new Vector2(0, 60f * Time.deltaTime);
+                yield return null;
+            }
+
+            Destroy(canvasGroup.gameObject);
+        }
+
         protected static Font BuiltinFont()
         {
             return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

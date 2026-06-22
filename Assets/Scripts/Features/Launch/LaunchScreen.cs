@@ -37,7 +37,6 @@ namespace GaokaoSimulator.Features.Launch
         [SerializeField] private Text versionText;
 
         private Coroutine titleAnimationCoroutine;
-        private Coroutine backgroundAnimationCoroutine;
         private Coroutine buttonFadeCoroutine;
         private Coroutine introSequenceCoroutine;
 
@@ -85,7 +84,9 @@ namespace GaokaoSimulator.Features.Launch
             }
 
             if (settingsButton != null)
+            {
                 settingsButton.onClick.AddListener(OnSettingsClicked);
+            }
 
             if (aboutButton != null)
                 aboutButton.onClick.AddListener(OnAboutClicked);
@@ -95,13 +96,6 @@ namespace GaokaoSimulator.Features.Launch
 
             if (versionText != null)
                 versionText.text = $"v{Application.version}";
-
-            // 提前设置背景初始缩放，避免第一帧跳变
-            var bg = transform.Find("Background");
-            if (bg != null)
-            {
-                bg.localScale = Vector3.one * 1.2f;
-            }
 
             // 创建白色遮罩，覆盖整个界面
             CreateWhiteMask();
@@ -166,12 +160,6 @@ namespace GaokaoSimulator.Features.Launch
                 titleAnimationCoroutine = null;
             }
 
-            if (backgroundAnimationCoroutine != null)
-            {
-                StopCoroutine(backgroundAnimationCoroutine);
-                backgroundAnimationCoroutine = null;
-            }
-
             if (buttonFadeCoroutine != null)
             {
                 StopCoroutine(buttonFadeCoroutine);
@@ -192,13 +180,14 @@ namespace GaokaoSimulator.Features.Launch
 
         private void EnsureRuntimeLayout()
         {
+            // 预制体已有完整UI，如果字段缺失则记录警告
             bool hasMainButton = startButton != null || (newGameButton != null && continueGameButton != null);
-            if (hasMainButton && titleTransform != null && versionText != null)
-            {
-                return;
-            }
-
-            BuildRuntimeLayout();
+            if (!hasMainButton)
+                Debug.LogWarning("[LaunchScreen] 预制体中缺少按钮引用（startButton/newGameButton），请在编辑器中检查");
+            if (titleTransform == null)
+                Debug.LogWarning("[LaunchScreen] 预制体中缺少 titleTransform 引用，请在编辑器中检查");
+            if (versionText == null)
+                Debug.LogWarning("[LaunchScreen] 预制体中缺少 versionText 引用，请在编辑器中检查");
         }
 
         private void BuildRuntimeLayout()
@@ -730,7 +719,7 @@ namespace GaokaoSimulator.Features.Launch
         {
             Debug.Log("[LaunchScreen] IntroSequence 开始");
 
-            // 初始状态：标题和按钮先隐藏
+            // 初始状态：标题、按钮、底部UI先隐藏
             if (titleTransform != null)
             {
                 var titleCg = titleTransform.GetComponent<CanvasGroup>();
@@ -745,19 +734,34 @@ namespace GaokaoSimulator.Features.Launch
                 btnCg.alpha = 0f;
             }
 
-            // 背景缩放动画立即启动（不等待遮罩，遮罩覆盖在上面所以看不到）
-            backgroundAnimationCoroutine = StartCoroutine(AnimateBackground());
-            Debug.Log("[LaunchScreen] 背景缩放动画已启动");
+            // 隐藏所有非背景、非遮罩的子对象（排除bg背景动画）
+            void HideAllChildren(Transform parent)
+            {
+                for (int i = 0; i < parent.childCount; i++)
+                {
+                    var child = parent.GetChild(i);
+                    string lowerName = child.name.ToLower();
+                    if (lowerName == "background" || lowerName == "whitemask" || lowerName == "bg") continue;
+                    
+                    var cg = child.GetComponent<CanvasGroup>();
+                    if (cg == null) cg = child.gameObject.AddComponent<CanvasGroup>();
+                    cg.alpha = 0f;
+                    
+                    HideAllChildren(child);
+                }
+            }
+            
+            HideAllChildren(transform);
 
-            // 阶段1：白色遮罩停留0.5秒，然后2秒渐消
+            // 白色遮罩停留0.4秒，然后渐消
             var mask = transform.Find("WhiteMask");
             Debug.Log($"[LaunchScreen] WhiteMask: {(mask != null ? "找到" : "未找到")}");
             if (mask != null)
             {
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.4f);
 
                 var maskCg = mask.GetComponent<CanvasGroup>();
-                float maskFadeDuration = 2f;
+                float maskFadeDuration = 1.6f;
                 float maskElapsed = 0f;
                 while (maskElapsed < maskFadeDuration)
                 {
@@ -769,19 +773,25 @@ namespace GaokaoSimulator.Features.Launch
                 }
                 maskCg.alpha = 0f;
                 maskCg.blocksRaycasts = false;
+                var maskImg = mask.GetComponent<Image>();
+                if (maskImg != null) maskImg.raycastTarget = false;
                 Debug.Log("[LaunchScreen] 白色遮罩渐消完成");
             }
 
-            // 阶段2：遮罩消失后，启动标题和按钮动画
+            // 阶段2：标题和按钮都在背景动画播放到一半时出现
             if (titleTransform != null)
             {
-                titleAnimationCoroutine = StartCoroutine(AnimateTitle());
+                StartCoroutine(FadeInTitleDelayed(1.0f));
             }
 
+            // 按钮延迟2.5秒后再开始出现
             if (startButton != null)
             {
-                buttonFadeCoroutine = StartCoroutine(FadeInButton(startButton));
+                StartCoroutine(FadeInButtonDelayed(startButton, 1.0f));
             }
+
+            // 底部UI也在2.5秒后一起淡入
+            StartCoroutine(FadeInBottomUI(1.0f));
 
             Debug.Log("[LaunchScreen] IntroSequence 完成");
         }
@@ -818,46 +828,6 @@ namespace GaokaoSimulator.Features.Launch
             titleCanvasGroup.alpha = 1;
         }
 
-        private IEnumerator AnimateBackground()
-        {
-            var bg = transform.Find("Background");
-            if (bg == null)
-            {
-                Debug.LogWarning("[LaunchScreen] AnimateBackground: Background 未找到！");
-                yield break;
-            }
-
-            Debug.Log($"[LaunchScreen] AnimateBackground 开始, 初始scale={bg.localScale}");
-
-            float duration = 10f; // 10秒
-            Vector3 targetScale = Vector3.one;
-            Vector3 startScale = targetScale * 1.2f;
-
-            bg.localScale = startScale;
-
-            float elapsed = 0;
-            float lastLogTime = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                // 线性过渡，匀速变化，让用户能感知到
-                bg.localScale = Vector3.Lerp(startScale, targetScale, t);
-
-                // 每秒打印一次日志，确认动画在跑
-                if (elapsed - lastLogTime >= 1f)
-                {
-                    lastLogTime = elapsed;
-                    Debug.Log($"[LaunchScreen] 背景缩放: t={t:F4}, scale={bg.localScale.x:F4}, elapsed={elapsed:F1}s");
-                }
-
-                yield return null;
-            }
-
-            bg.localScale = targetScale;
-            Debug.Log("[LaunchScreen] AnimateBackground 完成");
-        }
-
         private IEnumerator FadeInButton(Button button)
         {
             var canvasGroup = button.GetComponent<CanvasGroup>();
@@ -867,7 +837,7 @@ namespace GaokaoSimulator.Features.Launch
             }
             canvasGroup.alpha = 0;
 
-            float fadeDuration = 1.5f;
+            float fadeDuration = 1.2f;
             float elapsed = 0;
             while (elapsed < fadeDuration)
             {
@@ -880,6 +850,57 @@ namespace GaokaoSimulator.Features.Launch
             }
 
             canvasGroup.alpha = 1;
+        }
+
+        private IEnumerator FadeInButtonDelayed(Button button, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            yield return FadeInButton(button);
+        }
+
+        private IEnumerator FadeInTitleDelayed(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            yield return AnimateTitle();
+        }
+
+        private IEnumerator FadeInBottomUI(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            float fadeDuration = 1.2f;
+            float elapsed = 0f;
+
+            // 收集所有需要淡入的 CanvasGroup（非背景）
+            var groups = new System.Collections.Generic.List<CanvasGroup>();
+            
+            void CollectGroups(Transform parent)
+            {
+                for (int i = 0; i < parent.childCount; i++)
+                {
+                    var child = parent.GetChild(i);
+                    string lowerName = child.name.ToLower();
+                    if (lowerName == "background" || lowerName == "whitemask" || lowerName == "bg") continue;
+                    
+                    var cg = child.GetComponent<CanvasGroup>();
+                    if (cg != null) { cg.alpha = 0f; groups.Add(cg); }
+                    
+                    CollectGroups(child);
+                }
+            }
+            
+            CollectGroups(transform);
+
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                t = 1f - (1f - t) * (1f - t); // ease out
+                foreach (var cg in groups) cg.alpha = t;
+                yield return null;
+            }
+
+            foreach (var cg in groups) cg.alpha = 1f;
         }
 
         #endregion
@@ -896,63 +917,6 @@ namespace GaokaoSimulator.Features.Launch
         {
             Debug.Log("[LaunchScreen] 显示关于对话框");
             ShowToastPopup($"我的高考志愿模拟器\n版本：{Application.version}\n这是一段从高考到人生选择的模拟旅程");
-        }
-
-        /// <summary>
-        /// 在屏幕中央显示一个临时提示弹窗，1.5秒后自动消失
-        /// </summary>
-        private void ShowToastPopup(string message)
-        {
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            // 半透明遮罩
-            var overlay = CreateUiObject("ToastOverlay", transform);
-            Stretch(overlay);
-            overlay.SetAsLastSibling();
-            var overlayBg = overlay.gameObject.AddComponent<Image>();
-            overlayBg.color = new Color(0, 0, 0, 0.3f);
-            overlayBg.raycastTarget = false;
-
-            // 提示框
-            var card = CreateUiObject("ToastCard", overlay);
-            card.anchorMin = new Vector2(0.15f, 0.4f);
-            card.anchorMax = new Vector2(0.85f, 0.6f);
-            card.offsetMin = Vector2.zero;
-            card.offsetMax = Vector2.zero;
-            var cardBg = card.gameObject.AddComponent<Image>();
-            cardBg.color = new Color32(40, 40, 40, 235);
-            RuntimeArt.ApplyRounded(cardBg);
-
-            var text = CreateText("ToastText", card, font, 36, FontStyle.Normal, Color.white);
-            text.alignment = TextAnchor.MiddleCenter;
-            text.rectTransform.anchorMin = new Vector2(0.08f, 0.1f);
-            text.rectTransform.anchorMax = new Vector2(0.92f, 0.9f);
-            text.rectTransform.offsetMin = Vector2.zero;
-            text.rectTransform.offsetMax = Vector2.zero;
-            text.text = message;
-
-            var canvasGroup = overlay.gameObject.AddComponent<CanvasGroup>();
-            canvasGroup.alpha = 1;
-            canvasGroup.blocksRaycasts = false;
-
-            StartCoroutine(FadeToast(canvasGroup));
-        }
-
-        private IEnumerator FadeToast(CanvasGroup canvasGroup)
-        {
-            yield return new WaitForSeconds(1.5f);
-
-            float elapsed = 0;
-            float fadeDuration = 0.3f;
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.deltaTime;
-                canvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeDuration);
-                yield return null;
-            }
-
-            if (canvasGroup != null)
-                Destroy(canvasGroup.gameObject);
         }
 
         #endregion
